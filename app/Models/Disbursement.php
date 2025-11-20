@@ -47,7 +47,7 @@ class Disbursement extends Model
                 'amount' => $disbursement->amount,
                 'transaction_date' => $disbursement->disbursement_date,
                 'type' => 'expense',
-                'source' => 'disbursement',
+                'source' => 'returns_distribution',
                 'description' => 'Profit disbursement to investors: ' . $disbursement->description,
                 'created_by_id' => $disbursement->created_by_id,
             ]);
@@ -72,7 +72,7 @@ class Disbursement extends Model
             
             // Delete related project transaction (disbursement expense)
             ProjectTransaction::where('project_id', $disbursement->project_id)
-                ->where('source', 'disbursement')
+                ->where('source', 'returns_distribution')
                 ->where('transaction_date', $disbursement->disbursement_date)
                 ->where('amount', $disbursement->amount)
                 ->where('created_by_id', $disbursement->created_by_id)
