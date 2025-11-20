@@ -65,10 +65,18 @@ class Disbursement extends Model
         });
 
         // After deleting a disbursement, delete related account transactions
-        // and update project totals
+        // and project transactions, then update project totals
         static::deleting(function ($disbursement) {
-            // Delete related account transactions
+            // Delete related account transactions (investor distributions)
             AccountTransaction::where('related_disbursement_id', $disbursement->id)->delete();
+            
+            // Delete related project transaction (disbursement expense)
+            ProjectTransaction::where('project_id', $disbursement->project_id)
+                ->where('source', 'disbursement')
+                ->where('transaction_date', $disbursement->disbursement_date)
+                ->where('amount', $disbursement->amount)
+                ->where('created_by_id', $disbursement->created_by_id)
+                ->delete();
         });
 
         static::deleted(function ($disbursement) {
