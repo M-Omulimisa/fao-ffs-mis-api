@@ -25,44 +25,72 @@ class User extends Administrator implements JWTSubject
     protected $guarded = [];
 
     /**
-     * Boot method to handle model events
+     * Boot method to handle model events - Simplified for FAO FFS-MIS
      */
     public static function boot() 
     {
         parent::boot();
 
-        // Handle name splitting and validations before creating
+        // Handle member creation
         static::creating(function ($user) {
             self::sanitizeData($user);
             self::handleNameSplitting($user);
             self::validateUniqueFields($user);
-            self::generateDipId($user);
-            self::generateDtehmMemberId($user);
+            self::generateMemberCode($user);
         });
 
-        // Handle name splitting and validations before updating
+        // Handle member updates
         static::updating(function ($user) {
             self::sanitizeData($user);
             self::handleNameSplitting($user);
             self::validateUniqueFields($user, true);
-            self::generateDipId($user);
-            self::generateDtehmMemberId($user);
         });
-
-        // Populate parent hierarchy AFTER user is created (so we have an ID)
-        static::created(function ($user) {
-            self::populateParentHierarchy($user);
-        });
-
-        // Re-populate parent hierarchy when sponsor_id changes
-        static::updated(function ($user) {
-            // Check if sponsor_id has changed
-            if ($user->isDirty('sponsor_id')) {
-                \Log::info('Sponsor ID changed for user ' . $user->id . ': ' . 
-                    $user->getOriginal('sponsor_id') . ' -> ' . $user->sponsor_id);
-                self::populateParentHierarchy($user);
+        
+        // Prevent deletion of members
+        static::deleting(function ($user) {
+            if ($user->user_type == 'Customer') {
+                throw new \Exception('Members cannot be deleted. Please set status to Inactive instead.');
             }
         });
+    }
+    
+    /**
+     * Generate unique member code for FAO FFS-MIS
+     */
+    protected static function generateMemberCode($user)
+    {
+        if (!empty($user->member_code)) {
+            return;
+        }
+        
+        // Format: XXX-MEM-YY-NNNN
+        // XXX = District code (first 3 letters)
+        // MEM = Member
+        // YY = Year (25 for 2025)
+        // NNNN = Sequential number
+        
+        $districtCode = 'XXX';
+        if ($user->district_id) {
+            $district = \App\Models\Location::find($user->district_id);
+            if ($district) {
+                $districtCode = strtoupper(substr($district->name, 0, 3));
+            }
+        }
+        
+        $year = date('y');
+        
+        // Get the last member code for this district and year
+        $lastMember = self::where('member_code', 'like', "$districtCode-MEM-$year-%")
+            ->orderBy('member_code', 'desc')
+            ->first();
+        
+        if ($lastMember && preg_match('/-(\d{4})$/', $lastMember->member_code, $matches)) {
+            $nextNumber = intval($matches[1]) + 1;
+        } else {
+            $nextNumber = 1;
+        }
+        
+        $user->member_code = sprintf('%s-MEM-%s-%04d', $districtCode, $year, $nextNumber);
     }
 
     /**
@@ -630,6 +658,38 @@ class User extends Administrator implements JWTSubject
     public function programs()
     {
         return $this->hasMany(UserHasProgram::class, 'user_id');
+    }
+    
+    /**
+     * Get the group this member belongs to
+     */
+    public function group()
+    {
+        return $this->belongsTo(\App\Models\FfsGroup::class, 'group_id');
+    }
+    
+    /**
+     * Get the district
+     */
+    public function district()
+    {
+        return $this->belongsTo(\App\Models\Location::class, 'district_id');
+    }
+    
+    /**
+     * Get the subcounty
+     */
+    public function subcounty()
+    {
+        return $this->belongsTo(\App\Models\Location::class, 'subcounty_id');
+    }
+    
+    /**
+     * Get the parish
+     */
+    public function parish()
+    {
+        return $this->belongsTo(\App\Models\Location::class, 'parish_id');
     }
 
     /**

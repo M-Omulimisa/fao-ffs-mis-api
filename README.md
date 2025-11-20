@@ -1,55 +1,69 @@
-# BlitXpress - Laravel E-commerce Backend
+# FAO FFS Digital MIS - Farmer Field School Management System
 
-A comprehensive Laravel e-commerce backend system with admin panel, API endpoints, and robust order management capabilities. This project includes JWT authentication, Stripe payment integration, email notifications, and full CRUD operations for products, orders, and user management.
+A comprehensive digital Management Information System (MIS) for Farmer Field Schools (FFS), Farmer Business Schools (FBS), and Village Savings and Loan Associations (VSLA) under the FAO FOSTER Project in Karamoja, Uganda.
+
+**Client:** Food and Agriculture Organization (FAO) - Uganda  
+**Project:** UNJP/UGA/068/EC - FOSTER (Food Security and Resilience in Karamoja)  
+**Duration:** 6 Months (Development, Deployment, Training)  
+**Target Area:** 9 Districts in Karamoja Subregion, Uganda
 
 ## Table of Contents
 
 - [Project Overview](#project-overview)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Models & Database Schema](#models--database-schema)
-- [API Endpoints](#api-endpoints)
-- [Authentication System](#authentication-system)
-- [Admin Panel](#admin-panel)
-- [Payment Integration](#payment-integration)
-- [Email System](#email-system)
-- [Configuration](#configuration)
-- [Deployment](#deployment)
-- [Development Tools](#development-tools)
+- [System Architecture](#system-architecture)
+- [Core Modules](#core-modules)
+- [Technology Stack](#technology-stack)
+- [Installation Guide](#installation-guide)
+- [API Documentation](#api-documentation)
+- [Module Documentation](#module-documentation)
+- [Offline Capability](#offline-capability)
+- [Security & Compliance](#security--compliance)
+- [Development Roadmap](#development-roadmap)
+- [Training & Capacity Building](#training--capacity-building)
 
 ## Project Overview
 
-BlitXpress is a full-featured e-commerce backend built with Laravel 8+ that provides:
+The FAO FFS Digital MIS is designed to digitize and enhance the management of agropastoral field schools and their associated business and financial activities. The system supports:
 
-- **Multi-channel API** - REST API for frontend applications (React, Flutter, etc.)
-- **Admin Panel** - Laravel Admin for backend management
-- **Order Management** - Complete order lifecycle with state management
-- **Payment Processing** - Stripe integration for secure payments
-- **User Authentication** - JWT-based authentication with role management
-- **Email Notifications** - Automated email system for order states
-- **Product Catalog** - Comprehensive product management with categories, variations, and images
-- **Geographic Support** - Location-based delivery and regional management
+- **Digital Group Management** - FFS, FBS, and VSLA registration and profiling
+- **Training & Learning** - AESA/GAP tracking, e-learning modules, advisory content
+- **Financial Inclusion** - VSLA digital ledger with savings and loan management
+- **Market Linkages** - E-marketplace for inputs, services, and produce
+- **Real-Time M&E** - Comprehensive dashboard for monitoring and evaluation
+- **Offline-First Design** - Full functionality in low-connectivity environments
+- **Multi-Channel Access** - Mobile app, web portal, IVR, and USSD
 
-## Architecture
+### Key Objectives
+
+1. **Digitize FFS Operations** - Structured data capture across all 9 Karamoja districts
+2. **Strengthen Institutional Capacity** - Train facilitators, IPs, and district staff
+3. **Improve Advisory Services** - Timely, localized, inclusive agricultural content
+4. **Enable Financial Inclusion** - Digital VSLA ledgers with mobile money integration
+5. **Enhance M&E Systems** - Real-time, evidence-based project learning
+
+## System Architecture
 
 ```text
-Frontend (React/Flutter) ← REST API → Laravel Backend ← Admin Panel
-                                         ↓
-                                   MySQL Database
-                                         ↓
-                              External Services (Stripe, Email)
+Mobile App (Offline-Capable) ←→ REST API ←→ Laravel Backend ←→ Admin Panel
+         ↓                                          ↓
+   Local SQLite                              MySQL Database
+         ↓                                          ↓
+   Sync Engine  →  Conflict Resolution  →  Cloud Storage
+                                                    ↓
+                              External Services (SMS, OneSignal, Mobile Money)
 ```
 
 ### Technology Stack
 
-- **Backend Framework**: Laravel 8+
-- **Database**: MySQL
-- **Authentication**: JWT (tymon/jwt-auth)
-- **Admin Panel**: Laravel Admin (encore/laravel-admin)
-- **Payment Gateway**: Stripe
-- **Email Service**: SMTP (configurable)
-- **Image Processing**: Custom utilities with thumbnail generation
-- **File Storage**: Local filesystem (configurable for AWS S3)
+- **Backend Framework**: Laravel 8.x (PHP 7.3+)
+- **Database**: MySQL 5.7+ (with offline SQLite for mobile)
+- **Authentication**: JWT (tymon/jwt-auth) + Laravel Sanctum
+- **Admin Panel**: Laravel Admin (encore/laravel-admin) with custom FFS modules
+- **Mobile App**: Flutter (cross-platform iOS/Android)
+- **Payment Integration**: Pesapal (Uganda), Mobile Money APIs
+- **Notifications**: OneSignal (push), SMS Gateway, IVR/USSD
+- **PDF Generation**: DomPDF (for reports and receipts)
+- **File Storage**: Local filesystem with cloud backup (configurable for AWS S3)
 
 ## Project Structure
 

@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Login - {{ config('app.name', 'DTEHM Insurance') }}</title>
+    <title>Login - {{ config('app.name', 'FAO FFS MIS') }}</title>
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('assets/images/logo.png') }}">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         * {
@@ -22,39 +25,59 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
+            background: #ffffff;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle squared box pattern */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0, 0, 0, 0.08) 39px, rgba(0, 0, 0, 0.08) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0, 0, 0, 0.08) 39px, rgba(0, 0, 0, 0.08) 40px);
+            background-size: 40px 40px;
         }
 
         .login-container {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
-            max-width: 420px;
+            max-width: 440px;
             width: 100%;
+            position: relative;
+            z-index: 1;
         }
 
         .login-header {
             background: #05179F;
-            padding: 40px 30px;
+            padding: 50px 40px 45px;
             text-align: center;
             color: white;
         }
 
         .logo-container {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .logo {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             margin: 0 auto;
             display: block;
+            background: white;
+            padding: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
 
         .logo img {
@@ -64,88 +87,107 @@
         }
 
         .login-header h1 {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
 
         .login-header p {
-            font-size: 14px;
-            opacity: 0.9;
+            font-size: 15px;
+            opacity: 0.95;
             font-weight: 400;
+            letter-spacing: 0.3px;
         }
 
         .login-body {
-            padding: 35px 30px;
+            padding: 45px 40px;
         }
 
         .alert {
-            padding: 12px 16px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
             font-size: 14px;
             display: flex;
             align-items: flex-start;
-            gap: 8px;
+            gap: 10px;
+            border-left: 4px solid;
         }
 
         .alert-danger {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
+            background: #fff5f5;
+            color: #c53030;
+            border-left-color: #e53e3e;
         }
 
         .alert-success {
-            background: #efe;
-            color: #3c3;
-            border: 1px solid #cfc;
+            background: #f0fff4;
+            color: #2f855a;
+            border-left-color: #38a169;
         }
 
         .alert-icon {
-            font-size: 16px;
-            margin-top: 2px;
+            font-size: 18px;
+            margin-top: 1px;
+            flex-shrink: 0;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
             font-weight: 600;
-            color: #333;
+            color: #2d3748;
             font-size: 14px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
         .form-control {
             width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            transition: border-color 0.2s ease;
+            padding: 15px 16px;
+            border: 2px solid #e2e8f0;
+            font-size: 15px;
+            transition: all 0.2s ease;
             font-family: inherit;
+            background: #f7fafc;
+        }
+
+        .form-control:hover {
+            border-color: #cbd5e0;
+            background: white;
         }
 
         .form-control:focus {
             outline: none;
             border-color: #05179F;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(5, 23, 159, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #a0aec0;
         }
 
         .form-control.is-invalid {
-            border-color: #dc3545;
+            border-color: #fc8181;
+            background: #fff5f5;
         }
 
         .form-control.is-invalid:focus {
-            border-color: #dc3545;
+            border-color: #e53e3e;
+            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
         }
 
         .invalid-feedback {
-            color: #dc3545;
-            font-size: 12px;
-            margin-top: 5px;
+            color: #e53e3e;
+            font-size: 13px;
+            margin-top: 8px;
             display: block;
+            font-weight: 500;
         }
 
         .password-wrapper {
@@ -154,84 +196,99 @@
 
         .password-toggle {
             position: absolute;
-            right: 14px;
+            right: 16px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
             border: none;
             cursor: pointer;
-            color: #888;
+            color: #718096;
             font-size: 16px;
-            padding: 4px;
+            padding: 6px;
+            transition: color 0.2s ease;
+            line-height: 1;
         }
 
         .password-toggle:hover {
             color: #05179F;
         }
 
+        .password-toggle i {
+            pointer-events: none;
+        }
+
         .remember-forgot {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 28px;
         }
 
         .remember-me {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .remember-me input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
             accent-color: #05179F;
         }
 
         .remember-me label {
             font-size: 14px;
-            color: #666;
+            color: #4a5568;
             cursor: pointer;
             user-select: none;
+            font-weight: 500;
         }
 
         .btn-login {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: #05179F;
             color: white;
             border: none;
-            border-radius: 4px;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 14px rgba(5, 23, 159, 0.3);
         }
 
         .btn-login:hover {
             background: #040f70;
+            box-shadow: 0 6px 20px rgba(5, 23, 159, 0.4);
+            transform: translateY(-1px);
         }
 
         .btn-login:active {
             background: #030b50;
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(5, 23, 159, 0.3);
         }
 
         .btn-login:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
         .login-footer {
             text-align: center;
-            padding: 20px;
-            background: #f9f9f9;
-            border-top: 1px solid #e0e0e0;
+            padding: 24px 40px;
+            background: #f7fafc;
+            border-top: 2px solid #e2e8f0;
         }
 
         .login-footer p {
-            color: #666;
+            color: #718096;
             font-size: 13px;
+            font-weight: 500;
         }
 
         /* Loading spinner */
@@ -243,7 +300,7 @@
             border-top-color: white;
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
-            margin-right: 6px;
+            margin-right: 8px;
         }
 
         @keyframes spin {
@@ -253,16 +310,34 @@
         /* Responsive */
         @media (max-width: 480px) {
             .login-header {
-                padding: 30px 20px;
+                padding: 40px 30px 35px;
             }
 
             .login-body {
-                padding: 25px 20px;
+                padding: 35px 30px;
+            }
+
+            .login-footer {
+                padding: 20px 30px;
             }
 
             .logo {
-                width: 80px;
-                height: 80px;
+                width: 90px;
+                height: 90px;
+            }
+
+            .login-header h1 {
+                font-size: 23px;
+            }
+
+            .form-control {
+                padding: 13px 14px;
+                font-size: 14px;
+            }
+
+            .btn-login {
+                padding: 14px;
+                font-size: 15px;
             }
         }
     </style>
@@ -338,8 +413,8 @@
                             placeholder="Enter your password"
                             required
                         >
-                        <button type="button" class="password-toggle" onclick="togglePassword()">
-                            <span id="toggleIcon">👁️</span>
+                        <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Toggle password visibility">
+                            <i class="fa-regular fa-eye" id="toggleIcon"></i>
                         </button>
                     </div>
                     @error('password')
@@ -382,10 +457,10 @@
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                toggleIcon.textContent = '👁️‍🗨️';
+                toggleIcon.className = 'fa-regular fa-eye-slash';
             } else {
                 passwordInput.type = 'password';
-                toggleIcon.textContent = '👁️';
+                toggleIcon.className = 'fa-regular fa-eye';
             }
         }
 

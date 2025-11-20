@@ -60,10 +60,7 @@ class Location extends Model
         return $this->name;
     }
 
-    public function getUpdatedAtAttribute($value)
-    {
-        return Product::where('district_id', $this->id)->count();
-    }
+ 
 
     protected $appends = ['name_text'];
 }

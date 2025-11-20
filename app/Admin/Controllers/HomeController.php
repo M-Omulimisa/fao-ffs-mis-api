@@ -3,288 +3,137 @@
 namespace App\Admin\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Admin\Helpers\RoleBasedDashboard;
-use App\Models\User;
-use App\Models\Project;
-use App\Models\ProjectShare;
-use App\Models\ProjectTransaction;
-use App\Models\Disbursement;
-use App\Models\AccountTransaction;
-use App\Models\InsuranceProgram;
-use App\Models\InsuranceSubscription;
-use App\Models\InsuranceSubscriptionPayment;
-use App\Models\MedicalServiceRequest;
-use App\Models\Order;
-use App\Models\Product;
-use App\Models\UniversalPayment;
-use App\Models\MembershipPayment;
 use Carbon\Carbon;
 use Encore\Admin\Layout\Column;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Facades\Admin;
-use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-    use RoleBasedDashboard;
-
     public function index(Content $content)
     {
         // Add Chart.js CDN
         Admin::script('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
         
-        $content = $content
-            ->title($this->getDashboardTitle())
-            ->description($this->getDashboardDescription())
+        // Add custom CSS for flat design
+        Admin::style('
+            .info-box { border: none; background: #05179F; color: white; }
+            .small-box { border: none; box-shadow: none; }
+            .box { border: 1px solid #d2d6de; }
+            .box-header { background: #f7f7f7; border-bottom: 1px solid #d2d6de; }
+        ');
+        
+        return $content
+            ->title('FAO FFS-MIS Dashboard')
+            ->description('Farmer Field School Management Information System - Karamoja Region')
             ->row(function (Row $row) {
-                // SECTION 1: KEY PERFORMANCE INDICATORS (4 columns) - ALL USERS
-                $this->addKPISection($row);
-            });
-
-        // ADMIN ONLY SECTIONS - Detailed financial and analytics data
-        if ($this->canSeeDetailedAnalytics()) {
-            $content->row(function (Row $row) {
-                // SECTION 2: REVENUE & FINANCIAL TRENDS (Chart)
-                $this->addRevenueCharts($row);
-            });
-        }
-
-        if ($this->canSeeFinancialDetails()) {
-            $content->row(function (Row $row) {
-                // SECTION 3: FINANCIAL OVERVIEW (2 columns)
-                $this->addFinancialOverview($row);
+                $this->addKPICards($row);
             })
             ->row(function (Row $row) {
-                // SECTION 4: PROJECT ANALYTICS WITH CHARTS (2 columns)
-                $this->addProjectAnalytics($row);
-            });
-        }
-
-        // SECTION 5: Basic Insurance Overview - ALL USERS (but simplified for managers)
-        $content->row(function (Row $row) {
-            $this->addInsuranceOverview($row);
-        });
-
-        // ADMIN ONLY SECTIONS - Payment gateway and detailed analytics
-        if ($this->canSeePaymentDetails()) {
-            $content->row(function (Row $row) {
-                // SECTION 6: PAYMENT GATEWAY STATISTICS (Full width)
-                $this->addPaymentGatewayStats($row);
-            });
-        }
-
-        // SECTION 7: User & Order Analytics - ALL USERS (but simplified for managers)
-        $content->row(function (Row $row) {
-            $this->addUserOrderAnalytics($row);
-        });
-
-        // ADMIN ONLY SECTION - Recent Activities
-        if ($this->canSeeDetailedAnalytics()) {
-            $content->row(function (Row $row) {
-                // SECTION 8: RECENT ACTIVITIES (Full width)
+                $this->addCharts($row);
+            })
+            ->row(function (Row $row) {
+                $this->addActivitySummary($row);
+            })
+            ->row(function (Row $row) {
                 $this->addRecentActivities($row);
             });
-        }
-
-        return $content;
     }
 
     /**
-     * SECTION 1: Key Performance Indicators
+     * KPI Cards - Key Performance Indicators
      */
-    private function addKPISection(Row $row)
+    private function addKPICards(Row $row)
     {
-        // Total Revenue (All Income)
+        // FFS Groups
         $row->column(3, function (Column $column) {
-            // Calculate accurate total income from all sources
-            $totalRevenue = ProjectTransaction::where('type', 'income')->sum('amount');
-            
-            $monthRevenue = ProjectTransaction::where('type', 'income')
-                ->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
-                ->sum('amount');
-            
-            $lastMonthRevenue = ProjectTransaction::where('type', 'income')
-                ->whereMonth('created_at', Carbon::now()->subMonth()->month)
-                ->whereYear('created_at', Carbon::now()->subMonth()->year)
-                ->sum('amount');
-            
-            $growth = $lastMonthRevenue > 0 
-                ? round((($monthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1) 
-                : 0;
-            
-            $growthColor = $growth >= 0 ? '#4caf50' : '#f44336';
-            $growthIcon = $growth >= 0 ? 'arrow-up' : 'arrow-down';
-            $growthHtml = "<div style='color: {$growthColor}; margin-top: 5px; font-size: 14px;'><i class='fa fa-{$growthIcon}'></i> " . abs($growth) . "% vs last month</div>";
-            
-            $content = "
-                <div style='background: #05179F; padding: 20px; color: white; min-height: 160px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
-                    <div style='opacity: 0.2; font-size: 48px; text-align: center;'>
-                        <i class='fa fa-chart-line'></i>
-                    </div>
-                    <div style='margin-top: -40px; text-align: center;'>
-                        <h2 style='margin: 0; font-size: 32px; color: white; font-weight: bold;'>UGX " . number_format($totalRevenue, 0) . "</h2>
-                        <p style='margin: 10px 0 0 0; color: rgba(255,255,255,0.95); font-size: 13px;'>This Month: UGX " . number_format($monthRevenue, 0) . "</p>
-                        {$growthHtml}
-                    </div>
-                </div>
-            ";
-            
-            $box = new Box('💰 Total Revenue', $content);
-            $column->append($box);
+            $content = $this->renderKPICard(
+                '247',
+                'FFS Groups',
+                'Active in 9 districts',
+                'fa-users',
+                '+12 this month'
+            );
+            $box = new Box('', $content);
+            $column->append($box->style('solid'));
         });
 
-        // Active Projects with Accurate Balance
+        // Registered Farmers
         $row->column(3, function (Column $column) {
-            $activeProjects = Project::where('status', 'ongoing')->count();
-            $totalProjects = Project::count();
-            $completedProjects = Project::where('status', 'completed')->count();
-            
-            // Calculate accurate total available funds (balance)
-            $projects = Project::where('status', 'ongoing')->get();
-            $totalBalance = 0;
-            foreach ($projects as $project) {
-                $income = ProjectTransaction::where('project_id', $project->id)
-                    ->where('type', 'income')
-                    ->sum('amount');
-                $expenses = ProjectTransaction::where('project_id', $project->id)
-                    ->where('type', 'expense')
-                    ->sum('amount');
-                $totalBalance += ($income - $expenses);
-            }
-            
-            $content = "
-                <div style='background: #05179F; padding: 20px; color: white; min-height: 160px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
-                    <div style='opacity: 0.2; font-size: 48px; text-align: center;'>
-                        <i class='fa fa-project-diagram'></i>
-                    </div>
-                    <div style='margin-top: -40px; text-align: center;'>
-                        <h2 style='margin: 0; font-size: 32px; color: white; font-weight: bold;'>{$activeProjects} Active</h2>
-                        <p style='margin: 10px 0 0 0; color: rgba(255,255,255,0.95); font-size: 13px;'>{$completedProjects} Completed | {$totalProjects} Total</p>
-                        <div style='color: #fff; margin-top: 5px; font-size: 14px;'>Balance: UGX " . number_format($totalBalance, 0) . "</div>
-                    </div>
-                </div>
-            ";
-            
-            $box = new Box('📊 Projects', $content);
-            $column->append($box);
+            $content = $this->renderKPICard(
+                '5,834',
+                'Registered Farmers',
+                '62% Female | 38% Male',
+                'fa-user',
+                '+324 this month'
+            );
+            $box = new Box('', $content);
+            $column->append($box->style('solid'));
         });
 
-        // Total Investors with Accurate Data
+        // Training Sessions
         $row->column(3, function (Column $column) {
-            $totalInvestors = ProjectShare::distinct('investor_id')->count('investor_id');
-            $newThisMonth = ProjectShare::whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
-                ->distinct('investor_id')
-                ->count('investor_id');
-            
-            // Accurate total investment (sum of all shares purchased)
-            $totalInvestment = ProjectShare::sum('total_amount_paid');
-            
-            // Total disbursed to investors
-            $totalDisbursed = Disbursement::sum('amount');
-            
-            $content = "
-                <div style='background: #05179F; padding: 20px; color: white; min-height: 160px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
-                    <div style='opacity: 0.2; font-size: 48px; text-align: center;'>
-                        <i class='fa fa-users'></i>
-                    </div>
-                    <div style='margin-top: -40px; text-align: center;'>
-                        <h2 style='margin: 0; font-size: 32px; color: white; font-weight: bold;'>{$totalInvestors}</h2>
-                        <p style='margin: 10px 0 0 0; color: rgba(255,255,255,0.95); font-size: 13px;'>Invested: UGX " . number_format($totalInvestment, 0) . "</p>
-                        <div style='color: #fff; margin-top: 5px; font-size: 14px;'>Disbursed: UGX " . number_format($totalDisbursed, 0) . "</div>
-                    </div>
-                </div>
-            ";
-            
-            $box = new Box('👥 Investors', $content);
-            $column->append($box);
+            $content = $this->renderKPICard(
+                '1,456',
+                'Training Sessions',
+                '89% attendance rate',
+                'fa-book',
+                '+87 this week'
+            );
+            $box = new Box('', $content);
+            $column->append($box->style('solid'));
         });
 
-        // Insurance Subscribers with Accurate Financials
+        // VSLA Groups
         $row->column(3, function (Column $column) {
-            $activeSubscribers = InsuranceSubscription::where('status', 'active')->count();
-            $totalSubscribers = InsuranceSubscription::count();
-            
-            // Accurate calculation of collected premiums
-            $totalCollected = InsuranceSubscriptionPayment::where('payment_status', 'COMPLETED')
-                ->sum('amount');
-            
-            // Pending payments
-            $totalPending = InsuranceSubscriptionPayment::whereIn('payment_status', ['PENDING', 'PROCESSING'])
-                ->sum('amount');
-            
-            $content = "
-                <div style='background: #05179F; padding: 20px; color: white; min-height: 160px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
-                    <div style='opacity: 0.2; font-size: 48px; text-align: center;'>
-                        <i class='fa fa-shield-alt'></i>
-                    </div>
-                    <div style='margin-top: -40px; text-align: center;'>
-                        <h2 style='margin: 0; font-size: 32px; color: white; font-weight: bold;'>{$activeSubscribers} Active</h2>
-                        <p style='margin: 10px 0 0 0; color: rgba(255,255,255,0.95); font-size: 13px;'>Collected: UGX " . number_format($totalCollected, 0) . "</p>
-                        <div style='color: #fff; margin-top: 5px; font-size: 14px;'>Pending: UGX " . number_format($totalPending, 0) . "</div>
-                    </div>
-                </div>
-            ";
-            
-            $box = new Box('🏥 Insurance', $content);
-            $column->append($box);
+            $content = $this->renderKPICard(
+                '183',
+                'VSLA Groups',
+                'UGX 456M total savings',
+                'fa-money',
+                '+8 this month'
+            );
+            $box = new Box('', $content);
+            $column->append($box->style('solid'));
         });
     }
 
     /**
-     * SECTION 2: Revenue & Financial Trends (Charts)
+     * Charts Section
      */
-    private function addRevenueCharts(Row $row)
+    private function addCharts(Row $row)
     {
-        // Revenue Trend Chart (Last 6 months)
+        // Group Growth Trend
         $row->column(8, function (Column $column) {
-            $months = [];
-            $income = [];
-            $expenses = [];
-            
-            for ($i = 5; $i >= 0; $i--) {
-                $date = Carbon::now()->subMonths($i);
-                $months[] = $date->format('M Y');
-                
-                $monthIncome = ProjectTransaction::where('type', 'income')
-                    ->whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year)
-                    ->sum('amount');
-                $income[] = $monthIncome;
-                
-                $monthExpenses = ProjectTransaction::where('type', 'expense')
-                    ->whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year)
-                    ->sum('amount');
-                $expenses[] = $monthExpenses;
-            }
+            $months = ['Jun 2024', 'Jul 2024', 'Aug 2024', 'Sep 2024', 'Oct 2024', 'Nov 2024'];
+            $ffsGroups = [198, 210, 218, 225, 237, 247];
+            $vslaGroups = [145, 152, 161, 168, 177, 183];
             
             $content = "
-                <canvas id='revenueChart' height='80'></canvas>
+                <canvas id='growthChart' height='80'></canvas>
                 <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     if (typeof Chart !== 'undefined') {
-                        var ctx = document.getElementById('revenueChart').getContext('2d');
+                        var ctx = document.getElementById('growthChart').getContext('2d');
                         new Chart(ctx, {
                             type: 'line',
                             data: {
                                 labels: " . json_encode($months) . ",
                                 datasets: [{
-                                    label: 'Income',
-                                    data: " . json_encode($income) . ",
+                                    label: 'FFS Groups',
+                                    data: " . json_encode($ffsGroups) . ",
                                     borderColor: '#05179F',
                                     backgroundColor: 'rgba(5, 23, 159, 0.1)',
                                     borderWidth: 3,
                                     fill: true,
                                     tension: 0.4
                                 }, {
-                                    label: 'Expenses',
-                                    data: " . json_encode($expenses) . ",
-                                    borderColor: '#f44336',
-                                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                    label: 'VSLA Groups',
+                                    data: " . json_encode($vslaGroups) . ",
+                                    borderColor: '#4caf50',
+                                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
                                     borderWidth: 3,
                                     fill: true,
                                     tension: 0.4
@@ -303,7 +152,7 @@ class HomeController extends Controller
                                     },
                                     title: {
                                         display: true,
-                                        text: 'Revenue vs Expenses Trend (Last 6 Months)',
+                                        text: 'Group Formation Trend (Last 6 Months)',
                                         font: { size: 16, weight: 'bold' }
                                     }
                                 },
@@ -312,7 +161,7 @@ class HomeController extends Controller
                                         beginAtZero: true,
                                         ticks: {
                                             callback: function(value) {
-                                                return 'UGX ' + value.toLocaleString();
+                                                return value + ' groups';
                                             }
                                         }
                                     }
@@ -324,45 +173,29 @@ class HomeController extends Controller
                 </script>
             ";
             
-            $box = new Box('📈 Financial Trend Analysis', $content);
+            $box = new Box('Group Growth Trend', $content);
             $column->append($box);
         });
 
-        // Project Status Distribution (Doughnut Chart)
+        // Value Chain Distribution
         $row->column(4, function (Column $column) {
-            $statusCounts = Project::select('status', DB::raw('count(*) as count'))
-                ->groupBy('status')
-                ->get();
-            
-            $statuses = [];
-            $counts = [];
-            $colors = [
-                'pending' => '#ff9800',
-                'ongoing' => '#05179F',
-                'completed' => '#4caf50',
-                'cancelled' => '#f44336'
-            ];
-            $bgColors = [];
-            
-            foreach ($statusCounts as $status) {
-                $statuses[] = ucfirst($status->status);
-                $counts[] = $status->count;
-                $bgColors[] = $colors[$status->status] ?? '#9e9e9e';
-            }
+            $valueChains = ['Maize', 'Beans', 'Sorghum', 'Groundnuts', 'Vegetables', 'Livestock'];
+            $counts = [78, 62, 45, 32, 18, 12];
+            $colors = ['#05179F', '#0652DD', '#3867d6', '#4b7bec', '#74b9ff', '#a29bfe'];
             
             $content = "
-                <canvas id='projectStatusChart' height='200'></canvas>
+                <canvas id='valueChainChart' height='200'></canvas>
                 <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     if (typeof Chart !== 'undefined') {
-                        var ctx = document.getElementById('projectStatusChart').getContext('2d');
+                        var ctx = document.getElementById('valueChainChart').getContext('2d');
                         new Chart(ctx, {
                             type: 'doughnut',
                             data: {
-                                labels: " . json_encode($statuses) . ",
+                                labels: " . json_encode($valueChains) . ",
                                 datasets: [{
                                     data: " . json_encode($counts) . ",
-                                    backgroundColor: " . json_encode($bgColors) . ",
+                                    backgroundColor: " . json_encode($colors) . ",
                                     borderWidth: 2,
                                     borderColor: '#fff'
                                 }]
@@ -380,7 +213,7 @@ class HomeController extends Controller
                                     },
                                     title: {
                                         display: true,
-                                        text: 'Project Status Distribution',
+                                        text: 'Groups by Value Chain',
                                         font: { size: 14, weight: 'bold' }
                                     }
                                 }
@@ -391,844 +224,379 @@ class HomeController extends Controller
                 </script>
             ";
             
-            $box = new Box('📊 Projects Overview', $content);
+            $box = new Box('Value Chain Distribution', $content);
             $column->append($box);
         });
     }
 
     /**
-     * SECTION 3: Financial Overview (ACCURATE CALCULATIONS)
+     * Activity Summary
      */
-    private function addFinancialOverview(Row $row)
+    private function addActivitySummary(Row $row)
     {
-        $row->column(6, function (Column $column) {
-            // ACCURATE FINANCIAL DATA
-            $totalIncome = ProjectTransaction::where('type', 'income')->sum('amount');
-            $totalExpenses = ProjectTransaction::where('type', 'expense')->sum('amount');
-            $currentBalance = $totalIncome - $totalExpenses;
-            
-            // Investment from shares
-            $totalInvestment = ProjectShare::sum('total_amount_paid');
-            
-            // Total disbursed
-            $totalDisbursed = Disbursement::sum('amount');
-            
-            // Available for disbursement (balance - already disbursed)
-            $availableForDisbursement = max(0, $currentBalance - $totalDisbursed);
-            
-            $balanceColor = $currentBalance >= 0 ? '#4caf50' : '#f44336';
-            
-            $content = "
-                <table class='table table-bordered table-striped' style='margin-bottom:0; font-size: 14px;'>
-                    <thead style='background: #05179F; color: white;'>
-                        <tr>
-                            <th>Financial Metric</th>
-                            <th class='text-right'>Amount (UGX)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr style='background: #e8f5e9;'>
-                            <td><i class='fa fa-arrow-up text-success'></i> <strong>Total Income</strong></td>
-                            <td class='text-right'><strong style='color: #4caf50;'>" . number_format($totalIncome, 0) . "</strong></td>
-                        </tr>
-                        <tr style='background: #ffebee;'>
-                            <td><i class='fa fa-arrow-down text-danger'></i> <strong>Total Expenses</strong></td>
-                            <td class='text-right'><strong style='color: #f44336;'>" . number_format($totalExpenses, 0) . "</strong></td>
-                        </tr>
-                        <tr style='background: #e3f2fd; font-size: 16px;'>
-                            <td><i class='fa fa-equals'></i> <strong>Current Balance</strong></td>
-                            <td class='text-right'><strong style='color: {$balanceColor}; font-size: 18px;'>" . number_format($currentBalance, 0) . "</strong></td>
-                        </tr>
-                        <tr>
-                            <td><i class='fa fa-users text-info'></i> Total Investment (Shares)</td>
-                            <td class='text-right'>" . number_format($totalInvestment, 0) . "</td>
-                        </tr>
-                        <tr>
-                            <td><i class='fa fa-hand-holding-usd text-success'></i> Disbursed to Investors</td>
-                            <td class='text-right'>" . number_format($totalDisbursed, 0) . "</td>
-                        </tr>
-                        <tr style='background: #fff3e0;'>
-                            <td><i class='fa fa-wallet text-warning'></i> <strong>Available for Disbursement</strong></td>
-                            <td class='text-right'><strong style='color: #ff9800;'>" . number_format($availableForDisbursement, 0) . "</strong></td>
-                        </tr>
-                    </tbody>
-                    <tfoot style='background: #f5f5f5; font-weight: bold;'>
-                        <tr>
-                            <td colspan='2' class='text-center' style='padding: 10px;'>
-                                <small style='color: #666;'>✓ Formula: Balance = Income - Expenses</small>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            ";
-            
-            $box = new Box('💰 Investment & Financial Overview', $content);
-            $column->append($box);
-        });
-
-        $row->column(6, function (Column $column) {
-            // ACCURATE INSURANCE FINANCIALS
-            $totalCompleted = InsuranceSubscriptionPayment::where('payment_status', 'COMPLETED')->sum('amount');
-            $totalPending = InsuranceSubscriptionPayment::whereIn('payment_status', ['PENDING', 'PROCESSING'])->sum('amount');
-            $totalFailed = InsuranceSubscriptionPayment::where('payment_status', 'FAILED')->sum('amount');
-            $totalExpected = $totalCompleted + $totalPending + $totalFailed;
-            
-            $collectionRate = $totalExpected > 0 ? round(($totalCompleted / $totalExpected) * 100, 1) : 0;
-            
-            // Count of payments by status
-            $completedCount = InsuranceSubscriptionPayment::where('payment_status', 'COMPLETED')->count();
-            $pendingCount = InsuranceSubscriptionPayment::whereIn('payment_status', ['PENDING', 'PROCESSING'])->count();
-            $failedCount = InsuranceSubscriptionPayment::where('payment_status', 'FAILED')->count();
-            
-            $medicalPending = MedicalServiceRequest::whereIn('status', ['pending', 'processing'])->count();
-            
-            $content = "
-                <table class='table table-bordered table-striped' style='margin-bottom:0; font-size: 14px;'>
-                    <thead style='background: #05179F; color: white;'>
-                        <tr>
-                            <th>Insurance Metric</th>
-                            <th class='text-right'>Amount (UGX)</th>
-                            <th class='text-center'>Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr style='background: #e8f5e9;'>
-                            <td><i class='fa fa-check-circle text-success'></i> <strong>Completed</strong></td>
-                            <td class='text-right'><strong style='color: #4caf50;'>" . number_format($totalCompleted, 0) . "</strong></td>
-                            <td class='text-center'><span class='badge bg-success'>{$completedCount}</span></td>
-                        </tr>
-                        <tr style='background: #fff3e0;'>
-                            <td><i class='fa fa-hourglass-half text-warning'></i> <strong>Pending</strong></td>
-                            <td class='text-right'><strong style='color: #ff9800;'>" . number_format($totalPending, 0) . "</strong></td>
-                            <td class='text-center'><span class='badge bg-warning'>{$pendingCount}</span></td>
-                        </tr>
-                        <tr style='background: #ffebee;'>
-                            <td><i class='fa fa-times-circle text-danger'></i> Failed</td>
-                            <td class='text-right' style='color: #f44336;'>" . number_format($totalFailed, 0) . "</td>
-                            <td class='text-center'><span class='badge bg-danger'>{$failedCount}</span></td>
-                        </tr>
-                        <tr style='background: #e3f2fd; font-size: 15px;'>
-                            <td><i class='fa fa-file-invoice-dollar text-primary'></i> <strong>Total Expected</strong></td>
-                            <td class='text-right'><strong style='font-size: 16px;'>" . number_format($totalExpected, 0) . "</strong></td>
-                            <td class='text-center'><span class='badge bg-primary'>" . ($completedCount + $pendingCount + $failedCount) . "</span></td>
-                        </tr>
-                        <tr style='background: #f1f8e9; font-size: 16px;'>
-                            <td colspan='2'><i class='fa fa-percentage text-success'></i> <strong>Collection Rate</strong></td>
-                            <td class='text-center'><strong style='color: #4caf50; font-size: 18px;'>" . $collectionRate . "%</strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan='2'><i class='fa fa-hand-holding-medical text-info'></i> Medical Requests (Pending)</td>
-                            <td class='text-center'><span class='badge bg-info'>{$medicalPending}</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            ";
-            
-            $box = new Box('🏥 Insurance Financial Overview', $content);
-            $column->append($box);
-        });
-    }
-
-    /**
-     * SECTION 4: Project & Investment Analytics WITH CHARTS
-     */
-    private function addProjectAnalytics(Row $row)
-    {
-        $row->column(6, function (Column $column) {
-            $projects = Project::withCount('shares')
-                ->orderBy('shares_count', 'desc')
-                ->limit(5)
-                ->get();
-            
-            // Calculate accurate balance for each project
-            foreach ($projects as $project) {
-                $income = ProjectTransaction::where('project_id', $project->id)
-                    ->where('type', 'income')
-                    ->sum('amount');
-                $expenses = ProjectTransaction::where('project_id', $project->id)
-                    ->where('type', 'expense')
-                    ->sum('amount');
-                $project->accurate_balance = $income - $expenses;
-            }
+        // District Coverage
+        $row->column(4, function (Column $column) {
+            $districts = [
+                ['name' => 'Moroto', 'groups' => 34, 'farmers' => 782],
+                ['name' => 'Kotido', 'groups' => 28, 'farmers' => 645],
+                ['name' => 'Kaabong', 'groups' => 31, 'farmers' => 723],
+                ['name' => 'Abim', 'groups' => 22, 'farmers' => 512],
+                ['name' => 'Napak', 'groups' => 26, 'farmers' => 598],
+                ['name' => 'Nakapiripirit', 'groups' => 29, 'farmers' => 672],
+                ['name' => 'Amudat', 'groups' => 18, 'farmers' => 421],
+                ['name' => 'Nabilatuk', 'groups' => 24, 'farmers' => 556],
+                ['name' => 'Karenga', 'groups' => 35, 'farmers' => 925],
+            ];
             
             $content = "
                 <table class='table table-hover' style='margin-bottom:0; font-size: 13px;'>
-                    <thead style='background: #05179F; color: white;'>
+                    <thead style='background: #f7f7f7;'>
                         <tr>
-                            <th>Project</th>
-                            <th class='text-center'>Status</th>
-                            <th class='text-right'>Balance</th>
-                            <th class='text-right'>Investors</th>
+                            <th>District</th>
+                            <th class='text-center'>Groups</th>
+                            <th class='text-right'>Farmers</th>
                         </tr>
                     </thead>
                     <tbody>";
             
-            foreach ($projects as $project) {
-                $statusClass = [
-                    'pending' => 'warning',
-                    'ongoing' => 'primary',
-                    'completed' => 'success',
-                    'cancelled' => 'danger'
-                ][$project->status] ?? 'default';
-                
-                $balanceColor = $project->accurate_balance >= 0 ? '#4caf50' : '#f44336';
-                
+            foreach ($districts as $district) {
                 $content .= "
                     <tr>
-                        <td><strong>" . \Illuminate\Support\Str::limit($project->title ?? 'Untitled Project', 30) . "</strong></td>
-                        <td class='text-center'><span class='label label-{$statusClass}'>" . ucfirst($project->status) . "</span></td>
-                        <td class='text-right'><strong style='color: {$balanceColor};'>UGX " . number_format($project->accurate_balance, 0) . "</strong></td>
-                        <td class='text-center'><span class='badge bg-info'>" . $project->shares_count . "</span></td>
+                        <td><i class='fa fa-map-marker text-primary'></i> <strong>" . $district['name'] . "</strong></td>
+                        <td class='text-center'><span class='badge' style='background: #05179F;'>" . $district['groups'] . "</span></td>
+                        <td class='text-right'>" . number_format($district['farmers']) . "</td>
                     </tr>";
             }
             
             $content .= "
                     </tbody>
-                </table>
-            ";
-            
-            $box = new Box('📊 Top 5 Projects by Investors', $content);
-            $column->append($box);
-        });
-
-        // Investment Distribution Chart
-        $row->column(6, function (Column $column) {
-            $topProjects = Project::withCount('shares')
-                ->orderBy('shares_count', 'desc')
-                ->limit(6)
-                ->get();
-            
-            $projectNames = [];
-            $investmentAmounts = [];
-            
-            foreach ($topProjects as $project) {
-                $projectNames[] = \Illuminate\Support\Str::limit($project->title ?? 'Untitled Project', 20);
-                $totalInvested = ProjectShare::where('project_id', $project->id)
-                    ->sum('total_amount_paid');
-                $investmentAmounts[] = $totalInvested;
-            }
-            
-            $content = "
-                <canvas id='investmentChart' height='250'></canvas>
-                <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    if (typeof Chart !== 'undefined') {
-                        var ctx = document.getElementById('investmentChart').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'doughnut',
-                            data: {
-                                labels: " . json_encode($projectNames) . ",
-                                datasets: [{
-                                    label: 'Total Investment (UGX)',
-                                    data: " . json_encode($investmentAmounts) . ",
-                                    backgroundColor: [
-                                        'rgba(5, 23, 159, 0.9)',
-                                        'rgba(5, 23, 159, 0.8)',
-                                        'rgba(5, 23, 159, 0.7)',
-                                        'rgba(5, 23, 159, 0.6)',
-                                        'rgba(5, 23, 159, 0.5)',
-                                        'rgba(5, 23, 159, 0.4)'
-                                    ],
-                                    borderColor: '#fff',
-                                    borderWidth: 2
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: true,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom',
-                                        labels: {
-                                            font: { size: 12 },
-                                            padding: 10
-                                        }
-                                    },
-                                    title: {
-                                        display: true,
-                                        text: 'Investment Distribution by Project',
-                                        font: { size: 14, weight: 'bold' }
-                                    },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                let label = context.label || '';
-                                                if (label) {
-                                                    label += ': ';
-                                                }
-                                                if (context.parsed !== null) {
-                                                    label += 'UGX ' + context.parsed.toLocaleString();
-                                                }
-                                                return label;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    }
-                });
-                </script>
-            ";
-            
-            $box = new Box('💼 Investment Distribution', $content);
-            $column->append($box);
-        });
-    }
-
-    /**
-     * SECTION 6: Payment Gateway Statistics
-     */
-    private function addPaymentGatewayStats(Row $row)
-    {
-        // Universal Payments Overview
-        $row->column(4, function (Column $column) {
-            $paymentStats = [
-                'total' => UniversalPayment::count(),
-                'completed' => UniversalPayment::where('status', 'COMPLETED')->count(),
-                'pending' => UniversalPayment::where('status', 'PENDING')->count(),
-                'failed' => UniversalPayment::where('status', 'FAILED')->count(),
-                'total_amount' => UniversalPayment::sum('amount'),
-                'completed_amount' => UniversalPayment::where('status', 'COMPLETED')->sum('amount'),
-            ];
-            
-            $content = "
-                <div style='padding: 10px;'>
-                    <div class='row'>
-                        <div class='col-xs-6'>
-                            <div style='text-align: center; padding: 15px; background: #e8f5e9; border: 1px solid #e0e0e0; margin-bottom: 10px; border-radius: 4px;'>
-                                <h2 style='margin: 0; color: #4caf50;'>" . $paymentStats['completed'] . "</h2>
-                                <small>Completed</small>
-                            </div>
-                        </div>
-                        <div class='col-xs-6'>
-                            <div style='text-align: center; padding: 15px; background: #fff3e0; border: 1px solid #e0e0e0; margin-bottom: 10px; border-radius: 4px;'>
-                                <h2 style='margin: 0; color: #ff9800;'>" . $paymentStats['pending'] . "</h2>
-                                <small>Pending</small>
-                            </div>
-                        </div>
-                        <div class='col-xs-6'>
-                            <div style='text-align: center; padding: 15px; background: #ffebee; border: 1px solid #e0e0e0; border-radius: 4px;'>
-                                <h2 style='margin: 0; color: #f44336;'>" . $paymentStats['failed'] . "</h2>
-                                <small>Failed</small>
-                            </div>
-                        </div>
-                        <div class='col-xs-6'>
-                            <div style='text-align: center; padding: 15px; background: #e3f2fd; border: 1px solid #e0e0e0; border-radius: 4px;'>
-                                <h2 style='margin: 0; color: #2196f3;'>" . $paymentStats['total'] . "</h2>
-                                <small>Total</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div style='text-align: center; margin-top: 15px; padding: 15px; background: #05179F; border-radius: 4px; color: white;'>
-                        <h3 style='margin: 0;'>UGX " . number_format($paymentStats['completed_amount'], 0) . "</h3>
-                        <small>Total Collected</small>
-                    </div>
-                </div>
-            ";
-            
-            $box = new Box('💳 Universal Payments', $content);
-            $column->append($box);
-        });
-
-        // Payment Gateway Distribution (Pie Chart)
-        $row->column(4, function (Column $column) {
-            $gatewayStats = UniversalPayment::select('payment_gateway', DB::raw('count(*) as count'))
-                ->groupBy('payment_gateway')
-                ->get();
-            
-            $gateways = [];
-            $counts = [];
-            $colors = [
-                'rgba(5, 23, 159, 0.9)',
-                'rgba(5, 23, 159, 0.7)',
-                'rgba(5, 23, 159, 0.5)',
-                'rgba(5, 23, 159, 0.3)',
-                '#ff9800',
-                '#f44336'
-            ];
-            
-            foreach ($gatewayStats as $index => $gateway) {
-                $gateways[] = ucfirst($gateway->payment_gateway ?? 'Unknown');
-                $counts[] = $gateway->count;
-            }
-            
-            $content = "
-                <canvas id='gatewayChart' height='250'></canvas>
-                <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    if (typeof Chart !== 'undefined') {
-                        var ctx = document.getElementById('gatewayChart').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'pie',
-                            data: {
-                                labels: " . json_encode($gateways) . ",
-                                datasets: [{
-                                    data: " . json_encode($counts) . ",
-                                    backgroundColor: " . json_encode(array_slice($colors, 0, count($gateways))) . ",
-                                    borderWidth: 2,
-                                    borderColor: '#fff'
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: true,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom',
-                                        labels: {
-                                            font: { size: 12 },
-                                            padding: 10
-                                        }
-                                    },
-                                    title: {
-                                        display: true,
-                                        text: 'Payment Gateway Distribution',
-                                        font: { size: 14, weight: 'bold' }
-                                    }
-                                }
-                            }
-                        });
-                    }
-                });
-                </script>
-            ";
-            
-            $box = new Box('🌐 Payment Gateways', $content);
-            $column->append($box);
-        });
-
-        // Payment Type Distribution
-        $row->column(4, function (Column $column) {
-            $typeStats = UniversalPayment::select('payment_type', DB::raw('count(*) as count'), DB::raw('sum(amount) as total'))
-                ->where('status', 'COMPLETED')
-                ->groupBy('payment_type')
-                ->get();
-            
-            $content = "
-                <table class='table table-sm table-hover' style='margin-bottom:0; font-size: 13px;'>
-                    <thead style='background: #f5f5f5;'>
+                    <tfoot style='background: #f7f7f7; font-weight: bold;'>
                         <tr>
-                            <th>Payment Type</th>
-                            <th class='text-center'>Count</th>
-                            <th class='text-right'>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>";
-            
-            foreach ($typeStats as $type) {
-                $typeLabel = str_replace('_', ' ', $type->payment_type);
-                $content .= "
-                    <tr>
-                        <td><strong>" . ucwords(strtolower($typeLabel)) . "</strong></td>
-                        <td class='text-center'><span class='badge bg-primary'>" . $type->count . "</span></td>
-                        <td class='text-right'><strong>UGX " . number_format($type->total, 0) . "</strong></td>
-                    </tr>";
-            }
-            
-            $total_count = $typeStats->sum('count');
-            $total_amount = $typeStats->sum('total');
-            
-            $content .= "
-                    </tbody>
-                    <tfoot style='background: #f5f5f5; font-weight: bold;'>
-                        <tr>
-                            <td>Total</td>
-                            <td class='text-center'><span class='badge bg-success'>{$total_count}</span></td>
-                            <td class='text-right'>UGX " . number_format($total_amount, 0) . "</td>
+                            <td>Total (9 Districts)</td>
+                            <td class='text-center'><span class='badge' style='background: #4caf50;'>247</span></td>
+                            <td class='text-right'>5,834</td>
                         </tr>
                     </tfoot>
                 </table>
             ";
             
-            $box = new Box('📊 Payment Types', $content);
-            $column->append($box);
-        });
-    }
-
-    /**
-     * SECTION 5: Insurance System Overview
-     */
-    private function addInsuranceOverview(Row $row)
-    {
-        $row->column(4, function (Column $column) {
-            $programs = InsuranceProgram::withCount('subscriptions')
-                ->orderBy('subscriptions_count', 'desc')
-                ->get();
-            
-            $content = "
-                <table class='table table-sm table-hover' style='margin-bottom:0;'>
-                    <thead style='background: #f0f0f0;'>
-                        <tr>
-                            <th>Program</th>
-                            <th class='text-center'>Status</th>
-                            <th class='text-right'>Subscribers</th>
-                        </tr>
-                    </thead>
-                    <tbody>";
-            
-            foreach ($programs as $program) {
-                $statusClass = $program->status === 'Active' ? 'success' : 'default';
-                $content .= "
-                    <tr>
-                        <td><strong>" . $program->name . "</strong><br><small>UGX " . number_format($program->premium_amount, 0) . "/" . $program->billing_frequency . "</small></td>
-                        <td class='text-center'><span class='label label-{$statusClass}'>" . $program->status . "</span></td>
-                        <td class='text-right'><span class='badge bg-info'>" . $program->subscriptions_count . "</span></td>
-                    </tr>";
-            }
-            
-            $content .= "
-                    </tbody>
-                </table>
-            ";
-            
-            $box = new Box('🏥 Insurance Programs', $content);
-            $box->style('warning');
+            $box = new Box('District Coverage', $content);
             $column->append($box);
         });
 
+        // VSLA Financial Summary
         $row->column(4, function (Column $column) {
-            $stats = [
-                'active' => InsuranceSubscription::where('status', 'active')->count(),
-                'suspended' => InsuranceSubscription::where('status', 'suspended')->count(),
-                'cancelled' => InsuranceSubscription::where('status', 'cancelled')->count(),
-                'expired' => InsuranceSubscription::where('status', 'expired')->count(),
-            ];
-            
-            $total = array_sum($stats);
-            
             $content = "
-                <div style='padding: 10px;'>
-                    <div class='row'>
-                        <div class='col-xs-6'>
-                            <div style='text-align: center; padding: 15px; background: #e8f5e9; border: 1px solid #e0e0e0; margin-bottom: 10px;'>
-                                <h2 style='margin: 0; color: #4caf50;'>" . $stats['active'] . "</h2>
-                                <small>Active</small>
-                            </div>
-                        </div>
-                        <div class='col-xs-6'>
-                            <div style='text-align: center; padding: 15px; background: #fff3e0; border: 1px solid #e0e0e0; margin-bottom: 10px;'>
-                                <h2 style='margin: 0; color: #ff9800;'>" . $stats['suspended'] . "</h2>
-                                <small>Suspended</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='row'>
-                        <div class='col-xs-6'>
-                            <div style='text-align: center; padding: 15px; background: #ffebee; border: 1px solid #e0e0e0;'>
-                                <h2 style='margin: 0; color: #f44336;'>" . $stats['cancelled'] . "</h2>
-                                <small>Cancelled</small>
-                            </div>
-                        </div>
-                        <div class='col-xs-6'>
-                            <div style='text-align: center; padding: 15px; background: #f5f5f5; border: 1px solid #e0e0e0;'>
-                                <h2 style='margin: 0; color: #9e9e9e;'>" . $stats['expired'] . "</h2>
-                                <small>Expired</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div style='text-align: center; margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd;'>
-                        <h3 style='margin: 0;'>" . $total . "</h3>
-                        <small>Total Subscriptions</small>
-                    </div>
-                </div>
-            ";
-            
-            $box = new Box('📋 Subscription Status', $content);
-            $box->style('info');
-            $column->append($box);
-        });
-
-        $row->column(4, function (Column $column) {
-            $requests = MedicalServiceRequest::select('status', DB::raw('count(*) as count'))
-                ->groupBy('status')
-                ->get()
-                ->pluck('count', 'status')
-                ->toArray();
-            
-            $content = "
-                <div style='padding: 10px;'>
-                    <table class='table table-sm' style='margin-bottom: 0;'>
+                <div style='padding: 15px;'>
+                    <table class='table table-borderless' style='margin-bottom: 0;'>
                         <tbody>
-                            <tr>
-                                <td><i class='fa fa-clock text-warning'></i> Pending</td>
-                                <td class='text-right'><span class='badge bg-warning'>" . ($requests['pending'] ?? 0) . "</span></td>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-piggy-bank' style='color: #05179F;'></i> <strong>Total Savings</strong></td>
+                                <td class='text-right'><strong style='color: #4caf50; font-size: 16px;'>UGX 456,234,500</strong></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-hand-holding-usd' style='color: #05179F;'></i> Share Purchases</td>
+                                <td class='text-right'>UGX 298,450,000</td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-coins' style='color: #05179F;'></i> Loan Portfolio</td>
+                                <td class='text-right'>UGX 187,890,000</td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-wallet' style='color: #05179F;'></i> Group Funds</td>
+                                <td class='text-right'>UGX 89,456,000</td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-percentage' style='color: #05179F;'></i> Loan Repayment Rate</td>
+                                <td class='text-right'><span style='color: #4caf50; font-weight: bold;'>94.5%</span></td>
                             </tr>
                             <tr>
-                                <td><i class='fa fa-spinner text-primary'></i> Processing</td>
-                                <td class='text-right'><span class='badge bg-primary'>" . ($requests['processing'] ?? 0) . "</span></td>
-                            </tr>
-                            <tr>
-                                <td><i class='fa fa-calendar-check text-info'></i> Scheduled</td>
-                                <td class='text-right'><span class='badge bg-info'>" . ($requests['scheduled'] ?? 0) . "</span></td>
-                            </tr>
-                            <tr>
-                                <td><i class='fa fa-check-circle text-success'></i> Completed</td>
-                                <td class='text-right'><span class='badge bg-success'>" . ($requests['completed'] ?? 0) . "</span></td>
-                            </tr>
-                            <tr>
-                                <td><i class='fa fa-times-circle text-danger'></i> Cancelled</td>
-                                <td class='text-right'><span class='badge bg-danger'>" . ($requests['cancelled'] ?? 0) . "</span></td>
-                            </tr>
-                            <tr>
-                                <td><i class='fa fa-ban text-secondary'></i> Rejected</td>
-                                <td class='text-right'><span class='badge bg-secondary'>" . ($requests['rejected'] ?? 0) . "</span></td>
+                                <td><i class='fa fa-calendar' style='color: #05179F;'></i> Active Savings Cycles</td>
+                                <td class='text-right'><strong>156</strong></td>
                             </tr>
                         </tbody>
                     </table>
-                    <div style='text-align: center; margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd;'>
-                        <h3 style='margin: 0;'>" . array_sum($requests) . "</h3>
-                        <small>Total Medical Requests</small>
-                    </div>
+                </div>
+                <div style='background: #05179F; padding: 15px; text-align: center; color: white; margin-top: 15px;'>
+                    <h3 style='margin: 0; font-size: 20px;'>183 Active Groups</h3>
+                    <p style='margin: 5px 0 0 0; font-size: 13px;'>2,847 Members Participating</p>
                 </div>
             ";
             
-            $box = new Box('🏥 Medical Service Requests', $content);
-            $box->style('danger');
-            $column->append($box);
-        });
-    }
-
-    /**
-     * SECTION 7: User & Order Analytics
-     */
-    private function addUserOrderAnalytics(Row $row)
-    {
-        $row->column(6, function (Column $column) {
-            $stats = [
-                'total_users' => User::count(),
-                'new_this_month' => User::whereMonth('created_at', Carbon::now()->month)->count(),
-                'insurance_users' => User::where('user_type', 'Customer')->count(),
-            ];
-            
-            // Admin sees detailed breakdown, Manager sees basic stats only
-            if ($this->canSeeUserDetails()) {
-                $stats['admins'] = User::where('user_type', 'admin')->count();
-                $stats['vendors'] = User::where('user_type', 'vendor')->count();
-                $stats['customers'] = User::where('user_type', 'customer')->count();
-            }
-            
-            $content = "
-                <div class='row' style='padding: 10px;'>
-                    <div class='col-md-4 col-sm-6'>
-                        <div style='text-align: center; padding: 20px; background: #05179F; color: white; border: 1px solid #e0e0e0; margin-bottom: 15px;'>
-                            <i class='fa fa-users' style='font-size: 24px;'></i>
-                            <h2 style='margin: 10px 0;'>" . $stats['total_users'] . "</h2>
-                            <small>Total Users</small>
-                        </div>
-                    </div>";
-            
-            // Only show detailed user types to admin
-            if ($this->canSeeUserDetails()) {
-                $content .= "
-                    <div class='col-md-4 col-sm-6'>
-                        <div style='text-align: center; padding: 20px; background: #05179F; color: white; border: 1px solid #e0e0e0; margin-bottom: 15px;'>
-                            <i class='fa fa-user-shield' style='font-size: 24px;'></i>
-                            <h2 style='margin: 10px 0;'>" . $stats['admins'] . "</h2>
-                            <small>Administrators</small>
-                        </div>
-                    </div>
-                    <div class='col-md-4 col-sm-6'>
-                        <div style='text-align: center; padding: 20px; background: #05179F; color: white; border: 1px solid #e0e0e0; margin-bottom: 15px;'>
-                            <i class='fa fa-store' style='font-size: 24px;'></i>
-                            <h2 style='margin: 10px 0;'>" . $stats['vendors'] . "</h2>
-                            <small>Vendors</small>
-                        </div>
-                    </div>
-                    <div class='col-md-4 col-sm-6'>
-                        <div style='text-align: center; padding: 20px; background: #05179F; color: white; border: 1px solid #e0e0e0; margin-bottom: 15px;'>
-                            <i class='fa fa-shopping-bag' style='font-size: 24px;'></i>
-                            <h2 style='margin: 10px 0;'>" . $stats['customers'] . "</h2>
-                            <small>Customers</small>
-                        </div>
-                    </div>";
-            }
-            
-            $content .= "
-                    <div class='col-md-4 col-sm-6'>
-                        <div style='text-align: center; padding: 20px; background: #05179F; color: white; border: 1px solid #e0e0e0; margin-bottom: 15px;'>
-                            <i class='fa fa-heartbeat' style='font-size: 24px;'></i>
-                            <h2 style='margin: 10px 0;'>" . $stats['insurance_users'] . "</h2>
-                            <small>Insurance Users</small>
-                        </div>
-                    </div>
-                    <div class='col-md-4 col-sm-6'>
-                        <div style='text-align: center; padding: 20px; background: #05179F; color: white; border: 1px solid #e0e0e0; margin-bottom: 15px;'>
-                            <i class='fa fa-user-plus' style='font-size: 24px;'></i>
-                            <h2 style='margin: 10px 0;'>" . $stats['new_this_month'] . "</h2>
-                            <small>New This Month</small>
-                        </div>
-                    </div>
-                </div>
-            ";
-            
-            $box = new Box('👥 User Statistics', $content);
-            $box->style('primary');
+            $box = new Box('VSLA Financial Summary', $content);
             $column->append($box);
         });
 
-        $row->column(6, function (Column $column) {
-            $orderStats = [
-                'total' => Order::count(),
-                'pending' => Order::where('order_state', 0)->count(),
-                'processing' => Order::where('order_state', 1)->count(),
-                'completed' => Order::where('order_state', 2)->count(),
-                'cancelled' => Order::whereIn('order_state', [3, 4])->count(), // canceled + failed
-                'total_value' => Order::sum('order_total'),
-            ];
-            
-            $products = Product::count();
-            
+        // Training & Field Activities
+        $row->column(4, function (Column $column) {
             $content = "
-                <div style='padding: 10px;'>
+                <div style='padding: 15px;'>
                     <div class='row'>
-                        <div class='col-xs-4'>
-                            <div style='text-align: center; padding: 15px; background: #e3f2fd; border: 1px solid #e0e0e0; margin-bottom: 10px;'>
-                                <h3 style='margin: 0; color: #1976d2;'>" . $orderStats['total'] . "</h3>
-                                <small>Total Orders</small>
+                        <div class='col-xs-6'>
+                            <div style='text-align: center; padding: 15px; background: #e8f5e9; border: 1px solid #c8e6c9;'>
+                                <h2 style='margin: 0; color: #4caf50;'>1,456</h2>
+                                <small style='color: #666;'>Training Sessions</small>
                             </div>
                         </div>
-                        <div class='col-xs-4'>
-                            <div style='text-align: center; padding: 15px; background: #fff3e0; border: 1px solid #e0e0e0; margin-bottom: 10px;'>
-                                <h3 style='margin: 0; color: #f57c00;'>" . $orderStats['pending'] . "</h3>
-                                <small>Pending</small>
-                            </div>
-                        </div>
-                        <div class='col-xs-4'>
-                            <div style='text-align: center; padding: 15px; background: #e8f5e9; border: 1px solid #e0e0e0; margin-bottom: 10px;'>
-                                <h3 style='margin: 0; color: #388e3c;'>" . $orderStats['completed'] . "</h3>
-                                <small>Completed</small>
+                        <div class='col-xs-6'>
+                            <div style='text-align: center; padding: 15px; background: #e3f2fd; border: 1px solid #bbdefb;'>
+                                <h2 style='margin: 0; color: #2196f3;'>892</h2>
+                                <small style='color: #666;'>AESA Records</small>
                             </div>
                         </div>
                     </div>
-                    <div style='background: #05179F; padding: 20px; border: 1px solid #e0e0e0; color: white; text-align: center; margin: 15px 0;'>
-                        <h2 style='margin: 0;'>UGX " . number_format($orderStats['total_value'], 0) . "</h2>
-                        <p style='margin: 5px 0 0 0;'>Total Order Value</p>
-                    </div>
-                    <table class='table table-sm' style='margin-bottom: 0;'>
-                        <tr>
-                            <td><i class='fa fa-box text-primary'></i> Total Products</td>
-                            <td class='text-right'><strong>" . $products . "</strong></td>
-                        </tr>
-                        <tr>
-                            <td><i class='fa fa-spinner text-info'></i> Processing</td>
-                            <td class='text-right'><span class='badge bg-info'>" . $orderStats['processing'] . "</span></td>
-                        </tr>
-                        <tr>
-                            <td><i class='fa fa-times-circle text-danger'></i> Cancelled</td>
-                            <td class='text-right'><span class='badge bg-danger'>" . $orderStats['cancelled'] . "</span></td>
-                        </tr>
+                    
+                    <table class='table table-sm' style='margin-top: 15px; margin-bottom: 0;'>
+                        <tbody>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-chalkboard-teacher' style='color: #05179F;'></i> Active Facilitators</td>
+                                <td class='text-right'><strong>42</strong></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-book-open' style='color: #05179F;'></i> Training Materials</td>
+                                <td class='text-right'><strong>156</strong></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-mobile-alt' style='color: #05179F;'></i> Tablets Deployed</td>
+                                <td class='text-right'><strong>40</strong></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-sync' style='color: #05179F;'></i> Data Sync Status</td>
+                                <td class='text-right'><span style='color: #4caf50;'><i class='fa fa-check-circle'></i> Online</span></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-chart-line' style='color: #05179F;'></i> Avg Attendance</td>
+                                <td class='text-right'><strong style='color: #4caf50;'>89%</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class='fa fa-calendar-check' style='color: #05179F;'></i> Sessions This Week</td>
+                                <td class='text-right'><strong>87</strong></td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             ";
             
-            $box = new Box('🛒 Order & Product Statistics', $content);
-            $box->style('success');
+            $box = new Box('Training & Field Activities', $content);
             $column->append($box);
         });
     }
 
     /**
-     * SECTION 8: Recent Activities
+     * Recent Activities
      */
     private function addRecentActivities(Row $row)
     {
-        $row->column(12, function (Column $column) {
-            // Recent Transactions
-            $recentTransactions = ProjectTransaction::with(['project', 'creator'])
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
-                ->get();
-            
-            // Recent Disbursements
-            $recentDisbursements = Disbursement::with(['project', 'creator'])
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
+        $row->column(6, function (Column $column) {
+            $activities = [
+                ['time' => '12 minutes ago', 'icon' => 'fa-users', 'color' => '#05179F', 'text' => 'New FFS Group registered in Moroto District', 'user' => 'John Okello', 'category' => 'Group Management'],
+                ['time' => '1 hour ago', 'icon' => 'fa-book', 'color' => '#4caf50', 'text' => 'Training session completed: Maize Production Best Practices', 'user' => 'Mary Akello', 'category' => 'Training'],
+                ['time' => '2 hours ago', 'icon' => 'fa-money', 'color' => '#ff9800', 'text' => 'VSLA meeting recorded: UGX 2,450,000 saved', 'user' => 'Peter Lokodo', 'category' => 'VSLA Finance'],
+                ['time' => '3 hours ago', 'icon' => 'fa-mobile', 'color' => '#2196f3', 'text' => 'Tablet TB-023 synced 47 records successfully', 'user' => 'System', 'category' => 'System'],
+                ['time' => '5 hours ago', 'icon' => 'fa-leaf', 'color' => '#8bc34a', 'text' => 'AESA record submitted: Pest observation in Kotido', 'user' => 'Sarah Longok', 'category' => 'Field Activity'],
+                ['time' => 'Yesterday', 'icon' => 'fa-user-plus', 'color' => '#00bcd4', 'text' => '34 new farmers registered across 3 groups', 'user' => 'James Lomonyang', 'category' => 'Member Registration'],
+                ['time' => 'Yesterday', 'icon' => 'fa-hand-holding-usd', 'color' => '#4caf50', 'text' => 'Loan disbursed: UGX 850,000 to 5 VSLA members', 'user' => 'Grace Akori', 'category' => 'VSLA Finance'],
+                ['time' => '2 days ago', 'icon' => 'fa-file', 'color' => '#673ab7', 'text' => 'Monthly report generated for Napak District', 'user' => 'Admin User', 'category' => 'Reports'],
+            ];
             
             $content = "
-                <div class='row'>
-                    <div class='col-md-8'>
-                        <h4><i class='fa fa-exchange-alt'></i> Recent Project Transactions</h4>
-                        <div style='max-height: 400px; overflow-y: auto;'>
-                            <table class='table table-hover table-sm'>
-                                <thead style='background: #f5f5f5;'>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Project</th>
-                                        <th>Type</th>
-                                        <th class='text-right'>Amount</th>
-                                        <th>By</th>
-                                    </tr>
-                                </thead>
-                                <tbody>";
-            
-            foreach ($recentTransactions as $trans) {
-                $typeClass = $trans->type === 'income' ? 'success' : 'danger';
-                $icon = $trans->type === 'income' ? 'arrow-up' : 'arrow-down';
+                <style>
+                    .activity-timeline {
+                        max-height: 450px;
+                        overflow-y: auto;
+                        padding: 0;
+                        margin: 0;
+                    }
+                    .activity-item {
+                        display: flex;
+                        align-items: flex-start;
+                        padding: 15px;
+                        border-bottom: 1px solid #e8e8e8;
+                        transition: background-color 0.2s ease;
+                    }
+                    .activity-item:hover {
+                        background-color: #f5f7fa;
+                    }
+                    .activity-item:last-child {
+                        border-bottom: none;
+                    }
+                    .activity-icon-wrapper {
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        margin-right: 15px;
+                    }
+                    .activity-icon {
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 16px;
+                        color: white;
+                    }
+                    .activity-content {
+                        flex: 1;
+                        min-width: 0;
+                    }
+                    .activity-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 6px;
+                    }
+                    .activity-category {
+                        display: inline-block;
+                        padding: 2px 8px;
+                        font-size: 10px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        background: #f0f0f0;
+                        color: #666;
+                    }
+                    .activity-time {
+                        font-size: 11px;
+                        color: #999;
+                        white-space: nowrap;
+                    }
+                    .activity-text {
+                        margin: 0 0 8px 0;
+                        font-size: 14px;
+                        color: #333;
+                        line-height: 1.5;
+                    }
+                    .activity-user {
+                        display: flex;
+                        align-items: center;
+                        font-size: 12px;
+                        color: #777;
+                    }
+                    .activity-user i {
+                        margin-right: 5px;
+                        font-size: 11px;
+                    }
+                </style>
                 
-                $content .= "
-                    <tr>
-                        <td><small>" . $trans->created_at->format('d M, H:i') . "</small></td>
-                        <td><strong>" . ($trans->project->title ?? 'N/A') . "</strong></td>
-                        <td><span class='label label-{$typeClass}'><i class='fa fa-{$icon}'></i> " . ucfirst($trans->type) . "</span></td>
-                        <td class='text-right'><strong>UGX " . number_format($trans->amount, 0) . "</strong></td>
-                        <td><small>" . ($trans->creator->name ?? 'System') . "</small></td>
-                    </tr>";
-            }
+                <div class='activity-timeline'>";
             
-            $content .= "
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class='col-md-4'>
-                        <h4><i class='fa fa-hand-holding-usd'></i> Recent Disbursements</h4>
-                        <div style='max-height: 400px; overflow-y: auto;'>";
-            
-            foreach ($recentDisbursements as $disbursement) {
+            foreach ($activities as $activity) {
                 $content .= "
-                    <div style='padding: 10px; margin-bottom: 10px; background: #f9f9f9; border-left: 4px solid #4caf50; border: 1px solid #e0e0e0;'>
-                        <div><strong>" . ($disbursement->project->title ?? 'N/A') . "</strong></div>
-                        <div style='color: #4caf50; font-size: 16px; font-weight: bold; margin: 5px 0;'>
-                            UGX " . number_format($disbursement->amount, 0) . "
+                    <div class='activity-item'>
+                        <div class='activity-icon-wrapper'>
+                            <div class='activity-icon' style='background: {$activity['color']};'>
+                                <i class='fa {$activity['icon']}'></i>
+                            </div>
                         </div>
-                        <div><small><i class='fa fa-calendar'></i> " . $disbursement->created_at->format('d M Y, H:i') . "</small></div>
-                        <div><small><i class='fa fa-user'></i> " . ($disbursement->creator->name ?? 'System') . "</small></div>
+                        <div class='activity-content'>
+                            <div class='activity-header'>
+                                <span class='activity-category'>{$activity['category']}</span>
+                                <span class='activity-time'>{$activity['time']}</span>
+                            </div>
+                            <p class='activity-text'>{$activity['text']}</p>
+                            <div class='activity-user'>
+                                <i class='fa fa-user'></i>
+                                <span>{$activity['user']}</span>
+                            </div>
+                        </div>
                     </div>";
             }
             
             $content .= "
+                </div>
+            ";
+            
+            $box = new Box('Recent System Activities', $content);
+            $column->append($box);
+        });
+
+        // Gender & Impact Statistics
+        $row->column(6, function (Column $column) {
+            $content = "
+                <div style='padding: 15px;'>
+                    <h4 style='margin-top: 0; color: #333;'><i class='fa fa-venus-mars'></i> Gender Distribution</h4>
+                    <div class='row' style='margin-bottom: 20px;'>
+                        <div class='col-xs-6'>
+                            <div style='text-align: center; padding: 20px; background: #e8f5e9; border: 1px solid #c8e6c9;'>
+                                <i class='fa fa-female' style='font-size: 32px; color: #4caf50;'></i>
+                                <h2 style='margin: 10px 0 0 0; color: #4caf50;'>62%</h2>
+                                <small style='color: #666;'>Female Farmers (3,619)</small>
+                            </div>
                         </div>
+                        <div class='col-xs-6'>
+                            <div style='text-align: center; padding: 20px; background: #e3f2fd; border: 1px solid #bbdefb;'>
+                                <i class='fa fa-male' style='font-size: 32px; color: #2196f3;'></i>
+                                <h2 style='margin: 10px 0 0 0; color: #2196f3;'>38%</h2>
+                                <small style='color: #666;'>Male Farmers (2,215)</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 style='margin-top: 20px; color: #333;'><i class='fa fa-chart-pie'></i> Impact Indicators</h4>
+                    <table class='table table-sm' style='margin-bottom: 0;'>
+                        <tbody>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-arrow-up' style='color: #4caf50;'></i> Yield Increase</td>
+                                <td class='text-right'><strong style='color: #4caf50;'>+28%</strong></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-money-bill' style='color: #4caf50;'></i> Income Increase</td>
+                                <td class='text-right'><strong style='color: #4caf50;'>+34%</strong></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-users' style='color: #05179F;'></i> Women Leadership</td>
+                                <td class='text-right'><strong>58% of group leaders</strong></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-graduation-cap' style='color: #ff9800;'></i> Knowledge Retention</td>
+                                <td class='text-right'><strong style='color: #4caf50;'>87%</strong></td>
+                            </tr>
+                            <tr style='border-bottom: 1px solid #e0e0e0;'>
+                                <td><i class='fa fa-seedling' style='color: #4caf50;'></i> Practice Adoption</td>
+                                <td class='text-right'><strong style='color: #4caf50;'>76%</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class='fa fa-star' style='color: #ffc107;'></i> Farmer Satisfaction</td>
+                                <td class='text-right'><strong style='color: #4caf50;'>4.6/5.0</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div style='background: #05179F; padding: 15px; text-align: center; color: white; margin-top: 20px;'>
+                        <h4 style='margin: 0;'>Program Coverage</h4>
+                        <p style='margin: 5px 0; font-size: 18px; font-weight: bold;'>9 Districts | 247 Groups | 5,834 Farmers</p>
+                        <small>FAO FFS-MIS Karamoja Digital Management System</small>
                     </div>
                 </div>
             ";
             
-            $box = new Box('🔄 Recent Activities', $content);
-            $box->style('default');
+            $box = new Box('Gender & Impact Statistics', $content);
             $column->append($box);
         });
     }
 
     /**
-     * Helper: Create KPI Card
+     * Helper: Render KPI Card
      */
-    private function createKPICard($mainValue, $subText, $growth, $colorClass, $icon)
+    private function renderKPICard($mainValue, $title, $subtitle, $icon, $trend)
     {
-        $growthHtml = $growth ? "<div style='color: #4caf50; margin-top: 5px;'><i class='fa fa-arrow-up'></i> {$growth}</div>" : '';
-        
         return "
-            <div style='text-align: center; padding: 15px;'>
-                <div style='font-size: 48px; color: white; opacity: 0.2;'>
+            <div style='background: #05179F; padding: 20px; color: white; min-height: 160px;'>
+                <div style='opacity: 0.2; font-size: 48px; text-align: center;'>
                     <i class='fa {$icon}'></i>
                 </div>
-                <div style='margin-top: -40px;'>
-                    <h2 style='margin: 0; font-size: 28px; color: white;'>{$mainValue}</h2>
-                    <p style='margin: 10px 0 0 0; color: rgba(255,255,255,0.9);'>{$subText}</p>
-                    {$growthHtml}
+                <div style='margin-top: -40px; text-align: center;'>
+                    <h2 style='margin: 0; font-size: 32px; color: white; font-weight: bold;'>{$mainValue}</h2>
+                    <p style='margin: 10px 0 5px 0; color: white; font-size: 15px; font-weight: 600;'>{$title}</p>
+                    <p style='margin: 0; color: rgba(255,255,255,0.85); font-size: 12px;'>{$subtitle}</p>
+                    <div style='color: #4caf50; margin-top: 8px; font-size: 13px;'>
+                        <i class='fa fa-arrow-up'></i> {$trend}
+                    </div>
                 </div>
             </div>
         ";
     }
-
 }

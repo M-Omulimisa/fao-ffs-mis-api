@@ -102,4 +102,21 @@ Route::group([
 
     // User Hierarchy & Network - View only for all admin users
     $router->resource('user-hierarchy', UserHierarchyController::class);
+    
+    // ========================================
+    // GROUPS MANAGEMENT - All group types handled by one controller
+    // The controller detects group type from URL string
+    // ========================================
+    $router->resource('ffs-all-groups', FfsGroupController::class);
+    $router->resource('ffs-farmer-field-schools', FfsGroupController::class);
+    $router->resource('ffs-farmer-business-schools', FfsGroupController::class);
+    $router->resource('ffs-vslas', FfsGroupController::class);
+    $router->resource('ffs-group-associations', FfsGroupController::class);
+    
+    // ========================================
+    // MEMBERS MANAGEMENT
+    // ========================================
+    $router->get('ffs-members/{id}/send-credentials', 'MemberController@sendCredentials')->name('ffs-members.send-credentials');
+    $router->get('ffs-members/{id}/send-welcome', 'MemberController@sendWelcome')->name('ffs-members.send-welcome');
+    $router->resource('ffs-members', MemberController::class);
 });
