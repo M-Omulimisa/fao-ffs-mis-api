@@ -1,0 +1,198 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+class ProjectsSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        $projects = [
+            [
+                'title' => 'Real Estate Development - Kampala Heights',
+                'description' => 'A premium residential apartment complex in the heart of Kampala. This project features 50 modern apartments with world-class amenities including a gym, swimming pool, and 24/7 security. Expected completion in 18 months with projected ROI of 35%.',
+                'start_date' => Carbon::now()->subMonths(3)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(15)->format('Y-m-d'),
+                'status' => 'ongoing',
+                'share_price' => 500000.00,
+                'total_shares' => 1000,
+                'shares_sold' => 450,
+                'total_investment' => 225000000.00,
+                'total_returns' => 15000000.00,
+                'total_expenses' => 8000000.00,
+                'total_profits' => 7000000.00,
+                'image' => 'projects/kampala-heights.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Agricultural Investment - Coffee Plantation',
+                'description' => 'Organic coffee plantation spanning 100 acres in the Rwenzori Mountains. This sustainable farming project targets the premium export market with certified organic coffee. Expected annual yields of 200 tons with contracts from international buyers.',
+                'start_date' => Carbon::now()->subMonths(6)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(30)->format('Y-m-d'),
+                'status' => 'ongoing',
+                'share_price' => 250000.00,
+                'total_shares' => 2000,
+                'shares_sold' => 1200,
+                'total_investment' => 300000000.00,
+                'total_returns' => 25000000.00,
+                'total_expenses' => 12000000.00,
+                'total_profits' => 13000000.00,
+                'image' => 'projects/coffee-plantation.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Solar Energy Farm - Mbarara',
+                'description' => 'A 10MW solar energy facility providing clean electricity to over 5,000 homes. This renewable energy project includes battery storage systems and is connected to the national grid with a 20-year power purchase agreement.',
+                'start_date' => Carbon::now()->subMonths(12)->format('Y-m-d'),
+                'end_date' => Carbon::now()->subMonths(2)->format('Y-m-d'),
+                'status' => 'completed',
+                'share_price' => 1000000.00,
+                'total_shares' => 500,
+                'shares_sold' => 500,
+                'total_investment' => 500000000.00,
+                'total_returns' => 85000000.00,
+                'total_expenses' => 45000000.00,
+                'total_profits' => 40000000.00,
+                'image' => 'projects/solar-farm.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Hotel & Resort Development - Lake Victoria',
+                'description' => 'Luxury eco-resort on the shores of Lake Victoria featuring 80 rooms, conference facilities, spa, and water sports center. Targeting both local and international tourists with sustainable tourism practices.',
+                'start_date' => Carbon::now()->subMonths(2)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(22)->format('Y-m-d'),
+                'status' => 'ongoing',
+                'share_price' => 750000.00,
+                'total_shares' => 800,
+                'shares_sold' => 320,
+                'total_investment' => 240000000.00,
+                'total_returns' => 8000000.00,
+                'total_expenses' => 3500000.00,
+                'total_profits' => 4500000.00,
+                'image' => 'projects/lake-resort.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Shopping Mall - Entebbe Road',
+                'description' => 'Modern shopping complex with 120 retail units, supermarket, cinema, and parking for 500 vehicles. Strategic location on Entebbe Road with high traffic volume. Anchor tenants already confirmed.',
+                'start_date' => Carbon::now()->subMonths(1)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(18)->format('Y-m-d'),
+                'status' => 'ongoing',
+                'share_price' => 600000.00,
+                'total_shares' => 1500,
+                'shares_sold' => 850,
+                'total_investment' => 510000000.00,
+                'total_returns' => 12000000.00,
+                'total_expenses' => 7000000.00,
+                'total_profits' => 5000000.00,
+                'image' => 'projects/shopping-mall.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Fish Farming - Jinja',
+                'description' => 'Commercial tilapia and catfish farming with modern aquaculture technology. Project includes 50 ponds with automated feeding systems and processing facility for export to regional markets.',
+                'start_date' => Carbon::now()->subMonths(18)->format('Y-m-d'),
+                'end_date' => Carbon::now()->subMonths(6)->format('Y-m-d'),
+                'status' => 'completed',
+                'share_price' => 150000.00,
+                'total_shares' => 1000,
+                'shares_sold' => 1000,
+                'total_investment' => 150000000.00,
+                'total_returns' => 35000000.00,
+                'total_expenses' => 18000000.00,
+                'total_profits' => 17000000.00,
+                'image' => 'projects/fish-farm.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Logistics Warehouse - Namanve',
+                'description' => 'State-of-the-art logistics and warehousing facility in Namanve Industrial Park. Features 10,000 sqm of storage space with cold storage units, loading docks, and security systems. Pre-leased to major logistics companies.',
+                'start_date' => Carbon::now()->subMonths(8)->format('Y-m-d'),
+                'end_date' => null,
+                'status' => 'on_hold',
+                'share_price' => 400000.00,
+                'total_shares' => 600,
+                'shares_sold' => 200,
+                'total_investment' => 80000000.00,
+                'total_returns' => 2000000.00,
+                'total_expenses' => 1500000.00,
+                'total_profits' => 500000.00,
+                'image' => 'projects/warehouse.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Tech Hub & Innovation Center',
+                'description' => 'Co-working and innovation space for tech startups in Kampala. Includes high-speed internet, meeting rooms, event space, and mentorship programs. Supporting Uganda\'s growing tech ecosystem.',
+                'start_date' => Carbon::now()->subMonths(4)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(14)->format('Y-m-d'),
+                'status' => 'ongoing',
+                'share_price' => 300000.00,
+                'total_shares' => 800,
+                'shares_sold' => 560,
+                'total_investment' => 168000000.00,
+                'total_returns' => 9000000.00,
+                'total_expenses' => 5000000.00,
+                'total_profits' => 4000000.00,
+                'image' => 'projects/tech-hub.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Poultry Processing Plant',
+                'description' => 'Modern poultry processing facility with capacity for 50,000 birds per day. Includes slaughterhouse, cold storage, and packaging units. Targeting supermarket chains and export markets.',
+                'start_date' => Carbon::now()->subMonths(1)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(20)->format('Y-m-d'),
+                'status' => 'ongoing',
+                'share_price' => 350000.00,
+                'total_shares' => 1200,
+                'shares_sold' => 480,
+                'total_investment' => 168000000.00,
+                'total_returns' => 5000000.00,
+                'total_expenses' => 3000000.00,
+                'total_profits' => 2000000.00,
+                'image' => 'projects/poultry-plant.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'title' => 'Educational Complex - Mukono',
+                'description' => 'Private school campus with kindergarten, primary, and secondary sections. Includes science labs, computer rooms, library, sports facilities, and boarding accommodation for 1,000 students.',
+                'start_date' => Carbon::now()->subMonths(5)->format('Y-m-d'),
+                'end_date' => Carbon::now()->addMonths(19)->format('Y-m-d'),
+                'status' => 'ongoing',
+                'share_price' => 450000.00,
+                'total_shares' => 1000,
+                'shares_sold' => 650,
+                'total_investment' => 292500000.00,
+                'total_returns' => 11000000.00,
+                'total_expenses' => 6500000.00,
+                'total_profits' => 4500000.00,
+                'image' => 'projects/school.jpg',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+        ];
+
+        DB::table('projects')->insert($projects);
+        
+        $this->command->info('✅ Successfully created 10 sample projects!');
+        $this->command->info('   - 7 Ongoing projects');
+        $this->command->info('   - 2 Completed projects');
+        $this->command->info('   - 1 On Hold project');
+    }
+}

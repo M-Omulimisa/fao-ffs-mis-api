@@ -1,0 +1,343 @@
+<?php
+
+namespace App\Models;
+
+use Dflydev\DotAccessData\Util;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     */
+    protected $fillable = [
+        'name', 'price', 'description', 'tags', 'local_id', 'category', 'feature_photo',
+        'colors', 'keywords', 'sizes', 'summary', 'quantity', 'min_quantity_alert'
+    ];
+
+    public static function boot()
+    {
+        parent::boot();
+        //created
+        self::created(function ($m) {});
+
+        //cerating
+        self::creating(function ($m) {
+            $pro_with_same_vid = Product::where('local_id', $m->local_id)->first();
+            if ($pro_with_same_vid != null) {
+                throw new \Exception("Product with same local_id already exists", 1);
+            }
+        });
+
+        //updating
+        self::updating(function ($m) {
+
+            return $m;
+        });
+        //updated
+        self::updated(function ($m) {
+            // $m->sync(Utils::get_stripe()); // Disabled to prevent memory issues
+        });
+
+        self::deleting(function ($m) {
+            try {
+                $imgs = Image::where('parent_id', $m->id)->orwhere('product_id', $m->id)->get();
+                foreach ($imgs as $img) {
+                    $img->delete();
+                }
+                
+                // Delete all product attributes when product is deleted
+                ProductHasAttribute::where('product_id', $m->id)->delete();
+            } catch (\Throwable $th) {
+                //throw $th;
+            }
+        });
+    }
+
+    //getter for feature_photo
+    public function getFeaturePhotoAttribute($value)
+    {
+
+        //check if value contains images/
+        if (str_contains($value, 'images/')) {
+            return $value;
+        }
+        $value = 'images/' . $value;
+        return $value;
+    }
+
+
+
+    public function update_stripe_price($new_price)
+    {
+
+        return; 
+    }
+
+    public function sync($stripe)
+    {
+
+        return;
+    }
+    public function getRatesAttribute()
+    {
+        $imgs = Image::where('parent_id', $this->id)->orwhere('product_id', $this->id)->get();
+        return json_encode($imgs);
+    }
+
+
+    protected $appends = ['category_text', 'tags_array'];
+    public function getCategoryTextAttribute()
+    {
+        $d = ProductCategory::find($this->category);
+        if ($d == null) {
+            return 'Not Category.';
+        }
+        return $d->category;
+    }
+
+    //getter for colors from json
+    public function getColorsAttribute($value)
+    {
+        $resp = str_replace('\"', '"', $value);
+        $resp = str_replace('[', '', $resp);
+        $resp = str_replace(']', '', $resp);
+        $resp = str_replace('"', '', $resp);
+        return $resp;
+    }
+
+    //setter for colors to json
+    public function setColorsAttribute($value)
+    {
+        if ($value != null) {
+            if (strlen($value) > 2) {
+                $value = json_encode($value);
+                $this->attributes['colors'] = $value;
+            }
+        }
+    }
+
+    //sett keywords to json
+    public function setKeywordsAttribute($value)
+    {
+        if ($value != null) {
+            if (strlen($value) > 2) {
+                $value = json_encode($value);
+                $this->attributes['keywords'] = $value;
+            }
+        }
+    }
+
+    //getter for keywords from json
+    public function getKeywordsAttribute($value)
+    {
+        if ($value == null) {
+            return [];
+        }
+
+        try {
+            $resp = json_decode($value);
+            return $resp;
+        } catch (\Throwable $th) {
+            return [];
+        }
+
+        return $resp;
+    }
+
+
+    //getter for sizes
+    public function getSizesAttribute($value)
+    {
+        $resp = str_replace('\"', '"', $value);
+        $resp = str_replace('[', '', $resp);
+        $resp = str_replace(']', '', $resp);
+        $resp = str_replace('"', '', $resp);
+        return $resp;
+    }
+
+    //setter for sizes
+    public function setSizesAttribute($value)
+    {
+        if ($value != null) {
+            if (strlen($value) > 2) {
+                $value = json_encode($value);
+                $this->attributes['sizes'] = $value;
+            }
+        }
+    }
+
+    //has many Image
+    public function images()
+    {
+        return $this->hasMany(Image::class, 'product_id', 'id');
+    }
+
+    //has many ProductHasAttribute
+    public function attributes()
+    {
+        return $this->hasMany(ProductHasAttribute::class, 'product_id', 'id');
+    }
+
+    //belongs to ProductCategory
+    public function productCategory()
+    {
+        return $this->belongsTo(ProductCategory::class, 'category', 'id');
+    }
+
+    /**
+     * Get attribute value by name
+     */
+    public function getAttributeValue($attributeName)
+    {
+        $attribute = $this->attributes()->where('name', $attributeName)->first();
+        return $attribute ? $attribute->value : null;
+    }
+
+    /**
+     * Set attribute value by name
+     */
+    public function setAttributeValue($attributeName, $value)
+    {
+        return $this->attributes()->updateOrCreate(
+            ['name' => $attributeName],
+            ['value' => $value]
+        );
+    }
+
+    /**
+     * Get all attributes as key-value pairs
+     */
+    public function getAttributesArrayAttribute()
+    {
+        try {
+            return $this->productAttributes()->get()->map(function ($attr) {
+                return [
+                    'name' => $attr->name,
+                    'value' => $attr->value
+                ];
+            })->toArray();
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get tags as array
+     */
+    public function getTagsArrayAttribute()
+    {
+        if (empty($this->tags)) {
+            return [];
+        }
+        return array_map('trim', explode(',', $this->tags));
+    }
+
+    /**
+     * Set tags from array
+     */
+    public function setTagsFromArray(array $tags)
+    {
+        $this->tags = implode(',', array_map('trim', $tags));
+        return $this;
+    }
+
+    /**
+     * Check if product has a specific tag
+     */
+    public function hasTag($tag)
+    {
+        return in_array(trim($tag), $this->tags_array);
+    }
+
+    /**
+     * Add a tag to the product
+     */
+    public function addTag($tag)
+    {
+        $tags = $this->tags_array;
+        $tag = trim($tag);
+        
+        if (!in_array($tag, $tags)) {
+            $tags[] = $tag;
+            $this->setTagsFromArray($tags);
+        }
+        
+        return $this;
+    }
+
+    /**
+     * Remove a tag from the product
+     */
+    public function removeTag($tag)
+    {
+        $tags = $this->tags_array;
+        $tag = trim($tag);
+        
+        $tags = array_filter($tags, function($t) use ($tag) {
+            return $t !== $tag;
+        });
+        
+        $this->setTagsFromArray($tags);
+        return $this;
+    }
+
+    /**
+     * Scope to filter products by tags
+     */
+    public function scopeWithTag($query, $tag)
+    {
+        return $query->where('tags', 'LIKE', '%' . trim($tag) . '%');
+    }
+
+    /**
+     * Scope to filter products by multiple tags (OR condition)
+     */
+    public function scopeWithAnyTag($query, array $tags)
+    {
+        return $query->where(function($q) use ($tags) {
+            foreach ($tags as $tag) {
+                $q->orWhere('tags', 'LIKE', '%' . trim($tag) . '%');
+            }
+        });
+    }
+
+    /**
+     * Scope to filter products by multiple tags (AND condition)
+     */
+    public function scopeWithAllTags($query, array $tags)
+    {
+        foreach ($tags as $tag) {
+            $query->where('tags', 'LIKE', '%' . trim($tag) . '%');
+        }
+        return $query;
+    }
+
+    /**
+     * Search products by name, description, or tags
+     */
+    public function scopeSearch($query, $searchTerm)
+    {
+        return $query->where(function($q) use ($searchTerm) {
+            $q->where('name', 'LIKE', '%' . $searchTerm . '%')
+              ->orWhere('description', 'LIKE', '%' . $searchTerm . '%')
+              ->orWhere('tags', 'LIKE', '%' . $searchTerm . '%');
+        });
+    }
+
+
+    protected $casts = [
+        'summary' => 'json',
+    ];
+
+    /**
+     * Get product attributes relationship
+     */
+    public function productAttributes()
+    {
+        return $this->hasMany(ProductHasAttribute::class, 'product_id');
+    }
+}

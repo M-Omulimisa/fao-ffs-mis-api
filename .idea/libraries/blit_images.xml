@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="blit-images">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/public/storage/images/blit-images.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

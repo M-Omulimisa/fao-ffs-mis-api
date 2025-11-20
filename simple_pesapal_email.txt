@@ -1,0 +1,43 @@
+Subject: Simple Payment Initialization Test - Need Help
+
+Dear Pesapal Technical Team,
+
+We are testing payment initialization with our live credentials and getting an error. Can you help us understand what's wrong?
+
+**Our Live Credentials:**
+- Consumer Key: lRkoOQIl7QQc17Ej//RtpRfrq4Z9qzl/
+- Consumer Secret: AlcvoKfr+Al2nCL9u0AH/eASyTk=
+
+**How we initialize payment:**
+```
+POST https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest
+Authorization: Bearer [token from auth]
+Content-Type: application/json
+
+{
+    "id": "ORDER_99999_1726228557",
+    "currency": "UGX",
+    "amount": 50000.00,
+    "description": "Test payment",
+    "callback_url": "http://localhost:8888/blitxpress/payment-callback",
+    "billing_address": {
+        "email_address": "test@blitxpress.com",
+        "phone_number": "+256783204665",
+        "country_code": "UG",
+        "first_name": "Test Customer",
+        "last_name": "",
+        "line_1": "Test Address, Kampala"
+    }
+}
+```
+
+**The error/response we get:**
+[ACTUAL ERROR RESPONSE WILL GO HERE]
+
+Can you tell us what we're doing wrong?
+
+Phone for testing: +256783204665
+Amount: UGX 50,000
+
+Thanks,
+BlitXpress Team

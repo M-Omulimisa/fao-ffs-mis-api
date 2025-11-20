@@ -1,0 +1,9 @@
+# BlitXpress Image Compression Cron Job
+# Runs every 5 minutes to ping the img-compress endpoint
+# This helps ensure continuous image processing and compression
+
+# Run every 5 minutes
+*/5 * * * * /Applications/MAMP/htdocs/blitxpress/scripts/img-compress-cron.sh
+
+# Optional: Run a cleanup task once daily at 2 AM to manage log sizes
+0 2 * * * find /Applications/MAMP/htdocs/blitxpress/storage/logs -name "img-compress-cron*.log" -size +10M -exec truncate -s 5M {} \;
