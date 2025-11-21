@@ -6,3 +6,4 @@
 .env_1
 
 /public/storage/
+storage/logs/laravel.log
