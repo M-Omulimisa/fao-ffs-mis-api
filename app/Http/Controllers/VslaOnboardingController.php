@@ -336,7 +336,7 @@ class VslaOnboardingController extends Controller
                 'different:secretary_phone'
             ],
             'treasurer_email' => 'nullable|email',
-            'send_sms' => 'nullable|boolean',
+            'send_sms' => 'nullable|in:0,1,true,false',
         ]);
 
         if ($validator->fails()) {
@@ -393,8 +393,11 @@ class VslaOnboardingController extends Controller
             $user->save();
 
             // Send SMS credentials if requested
+            $shouldSendSms = $request->filled('send_sms') && 
+                             in_array($request->send_sms, ['1', 'true', true, 1], true);
             $smsResults = [];
-            if ($request->send_sms !== false) {
+            
+            if ($shouldSendSms) {
                 // Send SMS to secretary
                 $secretarySmsResult = $this->sendCredentialsSMS(
                     $secretary,
@@ -420,7 +423,7 @@ class VslaOnboardingController extends Controller
                 'secretary' => $secretary,
                 'treasurer' => $treasurer,
                 'group' => $group,
-                'sms_sent' => $request->send_sms !== false,
+                'sms_sent' => $shouldSendSms,
                 'sms_results' => $smsResults
             ], 'Main members registered successfully!');
 
