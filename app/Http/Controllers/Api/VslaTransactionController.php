@@ -585,4 +585,60 @@ class VslaTransactionController extends Controller
             ], 400);
         }
     }
+
+    /**
+     * Get all members of a VSLA group
+     * 
+     * GET /api/vsla/group-members
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getGroupMembers(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required|integer|exists:projects,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'code' => 0,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $projectId = $request->input('project_id');
+            
+            // Get project and its group_id
+            $project = Project::find($projectId);
+            if (!$project || !$project->group_id) {
+                return response()->json([
+                    'code' => 0,
+                    'message' => 'Project does not have an associated group',
+                    'data' => null,
+                ], 404);
+            }
+
+            // Get all users in this group
+            $members = User::where('group_id', $project->group_id)
+                ->where('status', 1)
+                ->select('id', 'name', 'member_code', 'phone_number', 'email')
+                ->orderBy('name', 'asc')
+                ->get();
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Group members retrieved successfully',
+                'data' => $members,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 0,
+                'message' => $e->getMessage(),
+                'data' => null,
+            ], 400);
+        }
+    }
 }

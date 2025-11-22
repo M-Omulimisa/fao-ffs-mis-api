@@ -105,6 +105,11 @@ Route::prefix('vsla/transactions')->middleware(EnsureTokenIsValid::class)->group
     Route::get('/dashboard-summary', [VslaTransactionController::class, 'getDashboardSummary']);
 });
 
+// VSLA Group Management
+Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/group-members', [VslaTransactionController::class, 'getGroupMembers']);
+});
+
 // FFS Groups Management
 use App\Http\Controllers\FfsGroupController;
 
