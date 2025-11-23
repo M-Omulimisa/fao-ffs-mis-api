@@ -190,8 +190,8 @@ class ProductController extends AdminController
      */
     protected function form()
     {
-        $last = Image::where([])->get()->last();
-        $last->create_thumbail();
+        // $last = Image::where([])->get()->last();
+        // $last->create_thumbail();
         $form = new Form(new Product());
         $form->hidden('local_id')->value(Utils::get_unique_text());
 
