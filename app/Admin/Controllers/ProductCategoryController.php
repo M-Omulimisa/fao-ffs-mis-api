@@ -3,7 +3,6 @@
 namespace App\Admin\Controllers;
 
 use App\Models\ProductCategory;
-use App\Models\ProductCategorySpecification;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -29,13 +28,16 @@ class ProductCategoryController extends AdminController
         $grid->disableBatchActions();
 
         $grid->column('id', __('#ID'))->sortable();
+        
         $grid->column('category', __('Category'))->sortable();
+        
         $grid->column('icon', __('Icon'))
             ->display(function ($icon) {
                 return $icon ? "<i class='$icon'></i> $icon" : '<span style="color: #999;">No icon</span>';
             })
             ->sortable();
-        $grid->column('is_parent', __('Cateogry Type'))
+        
+        $grid->column('is_parent', __('Category Type'))
             ->display(function ($is_parent) {
                 return $is_parent == 'Yes'
                     ? "<span style='color: green; font-weight: bold;'>Main Category</span>"
@@ -43,27 +45,22 @@ class ProductCategoryController extends AdminController
             })
             ->filter(['Yes' => 'Main Category', 'No' => 'Sub Category'])
             ->sortable();
+        
         $grid->column('show_in_banner', __('Show in Banner'))
             ->editable('select', ['Yes' => 'Yes', 'No' => 'No'])
             ->sortable();
+        
         $grid->column('show_in_categories', __('Show in Categories'))
             ->editable('select', ['Yes' => 'Yes', 'No' => 'No'])
             ->sortable();
-        $grid->column('specifications_count', __('Specifications'))
-            ->display(function () {
-                $count = $this->specifications()->count();
-                return $count > 0 
-                    ? "<span style='color: green; font-weight: bold;'>$count</span>"
-                    : "<span style='color: #999;'>0</span>";
-            })
-            ->sortable(false);
-        //is_first_banner
+        
         $grid->column('is_first_banner', __('Is First Banner'))
             ->sortable();
-        //banner_image
+        
         $grid->column('banner_image', __('Banner Image'))
             ->lightbox(['width' => 50, 'height' => 50])
             ->sortable();
+        
         $grid->column('image', __('Main Photo'))
             ->lightbox(['width' => 50, 'height' => 50])
             ->sortable();
@@ -81,38 +78,19 @@ class ProductCategoryController extends AdminController
     {
         $show = new Show(ProductCategory::findOrFail($id));
 
-        $show->field('id', __('Id'));
-        $show->field('created_at', __('Created at'));
-        $show->field('updated_at', __('Updated at'));
+        $show->field('id', __('ID'));
         $show->field('category', __('Category'));
-        $show->field('status', __('Status'));
-        $show->field('user', __('User'));
-        $show->field('date_created', __('Date created'));
-        $show->field('date_updated', __('Date updated'));
-        $show->field('url', __('Url'));
-        $show->field('default_amount', __('Default amount'));
-        $show->field('image', __('Image'));
-        $show->field('image_origin', __('Image origin'));
-        $show->field('banner_image', __('Banner image'));
-        $show->field('show_in_banner', __('Show in banner'));
-        $show->field('show_in_categories', __('Show in categories'));
-        
-        // Show specifications
-        $show->specifications('Category Specifications', function ($specifications) {
-            $specifications->disableCreateButton();
-            $specifications->disableExport();
-            $specifications->disableFilter();
-            $specifications->disablePagination();
-            $specifications->disableActions();
-            
-            $specifications->column('name', __('Specification Name'));
-            $specifications->column('is_required', __('Is Required'))
-                ->display(function ($is_required) {
-                    return $is_required === 'Yes' 
-                        ? "<span style='color: red; font-weight: bold;'>Required</span>"
-                        : "<span style='color: green;'>Optional</span>";
-                });
-        });
+        $show->field('icon', __('Icon'));
+        $show->field('is_parent', __('Is Main Category'));
+        $show->field('parent_id', __('Parent Category ID'));
+        $show->field('image', __('Main Photo'));
+        $show->field('banner_image', __('Banner Image'));
+        $show->field('show_in_banner', __('Show in Banner'));
+        $show->field('show_in_categories', __('Show in Categories'));
+        $show->field('is_first_banner', __('Is First Banner'));
+        $show->field('first_banner_image', __('First Banner Image'));
+        $show->field('created_at', __('Created At'));
+        $show->field('updated_at', __('Updated At'));
 
         return $show;
     }
@@ -126,16 +104,18 @@ class ProductCategoryController extends AdminController
     {
         $form = new Form(new ProductCategory());
 
-
-
-        $form->text('category', __('Category Name'))->required();
+        $form->text('category', __('Category Name'))
+            ->rules('required')
+            ->placeholder('e.g., Seeds, Livestock, Equipment')
+            ->help('Enter the agricultural product category name');
         
         $form->text('icon', __('Icon Class'))
-            ->help('Bootstrap Icons class name (e.g., bi-phone, bi-laptop, bi-headphones)')
-            ->placeholder('e.g., bi-phone');
+            ->placeholder('e.g., bi-phone, bi-laptop, bi-headphones')
+            ->help('Bootstrap Icons class name (optional)');
 
         $form->radio('is_parent', __('Is Main Category'))
             ->options(['Yes' => 'Yes', 'No' => 'No'])
+            ->default('Yes')
             ->when('No', function (Form $form) {
                 $parentCategories = ProductCategory::where('is_parent', 'Yes')
                     ->get()
@@ -143,37 +123,36 @@ class ProductCategoryController extends AdminController
                 $form->select('parent_id', __('Select Parent Category'))
                     ->options($parentCategories)
                     ->rules('required');
-            })->rules('required');
+            })
+            ->rules('required');
 
-
-        // $form->list('specifications', __('Category Specifications'))->required();
+        $form->image('image', __('Main Photo'))
+            ->rules('required')
+            ->uniqueName()
+            ->help('Upload the category icon/image');
         
-        // Category Specifications section
-        $form->hasMany('specifications', __('Category Specifications'), function (Form\NestedForm $form) {
-            $form->text('name', __('Specification Name'))
-                ->placeholder('e.g., Size, Color, Material')
-                ->rules('required|max:255');
-            $form->radio('is_required', __('Is Required'))
-                ->options(['Yes' => 'Yes', 'No' => 'No'])
-                ->default('No')
-                ->help('Whether this attribute is required for products in this category');
-        });
-        $form->image('image', __('Main Photo'))->required()->uniqueName();
-        $form->image('banner_image', __('Banner image'))->uniqueName();
+        $form->image('banner_image', __('Banner Image'))
+            ->uniqueName()
+            ->help('Upload banner image (optional)');
 
+        $form->radio('show_in_banner', __('Show in Banner'))
+            ->options(['Yes' => 'Yes', 'No' => 'No'])
+            ->default('Yes')
+            ->rules('required');
+        
+        $form->radio('show_in_categories', __('Show in Categories'))
+            ->options(['Yes' => 'Yes', 'No' => 'No'])
+            ->default('Yes')
+            ->rules('required');
 
-        $form->radio('show_in_banner', __('Show in banner'))->options(['Yes' => 'Yes', 'No' => 'No'])->required();
-        $form->radio('show_in_categories', __('Show in categories'))->options(['Yes' => 'Yes', 'No' => 'No'])->required();
-        //is_first_banner
-        $form->radio('is_first_banner', __('Is First Banner'))->options(['Yes' => 'Yes', 'No' => 'No'])
+        $form->radio('is_first_banner', __('Is First Banner'))
+            ->options(['Yes' => 'Yes', 'No' => 'No'])
+            ->default('No')
             ->when('Yes', function (Form $form) {
                 $form->image('first_banner_image', __('First Banner Image'))
-                    ->uniqueName();
+                    ->uniqueName()
+                    ->help('Upload the first banner image');
             });
-        /* 
-                    $table->string('is_first_banner')->default('No')->nullable();
-            $table->text('first_banner_image')->nullable()->nullable();
-        */
 
         return $form;
     }
