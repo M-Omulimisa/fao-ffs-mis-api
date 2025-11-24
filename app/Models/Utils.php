@@ -1784,7 +1784,7 @@ class Utils extends Model
      * @param string $message SMS message content (max 150 characters)
      * @return object Response object with status, message, and details
      */
-    public static function sendSMS($phoneNumber, $message)
+    public static function send_sms($phoneNumber, $message)
     {
         $response = (object)[
             'success' => false,

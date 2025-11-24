@@ -4,7 +4,6 @@ use App\Http\Controllers\ApiAuthController;
 use App\Http\Controllers\ApiResurceController;
 use App\Http\Controllers\PesapalController;
 use App\Http\Controllers\PesapalAdminController;
-use App\Http\Controllers\Api\PhoneVerificationController;
 // InsuranceUserController removed - using ApiResurceController instead
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\DisbursementController;
@@ -13,7 +12,6 @@ use App\Http\Controllers\UserAccountController;
 use App\Http\Middleware\EnsureTokenIsValid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -25,11 +23,6 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
-// PHONE VERIFICATION & OTP ROUTES
-Route::post("phone-verification/check-phone", [PhoneVerificationController::class, "checkPhone"]);
-Route::post("phone-verification/send-otp", [PhoneVerificationController::class, "sendOTP"]);
-Route::post("phone-verification/verify-otp", [PhoneVerificationController::class, "verifyOTP"]);
 
 Route::post("account-verification", [ApiResurceController::class, 'account_verification']);
 Route::post("password-change", [ApiResurceController::class, 'password_change']);
@@ -349,7 +342,6 @@ Route::prefix('user-accounts')->group(function () {
 // Main Dashboard Routes
 // ========================================
 use App\Http\Controllers\DashboardController;
-use Illuminate\Support\Facades\DB;
 
 Route::prefix('dashboard')->group(function () {
     // Get main dashboard data (home tab)
