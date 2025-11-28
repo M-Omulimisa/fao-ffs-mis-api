@@ -7695,3 +7695,6 @@ Please change your password after logging in.
 #36 /Applications/MAMP/htdocs/fao-ffs-mis-api/server.php(21): require_once('/Applications/M...')
 #37 {main}
 "} 
+[2025-11-28 19:27:45] local.INFO: ============ USER OBSERVER: CREATED EVENT ============ {"user_id":214,"is_dtehm_member":null,"is_dip_member":null} 
+[2025-11-28 19:27:47] local.INFO: EnsureTokenIsValid - User ID from header: 0  
+[2025-11-28 19:27:47] local.ERROR: EnsureTokenIsValid - No user ID provided  
