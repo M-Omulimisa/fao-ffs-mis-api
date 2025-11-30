@@ -1180,3 +1180,66 @@
 [2025-11-30 08:34:50] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2025-11-30 08:34:50] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
 [2025-11-30 08:34:50] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-11-30 08:56:41] local.INFO: EnsureTokenIsValid - User ID from header: 208  
+[2025-11-30 08:56:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-11-30 08:56:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-11-30 08:56:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-11-30 08:56:41] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-11-30 08:58:37] local.INFO: EnsureTokenIsValid - User ID from header: 208  
+[2025-11-30 08:58:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-11-30 08:58:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-11-30 08:58:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-11-30 08:58:37] local.INFO: Comprehensive profile update request {"user_id":208,"data":{"id":"208","first_name":"John","last_name":"John","name":"John John","username":null,"sex":"Male","dob":null,"phone_number":"+256772333333","email":"test22@fmail.com","country":"Uganda","address":"Bwera","avatar":"http://10.0.2.2:8888/fao-ffs-mis-api/assets/images/user.jpg","profile_photo":"http://10.0.2.2:8888/fao-ffs-mis-api/assets/images/user.jpg","occupation":null,"about":null,"title":null,"tribe":"Bakonjo","father_name":"soME MOTHER","mother_name":"Some dad","child_1":null,"child_2":null,"child_3":null,"child_4":null,"sponsor_id":null,"user":"208","User-Id":"208"}} 
+[2025-11-30 08:58:37] local.INFO: Profile updated successfully - returning fresh data {"user_id":208,"name":"John John","avatar":"images/1764493117-366382.jpg","profile_photo":"images/1764493117-366382.jpg","swimming/tribe":"","father_name":"SoME MOTHER","mother_name":"Some dad","transportation":null,"residential_type":null,"school_pay_account_id":null,"phd_university_year_graduated":null,"phd_university_name/sponsor":"+256772333333"} 
+[2025-11-30 08:58:37] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-11-30 09:03:21] local.ERROR: Command "db:table" is not defined.
+
+Did you mean one of these?
+    cache:table
+    db
+    db:seed
+    db:wipe
+    notifications:table
+    queue:batches-table
+    queue:failed-table
+    queue:table
+    session:table {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"db:table\" is not defined.
+
+Did you mean one of these?
+    cache:table
+    db
+    db:seed
+    db:wipe
+    notifications:table
+    queue:batches-table
+    queue:failed-table
+    queue:table
+    session:table at /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/symfony/console/Application.php:720)
+[stacktrace]
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/symfony/console/Application.php(259): Symfony\\Component\\Console\\Application->find('db:table')
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/symfony/console/Application.php(171): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Console/Application.php(94): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(129): Illuminate\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#5 {main}
+"} 
+[2025-11-30 09:35:00] local.INFO: EnsureTokenIsValid - User ID from header: 208  
+[2025-11-30 09:35:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-11-30 09:35:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-11-30 09:35:00] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-11-30 09:35:00] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-11-30 09:35:15] local.INFO: EnsureTokenIsValid - User ID from header: 208  
+[2025-11-30 09:35:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-11-30 09:35:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-11-30 09:35:15] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-11-30 09:35:15] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-11-30 09:35:16] local.INFO: EnsureTokenIsValid - User ID from header: 208  
+[2025-11-30 09:35:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-11-30 09:35:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-11-30 09:35:16] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-11-30 09:35:16] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-11-30 09:35:17] local.INFO: EnsureTokenIsValid - User ID from header: 208  
+[2025-11-30 09:35:17] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-11-30 09:35:17] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-11-30 09:35:17] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-11-30 09:35:17] local.INFO: EnsureTokenIsValid - Response received: 200  

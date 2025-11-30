@@ -388,11 +388,16 @@ class FarmerQuestionController extends Controller
      */
     private function formatAnswer($answer)
     {
+        // Get author avatar from users table
+        $author = \App\Models\User::find($answer->author_id);
+        $authorAvatar = $author && $author->avatar ? 'images/' . $author->avatar : null;
+
         return [
             'id' => $answer->id,
             'content' => $answer->content,
             'author_name' => $answer->author_name,
             'author_location' => $answer->author_location,
+            'author_avatar' => $authorAvatar,
             'likes_count' => $answer->likes_count,
             'is_accepted' => $answer->is_accepted === 'Yes',
             'has_image' => $answer->has_image === 'Yes',
