@@ -5,6 +5,7 @@ use App\Http\Controllers\ApiResurceController;
 use App\Http\Controllers\PesapalController;
 use App\Http\Controllers\PesapalAdminController;
 use App\Http\Controllers\Api\PhoneVerificationController;
+use App\Http\Controllers\Api\UserRegistrationController;
 // InsuranceUserController removed - using ApiResurceController instead
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\DisbursementController;
@@ -30,6 +31,9 @@ use Illuminate\Support\Facades\Route;
 Route::post("phone-verification/check-phone", [PhoneVerificationController::class, "checkPhone"]);
 Route::post("phone-verification/send-otp", [PhoneVerificationController::class, "sendOTP"]);
 Route::post("phone-verification/verify-otp", [PhoneVerificationController::class, "verifyOTP"]);
+
+// USER REGISTRATION - Universal registration with role-based profiling
+Route::post("users/register", [UserRegistrationController::class, "register"]);
 
 Route::post("account-verification", [ApiResurceController::class, 'account_verification']);
 Route::post("password-change", [ApiResurceController::class, 'password_change']);
