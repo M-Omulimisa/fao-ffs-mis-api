@@ -78,13 +78,19 @@ class VslaOnboardingController extends Controller
     /**
      * STEP 3: Update Chairperson Profile
      * 
-     * Updates an existing verified user account with chairperson details.
-     * User must already exist from OTP phone verification.
-     * This is NOT creating a new user - it's updating an existing one.
+     * ⚠️ IMPORTANT: This endpoint UPDATES an existing user, it does NOT create new users.
+     * The chairperson MUST be registered by an admin first before using this endpoint.
+     * 
+     * WORKFLOW:
+     * 1. Admin registers chairperson in system (creates user account)
+     * 2. Chairperson uses their phone number here to UPDATE their profile
+     * 3. System finds user by phone (checks +256 and without +256)
+     * 4. If found: Updates name, password, email and marks as group admin
+     * 5. If NOT found: Returns error "Chairperson not found. Please register first."
      * 
      * Required fields:
      * - name: Full name
-     * - phone_number: Uganda phone number (must match verified phone)
+     * - phone_number: Uganda phone number (must match registered phone)
      * - password: Password to set
      * - password_confirmation: Password confirmation
      * 
@@ -117,6 +123,7 @@ class VslaOnboardingController extends Controller
         DB::beginTransaction();
         
         try {
+            // ========== PHONE NUMBER NORMALIZATION ==========
             // Prepare phone number (ensure it starts with +256)
             $phoneNumber = $request->phone_number;
             if (substr($phoneNumber, 0, 1) === '0') {
@@ -125,29 +132,41 @@ class VslaOnboardingController extends Controller
                 $phoneNumber = '+256' . $phoneNumber;
             }
 
-            // FIND EXISTING USER - NOT CREATE
-            // Check all possible phone formats: +256783204665, 0783204665, 783204665
+            // ========== FIND EXISTING USER (MUST EXIST) ==========
+            // Check all possible phone formats to ensure we find the user
+            // Format 1: +256783204665 (international with +)
+            // Format 2: 0783204665 (local Uganda format)
+            // Format 3: 783204665 (without country code or 0)
             $phoneVariant1 = $phoneNumber; // +256783204665
             $phoneVariant2 = '0' . substr($phoneNumber, 4); // 0783204665
             $phoneVariant3 = substr($phoneNumber, 4); // 783204665
             
-            $user = User::where('phone_number', $phoneVariant1)
-                ->orWhere('phone_number', $phoneVariant2)
-                ->orWhere('phone_number', $phoneVariant3)
-                ->first();
+            $user = User::where(function($query) use ($phoneVariant1, $phoneVariant2, $phoneVariant3) {
+                $query->where('phone_number', $phoneVariant1)
+                      ->orWhere('phone_number', $phoneVariant2)
+                      ->orWhere('phone_number', $phoneVariant3)
+                      ->orWhere('username', $phoneVariant1)
+                      ->orWhere('username', $phoneVariant2)
+                      ->orWhere('username', $phoneVariant3);
+            })->first();
 
+            // ========== VALIDATION: USER MUST EXIST ==========
             if (!$user) {
                 DB::rollBack();
-                return $this->error('User account not found. Please complete phone verification via OTP first.');
+                return $this->error(
+                    'Chairperson not found. Please ensure the chairperson is registered by an admin first. ' .
+                    'Phone checked: ' . $phoneVariant1 . ', ' . $phoneVariant2 . ', ' . $phoneVariant3
+                );
             }
             
+            // ========== VALIDATION: CHECK ONBOARDING STATUS ==========
             // Security check: ensure user hasn't already completed onboarding
             if ($user->onboarding_step === 'step_7_complete') {
                 DB::rollBack();
                 return $this->error('This account has already completed onboarding. Please login instead.');
             }
 
-            // UPDATE EXISTING USER (not creating new)
+            // ========== UPDATE EXISTING USER PROFILE ==========
             $user->name = $request->name;
             $user->first_name = $request->name;
             $user->phone_number = $phoneNumber;
@@ -170,7 +189,8 @@ class VslaOnboardingController extends Controller
             
             $user->saveQuietly();
 
-            // Generate token for auto-login with long expiry
+            // ========== GENERATE AUTH TOKEN ==========
+            // Generate token for auto-login with long expiry (1 year)
             JWTAuth::factory()->setTTL(60 * 24 * 30 * 365);
             $token = auth('api')->login($user);
 
@@ -183,11 +203,11 @@ class VslaOnboardingController extends Controller
             return $this->success([
                 'user' => $user,
                 'token' => $token
-            ], 'Registration successful! You are now logged in as a group admin.');
+            ], 'Chairperson profile updated successfully! You are now logged in.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error('Update failed: ' . $e->getMessage());
+            return $this->error('Profile update failed: ' . $e->getMessage());
         }
     }
 
@@ -582,16 +602,6 @@ class VslaOnboardingController extends Controller
             return $this->error('You must create a group first');
         }
 
-        // Check if group already has an active cycle
-        $existingCycle = Project::where('group_id', $user->group_id)
-            ->where('is_vsla_cycle', 'Yes')
-            ->where('is_active_cycle', 'Yes')
-            ->first();
-        
-        if ($existingCycle) {
-            return $this->error('Your group already has an active savings cycle: ' . $existingCycle->cycle_name);
-        }
-
         // Validation
         $validator = Validator::make($request->all(), [
             'cycle_name' => 'required|string|min:3|max:200',
@@ -621,19 +631,36 @@ class VslaOnboardingController extends Controller
                 return $this->error('Group not found');
             }
 
-            // Create savings cycle (as Project)
-            $cycle = new Project();
+            // ========== CHECK: UPDATE OR CREATE? ==========
+            // Check if group already has an active cycle
+            $existingCycle = Project::where('group_id', $user->group_id)
+                ->where('is_vsla_cycle', 'Yes')
+                ->where('is_active_cycle', 'Yes')
+                ->first();
+            
+            $isUpdate = false;
+            
+            if ($existingCycle) {
+                // UPDATE existing cycle
+                $cycle = $existingCycle;
+                $isUpdate = true;
+            } else {
+                // CREATE new cycle
+                $cycle = new Project();
+                $cycle->created_by_id = $user->id;
+                $cycle->is_vsla_cycle = 'Yes';
+                $cycle->is_active_cycle = 'Yes';
+                $cycle->group_id = $user->group_id;
+                $cycle->status = 'ongoing';
+            }
+
+            // ========== UPDATE/SET CYCLE FIELDS ==========
             $cycle->title = $request->cycle_name;
             $cycle->description = "VSLA Savings Cycle for {$group->name}";
             $cycle->start_date = $request->start_date;
             $cycle->end_date = $request->end_date;
-            $cycle->status = 'ongoing';
-            $cycle->created_by_id = $user->id;
             
             // VSLA-specific fields
-            $cycle->is_vsla_cycle = 'Yes';
-            $cycle->is_active_cycle = 'Yes';
-            $cycle->group_id = $user->group_id;
             $cycle->cycle_name = $request->cycle_name;
             $cycle->share_value = $request->share_value;
             $cycle->share_price = $request->share_value; // Keep consistency
@@ -648,28 +675,37 @@ class VslaOnboardingController extends Controller
             
             $cycle->save();
 
-            // Update group's cycle information
-            $group->cycle_number = ($group->cycle_number ?? 0) + 1;
+            // ========== UPDATE GROUP'S CYCLE INFORMATION ==========
+            if (!$isUpdate) {
+                // Only increment cycle number when creating new cycle
+                $group->cycle_number = ($group->cycle_number ?? 0) + 1;
+            }
             $group->cycle_start_date = $request->start_date;
             $group->cycle_end_date = $request->end_date;
             $group->save();
 
-            // Update user's onboarding step
+            // ========== UPDATE USER'S ONBOARDING STEP ==========
             $user->onboarding_step = 'step_6_cycle';
             $user->last_onboarding_step_at = Carbon::now();
             $user->save();
 
             DB::commit();
 
+            $message = $isUpdate 
+                ? 'Savings cycle updated successfully! Your cycle information has been updated.'
+                : 'Savings cycle created successfully! Your new cycle is now active.';
+
             return $this->success([
                 'cycle' => $cycle,
                 'group' => $group,
-                'user' => $user
-            ], 'Savings cycle created successfully!');
+                'user' => $user,
+                'is_update' => $isUpdate,
+                'action' => $isUpdate ? 'updated' : 'created'
+            ], $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->error('Failed to create savings cycle: ' . $e->getMessage());
+            return $this->error('Failed to process savings cycle: ' . $e->getMessage());
         }
     }
 

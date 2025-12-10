@@ -1765,3 +1765,155 @@ Did you mean one of these?
 [2025-12-09 06:50:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2025-12-09 06:50:18] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
 [2025-12-09 06:50:18] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:16:43] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:16:48] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:16:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:16:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:16:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:16:48] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:16:49] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:16:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:16:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:16:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:16:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:16:50] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:16:50] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:16:50] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:16:50] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:16:50] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:17:06] local.INFO: EnsureTokenIsValid - User ID from header: 0  
+[2025-12-09 21:17:06] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2025-12-09 21:17:12] local.INFO: EnsureTokenIsValid - User ID from header: 0  
+[2025-12-09 21:17:12] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2025-12-09 21:17:12] local.INFO: EnsureTokenIsValid - User ID from header: 0  
+[2025-12-09 21:17:12] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2025-12-09 21:21:00] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:21:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:21:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:21:00] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:21:00] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:25:03] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:25:03] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:25:03] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:25:03] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:25:03] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:25:38] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:25:38] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:25:38] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:25:38] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:25:38] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:25:51] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:25:51] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:25:51] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:25:51] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:25:51] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":214,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2025-12-09 21:25:51] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:25:53] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:25:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:25:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:25:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:25:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:26:21] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:26:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:26:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:26:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:26:21] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":215,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2025-12-09 21:26:21] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":216,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2025-12-09 21:26:21] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":214,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2025-12-09 21:26:21] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:26:23] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:26:23] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:26:23] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:26:23] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:26:23] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:27:42] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:27:42] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:27:42] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:27:42] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:27:42] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:27:48] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:27:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:27:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:27:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:27:48] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:27:59] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:27:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:27:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:27:59] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:27:59] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:36:04] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:36:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:36:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:36:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:36:04] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":214,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2025-12-09 21:36:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:36:05] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:36:05] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:36:05] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:36:05] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:36:05] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":214,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2025-12-09 21:36:05] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 21:36:12] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 21:36:12] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 21:36:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 21:36:12] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 21:36:12] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:21:35] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:21:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:21:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:21:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:21:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:40:33] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:40:38] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:40:38] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:40:38] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:40:38] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:40:38] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:40:40] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:40:40] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:40:40] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:40:40] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:40:40] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:59:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:59:34] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:59:34] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:59:34] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:59:34] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:59:34] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-09 22:59:35] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-09 22:59:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-09 22:59:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-09 22:59:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-09 22:59:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2025-12-10 00:14:17] local.INFO: EnsureTokenIsValid - User ID from header: 214  
+[2025-12-10 00:14:17] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2025-12-10 00:14:17] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2025-12-10 00:14:17] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2025-12-10 00:14:17] local.INFO: EnsureTokenIsValid - Response received: 200  
