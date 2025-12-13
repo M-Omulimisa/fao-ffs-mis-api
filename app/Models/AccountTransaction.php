@@ -12,10 +12,17 @@ class AccountTransaction extends Model
 
     protected $fillable = [
         'user_id',
+        'owner_type',
+        'group_id',
+        'meeting_id',
+        'cycle_id',
         'amount',
         'transaction_date',
         'description',
         'source',
+        'account_type',
+        'contra_entry_id',
+        'is_contra_entry',
         'related_disbursement_id',
         'created_by_id',
     ];
@@ -23,6 +30,7 @@ class AccountTransaction extends Model
     protected $casts = [
         'transaction_date' => 'date',
         'amount' => 'decimal:2',
+        'is_contra_entry' => 'boolean',
     ];
 
     protected $appends = [
@@ -46,6 +54,31 @@ class AccountTransaction extends Model
     public function relatedDisbursement()
     {
         return $this->belongsTo(Disbursement::class, 'related_disbursement_id');
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(FfsGroup::class, 'group_id');
+    }
+
+    public function contraEntry()
+    {
+        return $this->belongsTo(AccountTransaction::class, 'contra_entry_id');
+    }
+
+    public function contraTransactions()
+    {
+        return $this->hasMany(AccountTransaction::class, 'contra_entry_id');
+    }
+
+    public function meeting()
+    {
+        return $this->belongsTo(VslaMeeting::class, 'meeting_id');
+    }
+
+    public function cycle()
+    {
+        return $this->belongsTo(Project::class, 'cycle_id');
     }
 
     // Accessors
@@ -94,5 +127,30 @@ class AccountTransaction extends Model
     public function scopeByDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('transaction_date', [$startDate, $endDate]);
+    }
+
+    public function scopeForGroup($query, $groupId)
+    {
+        return $query->where('group_id', $groupId);
+    }
+
+    public function scopeForMeeting($query, $meetingId)
+    {
+        return $query->where('meeting_id', $meetingId);
+    }
+
+    public function scopeForCycle($query, $cycleId)
+    {
+        return $query->where('cycle_id', $cycleId);
+    }
+
+    public function scopeGroupTransactions($query)
+    {
+        return $query->where('owner_type', 'group');
+    }
+
+    public function scopeMemberTransactions($query)
+    {
+        return $query->where('owner_type', 'member');
     }
 }

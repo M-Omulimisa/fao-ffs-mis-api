@@ -5,6 +5,9 @@ namespace App\Admin\Controllers;
 use App\Models\FfsGroup;
 use App\Models\Location;
 use App\Models\User;
+use App\Models\Project;
+use App\Models\AccountTransaction;
+use App\Models\VslaMeeting;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -124,6 +127,35 @@ class FfsGroupController extends AdminController
         $grid->column('facilitator_name', 'Facilitator')->display(function() {
             return $this->facilitator ? $this->facilitator->name : '<span style="color: #999;">Not Assigned</span>';
         });
+        
+        // VSLA-specific columns
+        if ($groupType === 'VSLA') {
+            $grid->column('vsla_cycles', 'Active Cycles')->display(function() {
+                $activeCycles = Project::where('group_id', $this->id)
+                    ->where('is_vsla_cycle', 'Yes')
+                    ->where('is_active_cycle', 'Yes')
+                    ->count();
+                return "<a href='/admin/cycles?group_id={$this->id}' style='color: #2196f3;'>{$activeCycles}</a>";
+            });
+            
+            $grid->column('vsla_balance', 'Group Balance')->display(function() {
+                // Get balance from all group transactions (user_id = null)
+                // by checking transactions created during meetings for this group
+                $balance = AccountTransaction::where('user_id', null)
+                    ->where('created_by_id', '>', 0)
+                    ->whereIn('source', ['share_purchase', 'loan_disbursement', 'loan_repayment', 'savings', 'welfare_contribution'])
+                    ->sum('amount');
+                    
+                $formatted = number_format($balance, 0);
+                $color = $balance >= 0 ? 'green' : 'red';
+                return "<strong style='color: {$color};'>UGX {$formatted}</strong>";
+            });
+            
+            $grid->column('total_meetings', 'Meetings')->display(function() {
+                $meetings = VslaMeeting::where('group_id', $this->id)->count();
+                return "<a href='/admin/vsla-meetings?group_id={$this->id}'>{$meetings}</a>";
+            });
+        }
         
         $grid->column('status', 'Status')->label([
             'Active' => 'success',
@@ -264,154 +296,81 @@ class FfsGroupController extends AdminController
         } elseif (strpos($url, 'ffs-vslas') !== false) {
             $groupType = 'VSLA';
         } elseif (strpos($url, 'ffs-group-associations') !== false) {
-            $groupType = 'Association';
+            $groupType = 'Other';
         }
         
         // Basic Information
-        $form->divider('Basic Information');
-        
         $form->row(function ($row) use ($groupType) {
-            $row->width(6)->text('name', 'Group Name')->required();
+            $row->width(8)->text('name', 'Group Name')->required();
             
             if ($groupType) {
-                $row->width(6)->display('type_display', 'Group Type')->with(function() use ($groupType) {
+                $row->width(4)->display('type_display', 'Type')->with(function() use ($groupType) {
                     return $groupType;
                 });
+                $form->hidden('type')->default($groupType);
             } else {
-                $row->width(6)->select('type', 'Group Type')->options(FfsGroup::getTypes())->required()->default('FFS');
+                $row->width(4)->select('type', 'Type')->options(FfsGroup::getTypes())->required();
             }
         });
         
-        if ($groupType) {
-            $form->hidden('type')->default($groupType);
-        }
-        
         $form->row(function ($row) {
-            $row->width(4)->text('code', 'Group Code')->help('Leave blank to auto-generate');
             $row->width(4)->date('registration_date', 'Registration Date')->default(date('Y-m-d'));
             $row->width(4)->select('status', 'Status')->options(FfsGroup::getStatuses())->default('Active');
+            $row->width(4)->select('facilitator_id', 'Facilitator')->options(User::pluck('name', 'id'));
         });
+        
+        $form->divider();
         
         // Location
-        $form->divider('Location Information');
-        
-        $districts = Location::where('type', 'District')->pluck('name', 'id');
-        $form->row(function ($row) use ($districts) {
-            $row->width(6)->select('district_id', 'District')->options($districts);
-            $row->width(6)->select('subcounty_id', 'Subcounty');
-        });
-        
         $form->row(function ($row) {
-            $row->width(6)->select('parish_id', 'Parish');
+            $row->width(6)->select('district_id', 'District')->options(Location::where('type', 'District')->pluck('name', 'id'))->required();
             $row->width(6)->text('village', 'Village');
         });
         
-        $form->row(function ($row) {
-            $row->width(6)->decimal('latitude', 'Latitude')->help('GPS coordinate');
-            $row->width(6)->decimal('longitude', 'Longitude')->help('GPS coordinate');
-        });
-        
         // Meeting Details
-        $form->divider('Meeting Details');
-        
         $form->row(function ($row) {
-            $row->width(6)->text('meeting_venue', 'Meeting Venue');
             $row->width(6)->select('meeting_day', 'Meeting Day')->options([
-                'Monday' => 'Monday',
-                'Tuesday' => 'Tuesday',
-                'Wednesday' => 'Wednesday',
-                'Thursday' => 'Thursday',
-                'Friday' => 'Friday',
-                'Saturday' => 'Saturday',
-                'Sunday' => 'Sunday',
+                'Monday' => 'Monday', 'Tuesday' => 'Tuesday', 'Wednesday' => 'Wednesday',
+                'Thursday' => 'Thursday', 'Friday' => 'Friday', 'Saturday' => 'Saturday', 'Sunday' => 'Sunday'
             ]);
+            $row->width(6)->select('meeting_frequency', 'Frequency')->options(FfsGroup::getMeetingFrequencies())->default('Weekly');
         });
         
-        $form->row(function ($row) {
-            $row->width(6)->select('meeting_frequency', 'Meeting Frequency')->options(FfsGroup::getMeetingFrequencies())->default('Weekly');
-        });
+        $form->divider();
         
         // Value Chains
-        $form->divider('Value Chains');
-        
         $valueChains = [
-            'Maize' => 'Maize',
-            'Beans' => 'Beans',
-            'Sorghum' => 'Sorghum',
-            'Millet' => 'Millet',
-            'Groundnuts' => 'Groundnuts',
-            'Simsim' => 'Simsim',
-            'Cassava' => 'Cassava',
-            'Sweet Potato' => 'Sweet Potato',
-            'Vegetables' => 'Vegetables',
-            'Fruits' => 'Fruits',
-            'Poultry' => 'Poultry',
-            'Goats' => 'Goats',
-            'Cattle' => 'Cattle',
-            'Beekeeping' => 'Beekeeping',
-            'Fish Farming' => 'Fish Farming',
+            'Maize' => 'Maize', 'Beans' => 'Beans', 'Sorghum' => 'Sorghum', 'Millet' => 'Millet',
+            'Groundnuts' => 'Groundnuts', 'Simsim' => 'Simsim', 'Cassava' => 'Cassava',
+            'Sweet Potato' => 'Sweet Potato', 'Vegetables' => 'Vegetables', 'Fruits' => 'Fruits',
+            'Poultry' => 'Poultry', 'Goats' => 'Goats', 'Cattle' => 'Cattle',
+            'Beekeeping' => 'Beekeeping', 'Fish Farming' => 'Fish Farming'
         ];
         
         $form->row(function ($row) use ($valueChains) {
             $row->width(6)->select('primary_value_chain', 'Primary Value Chain')->options($valueChains)->required();
-            $row->width(6)->multipleSelect('secondary_value_chains', 'Secondary Value Chains')->options($valueChains);
+            $row->width(6)->multipleSelect('secondary_value_chains', 'Other Value Chains')->options($valueChains);
         });
         
-        // Members Statistics
-        $form->divider('Member Statistics');
+        $form->divider();
         
+        // Contact
         $form->row(function ($row) {
-            $row->width(4)->decimal('total_members', 'Total Members')->default(0);
-            $row->width(4)->decimal('male_members', 'Male Members')->default(0);
-            $row->width(4)->decimal('female_members', 'Female Members')->default(0);
-        });
-        
-        $form->row(function ($row) {
-            $row->width(4)->decimal('youth_members', 'Youth Members (18-35)')->default(0);
-            $row->width(4)->decimal('pwd_members', 'PWD Members')->default(0);
-        });
-        
-        // Facilitation
-        $form->divider('Facilitation & Contact');
-        
-        $facilitators = User::pluck('name', 'id');
-        $form->row(function ($row) use ($facilitators) {
-            $row->width(6)->select('facilitator_id', 'Facilitator')->options($facilitators);
             $row->width(6)->text('contact_person_name', 'Contact Person');
-        });
-        
-        $form->row(function ($row) {
             $row->width(6)->mobile('contact_person_phone', 'Contact Phone');
         });
         
-        // Cycle Information (for VSLA/FFS)
-        $form->divider('Cycle Information');
-        
+        // Additional fields (collapsible)
         $form->row(function ($row) {
-            $row->width(4)->decimal('cycle_number', 'Cycle Number')->default(1)->help('Current cycle');
-            $row->width(4)->date('cycle_start_date', 'Cycle Start Date');
-            $row->width(4)->date('cycle_end_date', 'Cycle End Date');
+            $row->width(6)->textarea('description', 'Description')->rows(3);
+            $row->width(6)->image('photo', 'Photo');
         });
         
-        // Additional Information
-        $form->divider('Additional Information');
+        // Note: Code is auto-generated by FfsGroup model boot() method
+        // Format: DISTRICT-TYPE-YEAR-NUMBER (e.g., KAM-FFS-25-0001)
         
-        $form->row(function ($row) {
-            $row->width(6)->textarea('description', 'Description')->rows(2);
-            $row->width(6)->textarea('objectives', 'Objectives')->rows(2);
-        });
-        
-        $form->row(function ($row) {
-            $row->width(6)->textarea('achievements', 'Achievements')->rows(2);
-            $row->width(6)->textarea('challenges', 'Challenges')->rows(2);
-        });
-        
-        $form->row(function ($row) {
-            $row->width(6)->image('photo', 'Group Photo');
-        });
-        
-        // Form configuration
         $form->disableViewCheck();
+        $form->disableEditingCheck();
         $form->tools(function (Form\Tools $tools) {
             $tools->disableView();
         });

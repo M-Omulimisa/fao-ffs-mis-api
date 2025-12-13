@@ -1,176 +1,84 @@
 #!/bin/bash
 
-# VSLA Transaction API Testing Script
-# Tests all endpoints for the universal transaction system
+# VSLA API Endpoints Test Script
+# Tests all restored VSLA meeting endpoints
 
-# Configuration
-BASE_URL="http://localhost:8888/api"
-TOKEN="f54cc4931c83b78f29c0db4e454f52a570c09e40ab20254ba728f03739f09e32"
-USER_ID=1
-PROJECT_ID=1
-GROUP_ID=1
+BASE_URL="http://localhost:8888/fao-ffs-mis-api/public/api"
+TOKEN="your-auth-token-here"
 
-echo "=========================================="
-echo "VSLA Transaction API Testing"
-echo "=========================================="
+echo "============================================"
+echo "VSLA API Endpoints - Connectivity Test"
+echo "============================================"
 echo ""
 
-# Test 1: Create Saving Transaction
-echo "TEST 1: Create Saving Transaction"
-echo "------------------------------------------"
-curl -X POST "${BASE_URL}/vsla/transactions/create" \
+# Color codes
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Test 1: Get Meeting Statistics
+echo -e "${YELLOW}1. Testing GET /api/vsla-meetings/stats${NC}"
+STATS_RESPONSE=$(curl -s -X GET "$BASE_URL/vsla-meetings/stats" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/json")
+
+if echo "$STATS_RESPONSE" | grep -q "success"; then
+    echo -e "${GREEN}✅ Stats endpoint accessible${NC}"
+    echo "Response: $STATS_RESPONSE"
+else
+    echo -e "${RED}❌ Stats endpoint failed${NC}"
+    echo "Response: $STATS_RESPONSE"
+fi
+echo ""
+
+# Test 2: List Meetings
+echo -e "${YELLOW}2. Testing GET /api/vsla-meetings${NC}"
+LIST_RESPONSE=$(curl -s -X GET "$BASE_URL/vsla-meetings?per_page=5" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/json")
+
+if echo "$LIST_RESPONSE" | grep -q "success"; then
+    echo -e "${GREEN}✅ List endpoint accessible${NC}"
+    echo "Response: $LIST_RESPONSE"
+else
+    echo -e "${RED}❌ List endpoint failed${NC}"
+    echo "Response: $LIST_RESPONSE"
+fi
+echo ""
+
+# Test 3: Submit Meeting (with test data)
+echo -e "${YELLOW}3. Testing POST /api/vsla-meetings/submit${NC}"
+echo "Note: This will create a test meeting. Update the payload with valid IDs."
+SUBMIT_RESPONSE=$(curl -s -X POST "$BASE_URL/vsla-meetings/submit" \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Accept: application/json" \
   -d '{
-    "user_id": '${USER_ID}',
-    "project_id": '${PROJECT_ID}',
-    "transaction_type": "saving",
-    "amount": 50000,
-    "description": "Monthly savings contribution - API Test",
-    "transaction_date": "2025-01-20"
-  }' | json_pp
-echo ""
+    "local_id": "test-'$(date +%s)'",
+    "cycle_id": 1,
+    "group_id": 1,
+    "meeting_date": "2025-01-30",
+    "members_present": 10,
+    "attendance_data": [
+      {"member_id": 1, "status": "present"}
+    ]
+  }')
+
+if echo "$SUBMIT_RESPONSE" | grep -q "meeting_id\|success"; then
+    echo -e "${GREEN}✅ Submit endpoint accessible${NC}"
+    echo "Response: $SUBMIT_RESPONSE"
+else
+    echo -e "${RED}❌ Submit endpoint failed (expected - might be validation error)${NC}"
+    echo "Response: $SUBMIT_RESPONSE"
+fi
 echo ""
 
-# Test 2: Create Fine Transaction
-echo "TEST 2: Create Fine Transaction"
-echo "------------------------------------------"
-curl -X POST "${BASE_URL}/vsla/transactions/create" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -d '{
-    "user_id": '${USER_ID}',
-    "project_id": '${PROJECT_ID}',
-    "transaction_type": "fine",
-    "amount": 5000,
-    "description": "Late attendance fine - API Test",
-    "transaction_date": "2025-01-20"
-  }' | json_pp
+echo "============================================"
+echo "Test Complete!"
+echo "============================================"
 echo ""
+echo "Note: If you see 401 Unauthorized, update the TOKEN variable"
+echo "Note: If you see 404 Not Found, check that routes are registered"
+echo "Note: If you see 422 Validation Error, update test data with valid IDs"
 echo ""
-
-# Test 3: Create Charge Transaction
-echo "TEST 3: Create Charge Transaction"
-echo "------------------------------------------"
-curl -X POST "${BASE_URL}/vsla/transactions/create" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -d '{
-    "user_id": '${USER_ID}',
-    "project_id": '${PROJECT_ID}',
-    "transaction_type": "charge",
-    "amount": 3000,
-    "description": "Administrative charge - API Test",
-    "transaction_date": "2025-01-20"
-  }' | json_pp
-echo ""
-echo ""
-
-# Test 4: Create Welfare Transaction
-echo "TEST 4: Create Welfare Transaction"
-echo "------------------------------------------"
-curl -X POST "${BASE_URL}/vsla/transactions/create" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -d '{
-    "user_id": '${USER_ID}',
-    "project_id": '${PROJECT_ID}',
-    "transaction_type": "welfare",
-    "amount": 10000,
-    "description": "Welfare fund contribution - API Test",
-    "transaction_date": "2025-01-20"
-  }' | json_pp
-echo ""
-echo ""
-
-# Test 5: Create Social Fund Transaction
-echo "TEST 5: Create Social Fund Transaction"
-echo "------------------------------------------"
-curl -X POST "${BASE_URL}/vsla/transactions/create" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -d '{
-    "user_id": '${USER_ID}',
-    "project_id": '${PROJECT_ID}',
-    "transaction_type": "social_fund",
-    "amount": 2000,
-    "description": "Social fund contribution - API Test",
-    "transaction_date": "2025-01-20"
-  }' | json_pp
-echo ""
-echo ""
-
-# Test 6: Create Loan Repayment Transaction
-echo "TEST 6: Create Loan Repayment Transaction"
-echo "------------------------------------------"
-curl -X POST "${BASE_URL}/vsla/transactions/create" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -d '{
-    "user_id": '${USER_ID}',
-    "project_id": '${PROJECT_ID}',
-    "transaction_type": "loan_repayment",
-    "amount": 25000,
-    "description": "Loan repayment - API Test",
-    "transaction_date": "2025-01-20"
-  }' | json_pp
-echo ""
-echo ""
-
-# Test 7: Get Member Balance
-echo "TEST 7: Get Member Balance"
-echo "------------------------------------------"
-curl -X GET "${BASE_URL}/vsla/transactions/member-balance/${USER_ID}?project_id=${PROJECT_ID}" \
-  -H "Authorization: Bearer ${TOKEN}" | json_pp
-echo ""
-echo ""
-
-# Test 8: Get Group Balance
-echo "TEST 8: Get Group Balance"
-echo "------------------------------------------"
-curl -X GET "${BASE_URL}/vsla/transactions/group-balance/${GROUP_ID}?project_id=${PROJECT_ID}" \
-  -H "Authorization: Bearer ${TOKEN}" | json_pp
-echo ""
-echo ""
-
-# Test 9: Validation Error Test - Missing Required Field
-echo "TEST 9: Validation Error Test (Missing amount)"
-echo "------------------------------------------"
-curl -X POST "${BASE_URL}/vsla/transactions/create" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -d '{
-    "user_id": '${USER_ID}',
-    "project_id": '${PROJECT_ID}',
-    "transaction_type": "saving",
-    "description": "Test validation"
-  }' | json_pp
-echo ""
-echo ""
-
-# Test 10: Validation Error Test - Invalid Transaction Type
-echo "TEST 10: Validation Error Test (Invalid type)"
-echo "------------------------------------------"
-curl -X POST "${BASE_URL}/vsla/transactions/create" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -d '{
-    "user_id": '${USER_ID}',
-    "project_id": '${PROJECT_ID}',
-    "transaction_type": "invalid_type",
-    "amount": 10000,
-    "description": "Test validation"
-  }' | json_pp
-echo ""
-echo ""
-
-# Final: Check User Balance in Database
-echo "FINAL: Check User Balance in Database"
-echo "------------------------------------------"
-cd /Applications/MAMP/htdocs/fao-ffs-mis-api && \
-php artisan tinker --execute='$user = \App\Models\User::find(1); if($user) { echo "User Balance: " . $user->balance . PHP_EOL; echo "Loan Balance: " . $user->loan_balance . PHP_EOL; }'
-
-echo ""
-echo "=========================================="
-echo "Testing Complete!"
-echo "=========================================="

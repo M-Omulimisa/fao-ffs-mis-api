@@ -69,7 +69,7 @@ class VslaOnboardingController extends Controller
                 ]
             ];
 
-            return $this->success($data, 'Onboarding configuration retrieved successfully');
+            return $this->success('Onboarding configuration retrieved successfully', $data);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve configuration: ' . $e->getMessage());
         }
@@ -194,16 +194,29 @@ class VslaOnboardingController extends Controller
             JWTAuth::factory()->setTTL(60 * 24 * 30 * 365);
             $token = auth('api')->login($user);
 
-            // Set token on user object for response
-            $user->token = $token;
-            $user->remember_token = $token;
+            // Refresh user to get latest data
+            $user->refresh();
+            
+            // Prepare clean user data for mobile app (avoid relationship objects)
+            $userData = $user->toArray();
+            $userData['token'] = $token;
+            $userData['remember_token'] = $token;
+            
+            // Remove relationship objects if they were loaded
+            unset($userData['district']);
+            unset($userData['subcounty']);
+            unset($userData['parish']);
+            unset($userData['group']);
 
             DB::commit();
 
-            return $this->success([
-                'user' => $user,
-                'token' => $token
-            ], 'Chairperson profile updated successfully! You are now logged in.');
+            return $this->success(
+                'Chairperson profile updated successfully! You are now logged in.',
+                [
+                    'user' => $userData,
+                    'token' => $token
+                ]
+            );
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -394,12 +407,19 @@ class VslaOnboardingController extends Controller
                 ? 'VSLA group updated successfully!' 
                 : 'VSLA group created successfully!';
 
-            return $this->success([
+            // Prepare clean user data
+            $userData = $user->toArray();
+            unset($userData['district']);
+            unset($userData['subcounty']);
+            unset($userData['parish']);
+            unset($userData['group']);
+
+            return $this->success($message, [
                 'group' => $group,
-                'user' => $user,
+                'user' => $userData,
                 'is_update' => $isUpdate,
                 'action' => $isUpdate ? 'updated' : 'created'
-            ], $message);
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -546,13 +566,20 @@ class VslaOnboardingController extends Controller
 
             DB::commit();
 
-            return $this->success([
-                'secretary' => $secretary,
-                'treasurer' => $treasurer,
+            // Prepare clean data
+            $secretaryData = $secretary->toArray();
+            unset($secretaryData['district'], $secretaryData['subcounty'], $secretaryData['parish'], $secretaryData['group']);
+            
+            $treasurerData = $treasurer->toArray();
+            unset($treasurerData['district'], $treasurerData['subcounty'], $treasurerData['parish'], $treasurerData['group']);
+
+            return $this->success('Main members registered successfully!', [
+                'secretary' => $secretaryData,
+                'treasurer' => $treasurerData,
                 'group' => $group,
                 'sms_sent' => $shouldSendSms,
                 'sms_results' => $smsResults
-            ], 'Main members registered successfully!');
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -695,13 +722,17 @@ class VslaOnboardingController extends Controller
                 ? 'Savings cycle updated successfully! Your cycle information has been updated.'
                 : 'Savings cycle created successfully! Your new cycle is now active.';
 
-            return $this->success([
+            // Prepare clean user data
+            $userData = $user->toArray();
+            unset($userData['district'], $userData['subcounty'], $userData['parish'], $userData['group']);
+
+            return $this->success($message, [
                 'cycle' => $cycle,
                 'group' => $group,
-                'user' => $user,
+                'user' => $userData,
                 'is_update' => $isUpdate,
                 'action' => $isUpdate ? 'updated' : 'created'
-            ], $message);
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -755,11 +786,25 @@ class VslaOnboardingController extends Controller
 
             DB::commit();
 
-            return $this->success([
-                'user' => $user,
+            // Prepare clean data
+            $userData = $user->toArray();
+            unset($userData['district'], $userData['subcounty'], $userData['parish'], $userData['group']);
+            
+            $secretaryData = $secretary ? $secretary->toArray() : null;
+            if ($secretaryData) {
+                unset($secretaryData['district'], $secretaryData['subcounty'], $secretaryData['parish'], $secretaryData['group']);
+            }
+            
+            $treasurerData = $treasurer ? $treasurer->toArray() : null;
+            if ($treasurerData) {
+                unset($treasurerData['district'], $treasurerData['subcounty'], $treasurerData['parish'], $treasurerData['group']);
+            }
+
+            return $this->success('Congratulations! Your VSLA group setup is complete.', [
+                'user' => $userData,
                 'group' => $group,
-                'secretary' => $secretary,
-                'treasurer' => $treasurer,
+                'secretary' => $secretaryData,
+                'treasurer' => $treasurerData,
                 'cycle' => $cycle,
                 'summary' => [
                     'group_name' => $group->name ?? '',
@@ -770,7 +815,7 @@ class VslaOnboardingController extends Controller
                     'share_value' => $cycle->share_value ?? 0,
                     'cycle_duration' => $cycle ? Carbon::parse($cycle->start_date)->diffInMonths(Carbon::parse($cycle->end_date)) . ' months' : '',
                 ]
-            ], 'Congratulations! Your VSLA group setup is complete.');
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -818,7 +863,7 @@ class VslaOnboardingController extends Controller
             }
         }
 
-        return $this->success($data, 'Onboarding status retrieved successfully');
+        return $this->success('Onboarding status retrieved successfully', $data);
     }
 
     /**
@@ -876,13 +921,13 @@ class VslaOnboardingController extends Controller
             
             $user->save();
 
-            return $this->success([
+            return $this->success('Onboarding step updated successfully', [
                 'current_step' => $user->onboarding_step,
                 'is_complete' => $user->onboarding_step === 'step_7_complete',
                 'completed_at' => $user->onboarding_completed_at,
                 'last_step_at' => $user->last_onboarding_step_at,
                 'step_number' => $validSteps[$step] ?? 0,
-            ], 'Onboarding step updated successfully');
+            ]);
 
         } catch (\Exception $e) {
             return $this->error('Failed to update onboarding step: ' . $e->getMessage());
@@ -911,6 +956,7 @@ class VslaOnboardingController extends Controller
             $member->name = $name;
             $member->first_name = $name;
             $member->email = $email ?? $member->email;
+            $member->status = 'Active'; // Set as Active
             
             // Update role
             if ($role === 'Secretary') {

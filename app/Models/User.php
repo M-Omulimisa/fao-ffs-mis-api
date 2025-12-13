@@ -94,13 +94,23 @@ class User extends Administrator implements JWTSubject
     }
 
     /**
-     * Sanitize user data - trim strings, clean up whitespace
+     * Sanitize user data - trim strings, clean up whitespace, normalize phone numbers
      */
     protected static function sanitizeData($user)
     {
-        // Trim phone number if not empty
+        // Normalize and validate phone_number
         if (!empty($user->phone_number)) {
-            $user->phone_number = trim($user->phone_number);
+            $user->phone_number = self::normalizePhoneNumber($user->phone_number);
+        }
+        
+        // Normalize and validate phone_number_2
+        if (!empty($user->phone_number_2)) {
+            $user->phone_number_2 = self::normalizePhoneNumber($user->phone_number_2);
+        }
+        
+        // Normalize emergency contact phone
+        if (!empty($user->emergency_contact_phone)) {
+            $user->emergency_contact_phone = self::normalizePhoneNumber($user->emergency_contact_phone);
         }
         
         // Trim email if not empty
@@ -127,6 +137,41 @@ class User extends Administrator implements JWTSubject
         if (!empty($user->address)) {
             $user->address = trim($user->address);
         }
+    }
+    
+    /**
+     * Normalize phone number to Uganda format (+256...)
+     */
+    protected static function normalizePhoneNumber($phone)
+    {
+        // Remove all spaces, dashes, parentheses
+        $phone = preg_replace('/[\s\-\(\)]+/', '', trim($phone));
+        
+        // If empty after cleaning, return null
+        if (empty($phone)) {
+            return null;
+        }
+        
+        // Remove leading zeros
+        $phone = ltrim($phone, '0');
+        
+        // If it starts with 256, add +
+        if (substr($phone, 0, 3) === '256') {
+            return '+' . $phone;
+        }
+        
+        // If it starts with +256, return as is
+        if (substr($phone, 0, 4) === '+256') {
+            return $phone;
+        }
+        
+        // If it's 9 digits (Uganda mobile without country code), add +256
+        if (strlen($phone) === 9) {
+            return '+256' . $phone;
+        }
+        
+        // Otherwise, assume it needs +256 prefix
+        return '+256' . $phone;
     }
 
     /**
@@ -826,6 +871,44 @@ class User extends Administrator implements JWTSubject
     public function registeredUsers()
     {
         return $this->hasMany(User::class, 'registered_by_id');
+    }
+
+    /**
+     * VSLA Relationships - Village Savings & Loan Association
+     */
+    public function createdVslaMeetings()
+    {
+        return $this->hasMany(VslaMeeting::class, 'created_by_id');
+    }
+
+    public function processedVslaMeetings()
+    {
+        return $this->hasMany(VslaMeeting::class, 'processed_by_id');
+    }
+
+    public function vslaLoans()
+    {
+        return $this->hasMany(VslaLoan::class, 'borrower_id');
+    }
+
+    public function createdVslaLoans()
+    {
+        return $this->hasMany(VslaLoan::class, 'created_by_id');
+    }
+
+    public function vslaActionPlans()
+    {
+        return $this->hasMany(VslaActionPlan::class, 'assigned_to_id');
+    }
+
+    public function createdVslaActionPlans()
+    {
+        return $this->hasMany(VslaActionPlan::class, 'created_by_id');
+    }
+
+    public function vslaMeetingAttendance()
+    {
+        return $this->hasMany(VslaMeetingAttendance::class, 'member_id');
     }
 
     /**

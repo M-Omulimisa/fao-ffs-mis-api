@@ -8,6 +8,7 @@ use App\Models\ProductCategory;
 use App\Models\User;
 use App\Models\Utils;
 use App\Traits\ApiResponser;
+use App\Traits\PhoneNumberNormalization;
 use Carbon\Carbon;
 use Encore\Admin\Auth\Database\Administrator;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class ApiAuthController extends Controller
 {
 
-    use ApiResponser;
+    use ApiResponser, PhoneNumberNormalization;
 
     /**
      * Create a new AuthController instance.
@@ -148,31 +149,20 @@ class ApiAuthController extends Controller
             return $this->error('Password is required.');
         }
 
-        $username = $r->get('username');
+        $username = trim($r->get('username'));
 
-        $u = User::where('phone_number', $username)
-            ->orWhere('username', $username) 
-            ->orWhere('email', $username)
-            ->first();
+        // Try to find user by phone number first (with normalization)
+        $u = $this->findUserByPhone($username, User::class);
 
-
-
-        $phone_number = null;
+        // If not found by phone, try email or username
         if ($u == null) {
-            
-            $phone_number = Utils::prepare_phone_number($r->username);
-            if (Utils::phone_number_is_valid($phone_number)) {
-                $phone_number = $r->phone_number;
-
-                $u = User::where('phone_number', $phone_number)
-                    ->orWhere('username', $phone_number)
-                    ->orWhere('email', $phone_number)
-                    ->first();
-            }
+            $u = User::where('username', $username)
+                ->orWhere('email', $username)
+                ->first();
         }
 
         if ($u == null) {
-            return $this->error('User account not found. username: ' . $username . ' phone: ' . $phone_number);
+            return $this->error('User account not found.');
         }
 
         if ($u->status == 'Deleted') {
@@ -186,12 +176,9 @@ class ApiAuthController extends Controller
             'password' => trim($r->password),
         ]);
 
-
         if ($token == null) {
             return $this->error('Wrong credentials.');
         }
-
-
 
         $u->token = $token;
         $u->remember_token = $token;
@@ -207,8 +194,15 @@ class ApiAuthController extends Controller
 
         $phone_number = trim($r->phone_number);
         
-        // Validate phone number length
-        if (strlen($phone_number) < 10) {
+        // Normalize phone number to +256 format
+        $normalizedPhone = $this->normalizePhone($phone_number);
+        
+        if (empty($normalizedPhone)) {
+            return $this->error('Invalid phone number format.');
+        }
+        
+        // Validate phone number length (should be +256XXXXXXXXX = 13 chars)
+        if (strlen($normalizedPhone) < 13) {
             return $this->error('Phone number must be at least 10 digits.');
         }
 
@@ -220,14 +214,11 @@ class ApiAuthController extends Controller
             return $this->error('Name is required.');
         }
 
-        // Check for existing user with same phone number
-        $existingUser = Administrator::where('phone_number', $phone_number)
-            ->orWhere('username', $phone_number);
-        
-        $u = $existingUser->first();
+        // Check for existing user with same phone number (check all variants)
+        $existingUser = $this->findUserByPhone($phone_number, Administrator::class);
 
-        if ($u != null) {
-            if ($u->status == 'Deleted') {
+        if ($existingUser != null) {
+            if ($existingUser->status == 'Deleted') {
                 return $this->error('This phone number is associated with a deleted account. Contact us for help.');
             }
 
@@ -239,44 +230,39 @@ class ApiAuthController extends Controller
         $name = trim($r->name);
 
         // Split name into first_name and last_name
-        // Remove extra spaces and split
         $nameParts = preg_split('/\s+/', $name);
         
         if (count($nameParts) == 1) {
-            // Only one name - use for both
             $user->first_name = $nameParts[0];
             $user->last_name = $nameParts[0];
         } elseif (count($nameParts) == 2) {
-            // Two names - first and last
             $user->first_name = $nameParts[0];
             $user->last_name = $nameParts[1];
         } else {
-            // Three or more names - first is first, rest is last
             $user->first_name = $nameParts[0];
             array_shift($nameParts);
             $user->last_name = implode(' ', $nameParts);
         }
         
         $user->name = $name;
-        $user->username = $phone_number;
-        $user->email = $phone_number . '@faoffsmis.org'; // Generate email from phone
-        $user->reg_number = $phone_number;
-        $user->phone_number = $phone_number;
         
-        // Set address from request if provided
+        // Use normalized phone number for all phone-related fields
+        $user->username = $normalizedPhone;
+        $user->email = preg_replace('/[^\d]/', '', $normalizedPhone) . '@faoffsmis.org';
+        $user->reg_number = $normalizedPhone;
+        $user->phone_number = $normalizedPhone; // This will be normalized again in User model boot()
+        
         $user->address = $r->address != null ? trim($r->address) : '';
         
         // Set group_id from request if provided
         if ($r->group_id != null && !empty(trim($r->group_id))) {
             $groupId = intval(trim($r->group_id));
-            // Verify that group exists and is active
             $group = \App\Models\FfsGroup::where('id', $groupId)
                 ->where('status', 'Active')
                 ->first();
             if ($group) {
                 $user->group_id = $groupId;
             }
-            // If group doesn't exist or isn't active, we'll just ignore it (don't block registration)
         }
         
         // Set optional fields with empty defaults
@@ -301,7 +287,6 @@ class ApiAuthController extends Controller
                 return $this->error('Failed to create account. Please try again.');
             }
         } catch (\Exception $e) {
-            // Catch validation errors from boot() method
             return $this->error('Registration failed: ' . $e->getMessage());
         }
 
@@ -314,7 +299,7 @@ class ApiAuthController extends Controller
         JWTAuth::factory()->setTTL(60 * 24 * 30 * 365);
 
         $token = auth('api')->attempt([
-            'phone_number' => $phone_number,
+            'phone_number' => $normalizedPhone,
             'password' => trim($r->password),
         ]);
 

@@ -19,11 +19,11 @@ class EnsureTokenIsValid
      */
     public function handle(Request $request, Closure $next)
     {
-        // UPDATED VERSION - v2.0
-        // Get user ID from headers (like the frontend sends)
+        // UPDATED VERSION - v2.1
+        // Get user ID from headers or JWT token
         $user_id = 0;
         
-        // Check multiple header names to match frontend implementation
+        // First, try to get from headers (like the frontend sends)
         if ($request->header('User-Id')) {
             $user_id = (int) $request->header('User-Id');
         } elseif ($request->header('HTTP_USER_ID')) {
@@ -31,9 +31,29 @@ class EnsureTokenIsValid
         } elseif ($request->header('user_id')) {
             $user_id = (int) $request->header('user_id');
         }
+        
+        // If no header, try to extract from JWT Bearer token
+        if ($user_id < 1) {
+            $token = $request->bearerToken();
+            if ($token) {
+                try {
+                    // Decode JWT token to get user ID from 'sub' claim
+                    $parts = explode('.', $token);
+                    if (count($parts) === 3) {
+                        $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+                        if (isset($payload['sub'])) {
+                            $user_id = (int) $payload['sub'];
+                            \Log::info('EnsureTokenIsValid - Extracted user ID from JWT: ' . $user_id);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('EnsureTokenIsValid - Failed to decode JWT: ' . $e->getMessage());
+                }
+            }
+        }
 
         // Debug logging
-        \Log::info('EnsureTokenIsValid - User ID from header: ' . $user_id);
+        \Log::info('EnsureTokenIsValid - User ID: ' . $user_id);
         
         // Check if user_id is provided
         if ($user_id < 1) {
@@ -57,11 +77,11 @@ class EnsureTokenIsValid
             return response()->json([
                 'code' => 0,
                 'status' => 0,
-                'message' => 'User not found. [MW v2.0]',
+                'message' => 'User not found. [MW v2.1]',
                 'data' => null,
                 'debug' => [
                     'user_id_from_header' => $user_id,
-                    'middleware_version' => 'v2.0'
+                    'middleware_version' => 'v2.1'
                 ]
             ], 401);
         }
@@ -69,6 +89,10 @@ class EnsureTokenIsValid
         // Add user to request for controller access
         $request->user = $user_id;
         $request->userModel = $u;
+        
+        // Set authenticated user in Laravel Auth system
+        // This allows Auth::id() and Auth::user() to work in controllers
+        auth()->setUser($u);
 
         \Log::info('EnsureTokenIsValid - Passing to next middleware/controller');
         $response = $next($request);

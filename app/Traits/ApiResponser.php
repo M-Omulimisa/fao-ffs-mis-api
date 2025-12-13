@@ -4,24 +4,54 @@ namespace App\Traits;
 
 trait ApiResponser
 {
-    protected function success($data = [], $message = "")
+    /**
+     * Return a success response
+     * 
+     * @param string $message Success message
+     * @param array|null $data Response data
+     * @param int $code HTTP status code
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function success($message = "", $data = null, $code = 200)
     {
-        return response()->json([
+        $response = [
+            'success' => true,
             'code' => 1,
             'status' => 1,
             'message' => $message,
-            'data' => $data
-        ]);
+        ];
+
+        if ($data !== null) {
+            $response['data'] = $data;
+        }
+
+        return response()->json($response, $code);
     }
 
-    protected function error($message = "")
+    /**
+     * Return an error response
+     * 
+     * @param string $message Error message
+     * @param int $code HTTP status code
+     * @param array|null $data Additional error data
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function error($message = "", $code = 400, $data = null)
     {
-        return response()->json([
+        $response = [
+            'success' => false,
             'code' => 0,
             'status' => 0,
             'message' => $message,
-            'data' => ""
-        ]);
+        ];
+
+        if ($data !== null) {
+            $response['data'] = $data;
+        } else {
+            $response['data'] = "";
+        }
+
+        return response()->json($response, $code);
     }
 }
  

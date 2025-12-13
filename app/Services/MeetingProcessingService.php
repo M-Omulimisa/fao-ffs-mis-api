@@ -1,0 +1,864 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\VslaMeeting;
+use App\Models\VslaMeetingAttendance;
+use App\Models\VslaActionPlan;
+use App\Models\ProjectTransaction;
+use App\Models\ProjectShare;
+use App\Models\AccountTransaction;
+use App\Models\LoanTransaction;
+use App\Models\VslaLoan;
+use App\Models\Project;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Exception;
+
+/**
+ * Meeting Processing Service
+ * 
+ * Core business logic for processing VSLA meetings:
+ * 1. Validates meeting data
+ * 2. Extracts and creates attendance records
+ * 3. Creates double-entry transactions for savings/welfare/social fund/fines
+ * 4. Creates share purchase records and transactions
+ * 5. Creates loan disbursement transactions
+ * 6. Processes action plans (updates previous, creates new)
+ * 7. Tracks errors and warnings
+ */
+class MeetingProcessingService
+{
+    /**
+     * Process a VSLA meeting
+     * 
+     * @param VslaMeeting $meeting
+     * @return array ['success' => bool, 'errors' => array, 'warnings' => array]
+     */
+    public function processMeeting(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            // Mark as processing
+            $meeting->markAsProcessing();
+
+            // Start database transaction
+            DB::beginTransaction();
+
+            // Step 1: Validate meeting
+            $validationResult = $this->validateMeeting($meeting);
+            if (!$validationResult['valid']) {
+                $errors = array_merge($errors, $validationResult['errors']);
+                $warnings = array_merge($warnings, $validationResult['warnings']);
+                
+                // If critical errors, stop processing
+                if (!empty($validationResult['errors'])) {
+                    DB::rollBack();
+                    $meeting->markAsFailed($errors);
+                    return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+                }
+            }
+
+            // Step 2: Process attendance
+            $attendanceResult = $this->processAttendance($meeting);
+            if (!$attendanceResult['success']) {
+                $errors = array_merge($errors, $attendanceResult['errors']);
+            }
+            $warnings = array_merge($warnings, $attendanceResult['warnings']);
+
+            // Step 3: Process transactions (savings, welfare, social fund, fines)
+            $transactionsResult = $this->processTransactions($meeting);
+            if (!$transactionsResult['success']) {
+                $errors = array_merge($errors, $transactionsResult['errors']);
+            }
+            $warnings = array_merge($warnings, $transactionsResult['warnings']);
+
+            // Step 4: Process share purchases
+            $sharesResult = $this->processSharePurchases($meeting);
+            if (!$sharesResult['success']) {
+                $errors = array_merge($errors, $sharesResult['errors']);
+            }
+            $warnings = array_merge($warnings, $sharesResult['warnings']);
+
+            // Step 5: Process loan disbursements
+            $loansResult = $this->processLoans($meeting);
+            if (!$loansResult['success']) {
+                $errors = array_merge($errors, $loansResult['errors']);
+            }
+            $warnings = array_merge($warnings, $loansResult['warnings']);
+
+            // Step 6: Process action plans
+            $actionPlansResult = $this->processActionPlans($meeting);
+            if (!$actionPlansResult['success']) {
+                $errors = array_merge($errors, $actionPlansResult['errors']);
+            }
+            $warnings = array_merge($warnings, $actionPlansResult['warnings']);
+
+            // If any critical errors occurred, rollback
+            if (!empty($errors)) {
+                DB::rollBack();
+                $meeting->markAsFailed($errors);
+                return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+            }
+
+            // Commit transaction
+            DB::commit();
+
+            // Mark as completed or needs review
+            if (!empty($warnings)) {
+                $meeting->markAsNeedsReview($warnings);
+            } else {
+                $meeting->markAsCompleted();
+            }
+
+            return ['success' => true, 'errors' => [], 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            
+            $error = [
+                'type' => 'exception',
+                'message' => 'Processing failed: ' . $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ];
+            
+            Log::error('Meeting processing failed', [
+                'meeting_id' => $meeting->id,
+                'error' => $error
+            ]);
+
+            $meeting->markAsFailed([$error]);
+            
+            return ['success' => false, 'errors' => [$error], 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Validate meeting data
+     */
+    protected function validateMeeting(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        // Check for duplicate local_id
+        $duplicate = VslaMeeting::where('local_id', $meeting->local_id)
+            ->where('id', '!=', $meeting->id)
+            ->where('processing_status', 'completed')
+            ->first();
+            
+        if ($duplicate) {
+            $errors[] = [
+                'type' => 'duplicate',
+                'message' => "Meeting already processed (ID: {$duplicate->id})",
+                'field' => 'local_id'
+            ];
+        }
+
+        // Validate cycle exists and is VSLA
+        $cycle = Project::find($meeting->cycle_id);
+        if (!$cycle) {
+            $errors[] = [
+                'type' => 'missing_cycle',
+                'message' => 'VSLA cycle not found',
+                'field' => 'cycle_id'
+            ];
+        } elseif (!$cycle->is_vsla_cycle) {
+            $warnings[] = [
+                'type' => 'not_vsla_cycle',
+                'message' => 'Project is not marked as VSLA cycle',
+                'suggestion' => 'Verify this is a VSLA savings cycle'
+            ];
+        }
+
+        // Validate attendance data
+        if (empty($meeting->attendance_data)) {
+            $warnings[] = [
+                'type' => 'no_attendance',
+                'message' => 'No attendance data provided',
+                'suggestion' => 'Verify attendance was recorded'
+            ];
+        }
+
+        // Validate financial totals match
+        $expectedSavings = $this->calculateExpectedTotal($meeting->transactions_data, 'savings');
+        if (abs($expectedSavings - $meeting->total_savings_collected) > 0.01) {
+            $warnings[] = [
+                'type' => 'savings_mismatch',
+                'message' => "Savings total mismatch: Expected {$expectedSavings}, got {$meeting->total_savings_collected}",
+                'suggestion' => 'Verify savings calculations'
+            ];
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings
+        ];
+    }
+
+    /**
+     * Process attendance data
+     */
+    protected function processAttendance(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            $attendanceData = $meeting->attendance_data ?? [];
+            
+            // Get all group members
+            $groupId = $meeting->group_id;
+            $allGroupMembers = User::where('group_id', $groupId)->get();
+            
+            if ($allGroupMembers->isEmpty()) {
+                $warnings[] = [
+                    'type' => 'no_group_members',
+                    'message' => 'No members found for this group',
+                    'suggestion' => 'Ensure group has registered members'
+                ];
+            }
+            
+            // Track members marked as present in attendance_data
+            $markedMemberIds = collect($attendanceData)->pluck('memberId')->filter()->toArray();
+            
+            // Process attendance records from mobile app
+            foreach ($attendanceData as $record) {
+                // Validate member exists
+                $member = User::find($record['memberId'] ?? null);
+                if (!$member) {
+                    $warnings[] = [
+                        'type' => 'member_not_found',
+                        'message' => "Member not found: {$record['memberName']}",
+                        'suggestion' => 'Member may need to be added to system'
+                    ];
+                    continue;
+                }
+
+                // Convert string boolean to actual boolean
+                $isPresent = $record['isPresent'] ?? false;
+                if (is_string($isPresent)) {
+                    $isPresent = strtolower($isPresent) === 'true' || $isPresent === '1';
+                } else {
+                    $isPresent = filter_var($isPresent, FILTER_VALIDATE_BOOLEAN);
+                }
+
+                // Create or update attendance record
+                VslaMeetingAttendance::updateOrCreate(
+                    [
+                        'meeting_id' => $meeting->id,
+                        'member_id' => $record['memberId']
+                    ],
+                    [
+                        'is_present' => $isPresent ? 1 : 0,
+                        'absent_reason' => $record['absentReason'] ?? null
+                    ]
+                );
+            }
+            
+            // Mark all members NOT in attendance_data as absent
+            foreach ($allGroupMembers as $member) {
+                if (!in_array($member->id, $markedMemberIds)) {
+                    VslaMeetingAttendance::updateOrCreate(
+                        [
+                            'meeting_id' => $meeting->id,
+                            'member_id' => $member->id
+                        ],
+                        [
+                            'is_present' => false,
+                            'absent_reason' => 'Not recorded in meeting attendance'
+                        ]
+                    );
+                }
+            }
+
+            return ['success' => true, 'errors' => $errors, 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'attendance_processing_error',
+                'message' => 'Failed to process attendance: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Process transactions (savings, welfare, social fund, fines)
+     */
+    protected function processTransactions(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            $transactionsData = $meeting->transactions_data ?? [];
+            
+            foreach ($transactionsData as $transaction) {
+                $accountType = $transaction['accountType'] ?? null;
+                $amount = $transaction['amount'] ?? 0;
+                $memberId = $transaction['memberId'] ?? null;
+                $description = $transaction['description'] ?? '';
+
+                // Skip if no amount
+                if ($amount <= 0) {
+                    continue;
+                }
+
+                // Validate member
+                $member = User::find($memberId);
+                if (!$member) {
+                    $warnings[] = [
+                        'type' => 'member_not_found',
+                        'message' => "Member not found for transaction: {$transaction['memberName']}",
+                        'suggestion' => 'Transaction recorded but member needs verification'
+                    ];
+                    continue;
+                }
+
+                // Create double-entry transaction
+                $result = $this->createDoubleEntryTransaction(
+                    $meeting,
+                    $member,
+                    $accountType,
+                    $amount,
+                    $description
+                );
+
+                if (!$result['success']) {
+                    $errors = array_merge($errors, $result['errors']);
+                }
+            }
+
+            return ['success' => empty($errors), 'errors' => $errors, 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'transaction_processing_error',
+                'message' => 'Failed to process transactions: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Create double-entry transaction for meeting contributions
+     * 
+     * Creates AccountTransaction records (not ProjectTransaction):
+     * - Member debit: Member pays money (negative amount)
+     * - Group credit: Group receives money (positive amount)
+     * 
+     * Properly tracks:
+     * - owner_type: 'member' for member transactions, 'group' for group entries
+     * - group_id, meeting_id, cycle_id for comprehensive filtering
+     * - account_type: from offline accountType field
+     * - contra_entry_id: links double-entry pairs
+     */
+    protected function createDoubleEntryTransaction(
+        VslaMeeting $meeting,
+        User $member,
+        string $accountType,
+        float $amount,
+        string $description
+    ): array {
+        $errors = [];
+
+        try {
+            // Map account type to transaction source (for backward compatibility)
+            $sourceMap = [
+                'savings' => 'meeting_savings',
+                'welfare' => 'meeting_welfare',
+                'social_fund' => 'meeting_social_fund',
+                'fine' => 'meeting_fine',
+                'fines' => 'meeting_fine',
+            ];
+            
+            $source = $sourceMap[strtolower($accountType)] ?? 'meeting_savings';
+
+            // 1. MEMBER DEBIT: Member pays money (negative amount)
+            $memberTransaction = AccountTransaction::create([
+                'user_id' => $member->id,
+                'owner_type' => 'member',
+                'group_id' => $meeting->group_id,
+                'meeting_id' => $meeting->id,
+                'cycle_id' => $meeting->cycle_id,
+                'account_type' => $accountType,
+                'source' => $source,
+                'amount' => -$amount, // Negative for member payment
+                'description' => $description ?: "Meeting #{$meeting->meeting_number} - {$accountType}",
+                'transaction_date' => $meeting->meeting_date,
+                'is_contra_entry' => false,
+                'created_by_id' => $meeting->created_by_id
+            ]);
+
+            // 2. GROUP CREDIT: Group receives money (positive amount)
+            $groupTransaction = AccountTransaction::create([
+                'user_id' => null, // Group transactions have no user_id
+                'owner_type' => 'group',
+                'group_id' => $meeting->group_id,
+                'meeting_id' => $meeting->id,
+                'cycle_id' => $meeting->cycle_id,
+                'account_type' => $accountType,
+                'source' => $source,
+                'amount' => $amount, // Positive for group receipt
+                'description' => "Group receipt from {$member->name} - {$accountType}",
+                'transaction_date' => $meeting->meeting_date,
+                'is_contra_entry' => true,
+                'contra_entry_id' => $memberTransaction->id,
+                'created_by_id' => $meeting->created_by_id
+            ]);
+
+            // Link member transaction to group transaction
+            $memberTransaction->update([
+                'contra_entry_id' => $groupTransaction->id
+            ]);
+
+            return ['success' => true, 'errors' => []];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'transaction_creation_error',
+                'message' => "Failed to create transaction for {$member->name}: " . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors];
+        }
+    }
+
+    /**
+     * Process share purchases
+     */
+    /**
+     * Process share purchases from meeting
+     * 
+     * Uses DOUBLE-ENTRY accounting:
+     * - Each share purchase creates 2 AccountTransaction records
+     * - Group record (user_id=NULL): +amount (credit - money received)
+     * - Member record (user_id=member_id): +amount (member's contribution)
+     * 
+     * Also creates ProjectShare record for ownership tracking
+     */
+    protected function processSharePurchases(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            $sharesData = $meeting->share_purchases_data ?? [];
+            
+            foreach ($sharesData as $purchase) {
+                // Mobile app sends: investor_id, investor_name, number_of_shares, total_amount_paid, share_price_at_purchase
+                // OLD format: memberId, memberName, numberOfShares, totalAmountPaid, sharePriceAtPurchase
+                // Support both formats for compatibility
+                $memberId = $purchase['investor_id'] ?? $purchase['memberId'] ?? null;
+                $numberOfShares = $purchase['number_of_shares'] ?? $purchase['numberOfShares'] ?? 0;
+                $totalAmount = $purchase['total_amount_paid'] ?? $purchase['totalAmountPaid'] ?? 0;
+                $sharePriceAtPurchase = $purchase['share_price_at_purchase'] ?? $purchase['sharePriceAtPurchase'] ?? ($numberOfShares > 0 ? $totalAmount / $numberOfShares : 0);
+
+                if ($numberOfShares <= 0 || $totalAmount <= 0) {
+                    continue;
+                }
+
+                $member = User::find($memberId);
+                if (!$member) {
+                    $memberName = $purchase['investor_name'] ?? $purchase['memberName'] ?? "ID: {$memberId}";
+                    $warnings[] = [
+                        'type' => 'member_not_found',
+                        'message' => "Member not found for share purchase: {$memberName}",
+                        'suggestion' => 'Share purchase needs verification'
+                    ];
+                    continue;
+                }
+
+                $memberName = $member->name;
+
+                // Create ProjectShare record for ownership tracking
+                $projectShare = ProjectShare::create([
+                    'project_id' => $meeting->cycle_id,
+                    'investor_id' => $member->id,
+                    'number_of_shares' => $numberOfShares,
+                    'share_price_at_purchase' => $sharePriceAtPurchase,
+                    'total_amount_paid' => $totalAmount,
+                    'purchase_date' => $meeting->meeting_date,
+                ]);
+
+                // DOUBLE-ENTRY ACCOUNTING:
+                // Transaction 1: Group receives money (credit to group)
+                $groupTransaction = AccountTransaction::create([
+                    'user_id' => null, // Group transaction
+                    'owner_type' => 'group',
+                    'group_id' => $meeting->group_id,
+                    'meeting_id' => $meeting->id,
+                    'cycle_id' => $meeting->cycle_id,
+                    'account_type' => 'share',
+                    'source' => 'share_purchase',
+                    'amount' => $totalAmount, // Positive = credit (money in)
+                    'transaction_date' => $meeting->meeting_date,
+                    'description' => "Group received share payment from {$memberName}",
+                    'is_contra_entry' => false,
+                    'created_by_id' => $meeting->created_by_id,
+                ]);
+
+                // Transaction 2: Member contributes money
+                $memberTransaction = AccountTransaction::create([
+                    'user_id' => $member->id, // Member transaction
+                    'owner_type' => 'member',
+                    'group_id' => $meeting->group_id,
+                    'meeting_id' => $meeting->id,
+                    'cycle_id' => $meeting->cycle_id,
+                    'account_type' => 'share',
+                    'source' => 'share_purchase',
+                    'amount' => $totalAmount, // Positive = member's contribution
+                    'transaction_date' => $meeting->meeting_date,
+                    'description' => "{$memberName} purchased {$numberOfShares} shares @ UGX " . number_format($sharePriceAtPurchase, 2),
+                    'is_contra_entry' => true,
+                    'contra_entry_id' => $groupTransaction->id,
+                    'created_by_id' => $meeting->created_by_id,
+                ]);
+
+                // Link group transaction to member transaction
+                $groupTransaction->update([
+                    'contra_entry_id' => $memberTransaction->id
+                ]);
+            }
+
+            return ['success' => true, 'errors' => $errors, 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'share_processing_error',
+                'message' => 'Failed to process shares: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Process loan disbursements
+     */
+    /**
+     * Process loan disbursements from meeting
+     * 
+     * Mobile app sends: borrower_id, loan_amount, interest_rate, repayment_period_months, loan_purpose
+     * OLD format: borrowerId, loanAmount, interestRate, durationMonths, purpose
+     */
+    protected function processLoans(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            $loansData = $meeting->loans_data ?? [];
+            
+            foreach ($loansData as $loan) {
+                // Support both mobile app (snake_case) and old (camelCase) formats
+                $memberId = $loan['borrower_id'] ?? $loan['borrowerId'] ?? null;
+                $loanAmount = $loan['loan_amount'] ?? $loan['loanAmount'] ?? 0;
+                $interestRate = $loan['interest_rate'] ?? $loan['interestRate'] ?? 0;
+                $durationMonths = $loan['repayment_period_months'] ?? $loan['duration_months'] ?? $loan['durationMonths'] ?? 1;
+                $purpose = $loan['loan_purpose'] ?? $loan['loanPurpose'] ?? $loan['purpose'] ?? '';
+
+                if ($loanAmount <= 0) {
+                    $warnings[] = [
+                        'type' => 'invalid_loan_amount',
+                        'message' => "Loan amount must be greater than 0 for member ID: {$memberId}",
+                        'suggestion' => 'Skipping this loan entry'
+                    ];
+                    continue;
+                }
+
+                $member = User::find($memberId);
+                if (!$member) {
+                    $memberName = $loan['borrower_name'] ?? $loan['borrowerName'] ?? "ID: {$memberId}";
+                    $warnings[] = [
+                        'type' => 'member_not_found',
+                        'message' => "Member not found for loan: {$memberName}",
+                        'suggestion' => 'Loan needs verification'
+                    ];
+                    continue;
+                }
+
+                // Validate loan parameters
+                if ($interestRate < 0 || $interestRate > 100) {
+                    $warnings[] = [
+                        'type' => 'invalid_interest_rate',
+                        'message' => "Invalid interest rate ({$interestRate}%) for member {$member->name}. Using 0%",
+                        'suggestion' => 'Review loan terms'
+                    ];
+                    $interestRate = 0;
+                }
+
+                if ($durationMonths < 1) {
+                    $warnings[] = [
+                        'type' => 'invalid_duration',
+                        'message' => "Invalid duration ({$durationMonths} months) for member {$member->name}. Using 1 month",
+                        'suggestion' => 'Review loan terms'
+                    ];
+                    $durationMonths = 1;
+                }
+
+                // Create VslaLoan record and double-entry transactions
+                $result = $this->createLoanDisbursement($meeting, $member, $loanAmount, $interestRate, $durationMonths, $purpose);
+                
+                if (!$result['success']) {
+                    $errors = array_merge($errors, $result['errors']);
+                } else if (!empty($result['warnings'])) {
+                    $warnings = array_merge($warnings, $result['warnings']);
+                }
+            }
+
+            return ['success' => empty($errors), 'errors' => $errors, 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'loan_processing_error',
+                'message' => 'Failed to process loans: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Create loan disbursement with full transaction tracking
+     * 
+     * Creates 3 types of records:
+     * 1. VslaLoan - Main loan record
+     * 2. LoanTransactions (2) - Principal and Interest tracking for the loan
+     * 3. AccountTransactions (2) - Group and Member cash flow (double-entry)
+     * 
+     * LOAN TRANSACTIONS (specific to this loan):
+     * - Principal: -amount (debt created)
+     * - Interest: -interest_amount (additional debt)
+     * 
+     * ACCOUNT TRANSACTIONS (group/member cash flow):
+     * - Group: -amount (cash out)
+     * - Member: -amount (debt created)
+     */
+    protected function createLoanDisbursement(
+        VslaMeeting $meeting,
+        User $member,
+        float $amount,
+        float $interestRate,
+        int $durationMonths,
+        string $purpose
+    ): array {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            // Check if loan already exists for this member in this meeting
+            $existingLoan = VslaLoan::where('meeting_id', $meeting->id)
+                ->where('borrower_id', $member->id)
+                ->first();
+
+            if ($existingLoan) {
+                $warnings[] = [
+                    'type' => 'duplicate_loan',
+                    'message' => "Loan already exists for {$member->name} in this meeting. Skipping.",
+                    'suggestion' => 'Review meeting data for duplicates'
+                ];
+                return ['success' => true, 'errors' => [], 'warnings' => $warnings];
+            }
+
+            // Create VslaLoan record
+            $loan = VslaLoan::create([
+                'cycle_id' => $meeting->cycle_id,
+                'meeting_id' => $meeting->id,
+                'borrower_id' => $member->id,
+                'loan_amount' => $amount,
+                'interest_rate' => $interestRate,
+                'duration_months' => $durationMonths,
+                'purpose' => $purpose,
+                'disbursement_date' => $meeting->meeting_date,
+                'status' => 'active',
+                'created_by_id' => $meeting->created_by_id,
+                // Auto-calculated fields handled by model boot method:
+                // - total_amount_due (principal + interest)
+                // - balance
+                // - due_date
+            ]);
+
+            // Calculate interest amount
+            $interestAmount = ($amount * $interestRate / 100);
+            $totalDue = $amount + $interestAmount;
+
+            // LOAN TRANSACTIONS (for this specific loan):
+            // LoanTransaction 1: Principal (negative - debt created)
+            LoanTransaction::create([
+                'loan_id' => $loan->id,
+                'amount' => -$amount,
+                'transaction_date' => $meeting->meeting_date,
+                'description' => "Loan principal disbursed to {$member->name}",
+                'type' => LoanTransaction::TYPE_PRINCIPAL,
+                'created_by_id' => $meeting->created_by_id,
+            ]);
+
+            // LoanTransaction 2: Interest (negative - additional debt)
+            if ($interestAmount > 0) {
+                LoanTransaction::create([
+                    'loan_id' => $loan->id,
+                    'amount' => -$interestAmount,
+                    'transaction_date' => $meeting->meeting_date,
+                    'description' => "Interest charge @ {$interestRate}% for {$durationMonths} months",
+                    'type' => LoanTransaction::TYPE_INTEREST,
+                    'created_by_id' => $meeting->created_by_id,
+                ]);
+            }
+
+            // ACCOUNT TRANSACTIONS (group/member cash flow - double-entry):
+            // AccountTransaction 1: Group loses money (debit to group)
+            $groupTransaction = AccountTransaction::create([
+                'user_id' => null, // Group transaction
+                'owner_type' => 'group',
+                'group_id' => $meeting->group_id,
+                'meeting_id' => $meeting->id,
+                'cycle_id' => $meeting->cycle_id,
+                'account_type' => 'loan',
+                'source' => 'loan_disbursement',
+                'amount' => -$amount, // Negative = debit (money out)
+                'transaction_date' => $meeting->meeting_date,
+                'description' => "Group disbursed loan to {$member->name}" . 
+                    ($purpose ? " ({$purpose})" : ""),
+                'related_disbursement_id' => $loan->id,
+                'is_contra_entry' => false,
+                'created_by_id' => $meeting->created_by_id,
+            ]);
+
+            // AccountTransaction 2: Member receives money (creates debt)
+            $memberTransaction = AccountTransaction::create([
+                'user_id' => $member->id, // Member transaction
+                'owner_type' => 'member',
+                'group_id' => $meeting->group_id,
+                'meeting_id' => $meeting->id,
+                'cycle_id' => $meeting->cycle_id,
+                'account_type' => 'loan',
+                'source' => 'loan_disbursement',
+                'amount' => -$amount, // Negative = member owes this money
+                'transaction_date' => $meeting->meeting_date,
+                'description' => "{$member->name} received loan of UGX " . 
+                    number_format($amount, 2) . " @ {$interestRate}% for {$durationMonths} months",
+                'related_disbursement_id' => $loan->id,
+                'is_contra_entry' => true,
+                'contra_entry_id' => $groupTransaction->id,
+                'created_by_id' => $meeting->created_by_id,
+            ]);
+
+            // Link group transaction to member transaction
+            $groupTransaction->update([
+                'contra_entry_id' => $memberTransaction->id
+            ]);
+
+            Log::info("Loan created for meeting #{$meeting->meeting_number}", [
+                'loan_id' => $loan->id,
+                'borrower' => $member->name,
+                'principal' => $amount,
+                'interest' => $interestAmount,
+                'total_due' => $totalDue,
+                'interest_rate' => $interestRate,
+                'duration' => $durationMonths
+            ]);
+
+            return ['success' => true, 'errors' => [], 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'loan_creation_error',
+                'message' => "Failed to create loan for {$member->name}: " . $e->getMessage()
+            ];
+            Log::error("Loan creation failed", [
+                'meeting_id' => $meeting->id,
+                'borrower_id' => $member->id,
+                'error' => $e->getMessage()
+            ]);
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Process action plans (update previous, create new)
+     */
+    protected function processActionPlans(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            // Process previous action plans (status updates)
+            $previousPlans = $meeting->previous_action_plans_data ?? [];
+            
+            foreach ($previousPlans as $planData) {
+                $localId = $planData['planId'] ?? null;
+                
+                if (!$localId) {
+                    continue;
+                }
+
+                $plan = VslaActionPlan::where('local_id', $localId)->first();
+                
+                if (!$plan) {
+                    $warnings[] = [
+                        'type' => 'plan_not_found',
+                        'message' => "Previous action plan not found: {$planData['action']}",
+                        'suggestion' => 'Plan may have been created offline'
+                    ];
+                    continue;
+                }
+
+                // Update status
+                $status = $planData['completionStatus'] ?? $plan->status;
+                $notes = $planData['completionNotes'] ?? null;
+                
+                $plan->updateStatus($status, $notes);
+            }
+
+            // Create new action plans
+            $upcomingPlans = $meeting->upcoming_action_plans_data ?? [];
+            
+            foreach ($upcomingPlans as $planData) {
+                VslaActionPlan::create([
+                    'local_id' => $planData['planId'] ?? null,
+                    'meeting_id' => $meeting->id,
+                    'cycle_id' => $meeting->cycle_id,
+                    'action' => $planData['action'] ?? '',
+                    'description' => $planData['description'] ?? null,
+                    'assigned_to_member_id' => $planData['assignedToMemberId'] ?? null,
+                    'priority' => $planData['priority'] ?? 'medium',
+                    'due_date' => $planData['dueDate'] ?? null,
+                    'status' => 'pending',
+                    'created_by_id' => $meeting->created_by_id
+                ]);
+            }
+
+            return ['success' => true, 'errors' => $errors, 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'action_plan_processing_error',
+                'message' => 'Failed to process action plans: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Calculate expected total for a transaction type
+     */
+    protected function calculateExpectedTotal(?array $transactions, string $type): float
+    {
+        if (empty($transactions)) {
+            return 0;
+        }
+
+        $total = 0;
+        foreach ($transactions as $transaction) {
+            if (($transaction['accountType'] ?? '') === $type) {
+                $total += $transaction['amount'] ?? 0;
+            }
+        }
+
+        return $total;
+    }
+}

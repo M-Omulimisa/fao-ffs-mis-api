@@ -133,6 +133,33 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
     Route::get('/group-members', [VslaTransactionController::class, 'getGroupMembers']);
 });
 
+// ========================================
+// VSLA MEETINGS - Critical for offline meeting submission/sync
+// ========================================
+use App\Http\Controllers\Api\VslaMeetingController;
+
+Route::prefix('vsla-meetings')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::post('/submit', [VslaMeetingController::class, 'submit']); // Submit offline meeting from mobile app
+    Route::get('/stats', [VslaMeetingController::class, 'stats']); // Get meeting statistics
+    Route::get('/', [VslaMeetingController::class, 'index']); // List all meetings (paginated)
+    Route::get('/{id}', [VslaMeetingController::class, 'show']); // Get single meeting details
+    Route::put('/{id}/reprocess', [VslaMeetingController::class, 'reprocess']); // Reprocess failed meeting
+    Route::delete('/{id}', [VslaMeetingController::class, 'destroy']); // Delete pending meeting (admin only)
+});
+
+// ========================================
+// LOAN TRANSACTION API - Loan payments, penalties, waivers
+// ========================================
+use App\Http\Controllers\LoanTransactionController;
+
+Route::prefix('loan-transactions')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/{loanId}', [LoanTransactionController::class, 'index']); // Get loan transaction history
+    Route::get('/{loanId}/balance', [LoanTransactionController::class, 'balance']); // Get loan balance
+    Route::post('/payment', [LoanTransactionController::class, 'createPayment']); // Record loan payment
+    Route::post('/penalty', [LoanTransactionController::class, 'addPenalty']); // Add penalty
+    Route::post('/waiver', [LoanTransactionController::class, 'addWaiver']); // Add waiver
+});
+
 // FFS Groups Management
 use App\Http\Controllers\FfsGroupController;
 

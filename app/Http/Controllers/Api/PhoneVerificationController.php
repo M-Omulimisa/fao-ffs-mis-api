@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\OtpVerification;
+use App\Traits\PhoneNumberNormalization;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Utils;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 
 class PhoneVerificationController extends Controller
 {
+    use PhoneNumberNormalization;
     /**
      * Check if phone number exists and user is chairperson
      */
@@ -30,36 +32,8 @@ class PhoneVerificationController extends Controller
 
         $phone = $request->phone_number;
         
-        // Remove all spaces and non-numeric chars except +
-        $cleanPhone = preg_replace('/[^\d+]/', '', $phone);
-        
-        // Get just the digits
-        $digitsOnly = preg_replace('/[^\d]/', '', $phone);
-        
-        // Generate all possible phone number variants
-        $phoneVariants = [
-            $phone,                                    // Original
-            $cleanPhone,                               // No spaces
-            Utils::prepare_phone_number($phone),       // Adds +256 if needed
-            '+256' . $digitsOnly,                      // +256XXXXXXXXX
-            '+256 ' . substr($digitsOnly, -9),         // +256 XXXXXXXXX (with space)
-            '0' . substr($digitsOnly, -9),             // 0XXXXXXXXX
-            substr($digitsOnly, -9),                   // XXXXXXXXX
-        ];
-        
-        // Remove duplicates
-        $phoneVariants = array_unique($phoneVariants);
-
-        // Search for user - use LIKE to handle spaces in database
-        $user = User::where(function($query) use ($phoneVariants, $digitsOnly) {
-            foreach ($phoneVariants as $variant) {
-                $query->orWhere('phone_number', $variant)
-                      ->orWhere('phone_number_2', $variant);
-            }
-            // Also search by digits only (removes spaces from DB value)
-            $query->orWhereRaw("REPLACE(REPLACE(phone_number, ' ', ''), '+', '') LIKE ?", ["%{$digitsOnly}"])
-                  ->orWhereRaw("REPLACE(REPLACE(phone_number_2, ' ', ''), '+', '') LIKE ?", ["%{$digitsOnly}"]);
-        })->first();
+        // Find user using trait method
+        $user = $this->findUserByPhone($phone);
 
         if (!$user) {
             return response()->json([
@@ -73,12 +47,12 @@ class PhoneVerificationController extends Controller
         if ($user->is_group_admin !== 'Yes') {
             return response()->json([
                 'status' => 0,
-                'message' => 'Only chairpersons can register through this portal. Please contact your group administrator.',
+                'message' => 'Only registered group chairpersons can register using this method',
                 'data' => null,
             ]);
         }
 
-        // Chairperson found - allow them to proceed with OTP verification for onboarding
+        // Chairperson found
         return response()->json([
             'status' => 1,
             'message' => 'Phone number verified successfully!',
@@ -110,34 +84,8 @@ class PhoneVerificationController extends Controller
 
         $phone = $request->phone_number;
         
-        // Remove all spaces and non-numeric chars except +
-        $cleanPhone = preg_replace('/[^\d+]/', '', $phone);
-        
-        // Get just the digits
-        $digitsOnly = preg_replace('/[^\d]/', '', $phone);
-        
-        // Generate all possible phone number variants
-        $phoneVariants = [
-            $phone,
-            $cleanPhone,
-            Utils::prepare_phone_number($phone),
-            '+256' . $digitsOnly,
-            '+256 ' . substr($digitsOnly, -9),
-            '0' . substr($digitsOnly, -9),
-            substr($digitsOnly, -9),
-        ];
-        
-        $phoneVariants = array_unique($phoneVariants);
-
-        // Verify user exists and is group admin
-        $user = User::where(function($query) use ($phoneVariants, $digitsOnly) {
-            foreach ($phoneVariants as $variant) {
-                $query->orWhere('phone_number', $variant)
-                      ->orWhere('phone_number_2', $variant);
-            }
-            $query->orWhereRaw("REPLACE(REPLACE(phone_number, ' ', ''), '+', '') LIKE ?", ["%{$digitsOnly}"])
-                  ->orWhereRaw("REPLACE(REPLACE(phone_number_2, ' ', ''), '+', '') LIKE ?", ["%{$digitsOnly}"]);
-        })->first();
+        // Find user using trait method
+        $user = $this->findUserByPhone($phone);
 
         if (!$user || $user->is_group_admin !== 'Yes') {
             return response()->json([
@@ -146,6 +94,9 @@ class PhoneVerificationController extends Controller
             ]);
         }
 
+        // Get phone variants for OTP deletion
+        $phoneVariants = $this->getPhoneVariants($phone);
+        
         // Delete any existing OTP for this phone
         OtpVerification::whereIn('phone_number', $phoneVariants)->delete();
 
@@ -201,24 +152,8 @@ class PhoneVerificationController extends Controller
         $phone = $request->phone_number;
         $code = $request->otp_code;
         
-        // Remove all spaces and non-numeric chars except +
-        $cleanPhone = preg_replace('/[^\d+]/', '', $phone);
-        
-        // Get just the digits
-        $digitsOnly = preg_replace('/[^\d]/', '', $phone);
-        
-        // Generate all possible phone number variants
-        $phoneVariants = [
-            $phone,
-            $cleanPhone,
-            Utils::prepare_phone_number($phone),
-            '+256' . $digitsOnly,
-            '+256 ' . substr($digitsOnly, -9),
-            '0' . substr($digitsOnly, -9),
-            substr($digitsOnly, -9),
-        ];
-        
-        $phoneVariants = array_unique($phoneVariants);
+        // Get phone variants using trait method
+        $phoneVariants = $this->getPhoneVariants($phone);
         
         $otp = OtpVerification::whereIn('phone_number', $phoneVariants)
             ->where('otp_code', $code)
@@ -236,15 +171,8 @@ class PhoneVerificationController extends Controller
         $otp->verified_at = Carbon::now();
         $otp->save();
 
-        // Get user data with group information
-        $user = User::where(function($query) use ($phoneVariants, $digitsOnly) {
-            foreach ($phoneVariants as $variant) {
-                $query->orWhere('phone_number', $variant)
-                      ->orWhere('phone_number_2', $variant);
-            }
-            $query->orWhereRaw("REPLACE(REPLACE(phone_number, ' ', ''), '+', '') LIKE ?", ["%{$digitsOnly}"])
-                  ->orWhereRaw("REPLACE(REPLACE(phone_number_2, ' ', ''), '+', '') LIKE ?", ["%{$digitsOnly}"]);
-        })->first();
+        // Get user data using trait method
+        $user = $this->findUserByPhone($phone);
 
         if (!$user) {
             return response()->json([

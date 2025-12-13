@@ -91,6 +91,27 @@ class Project extends Model
         return $this->hasMany(Disbursement::class);
     }
 
+    // VSLA Relationships
+    public function group()
+    {
+        return $this->belongsTo(FfsGroup::class, 'group_id');
+    }
+
+    public function vslaMeetings()
+    {
+        return $this->hasMany(VslaMeeting::class, 'cycle_id');
+    }
+
+    public function vslaLoans()
+    {
+        return $this->hasMany(VslaLoan::class, 'cycle_id');
+    }
+
+    public function vslaActionPlans()
+    {
+        return $this->hasMany(VslaActionPlan::class, 'cycle_id');
+    }
+
     // Accessors
     public function getStatusLabelAttribute()
     {

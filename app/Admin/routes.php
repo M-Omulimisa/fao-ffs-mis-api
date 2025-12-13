@@ -38,6 +38,7 @@ Route::group([
     // ========================================
 
     $router->resource('projects', ProjectController::class);
+    $router->resource('cycles', ProjectController::class);
     $router->resource('project-shares', ProjectShareController::class);
     $router->resource('project-transactions', ProjectTransactionController::class);
     $router->resource('disbursements', DisbursementController::class);
@@ -145,4 +146,23 @@ Route::group([
     $router->get('farmer-question-answers/{id}/approve', 'FarmerQuestionAnswerController@approve')->name('farmer-question-answers.approve');
     $router->get('farmer-question-answers/{id}/accept', 'FarmerQuestionAnswerController@accept')->name('farmer-question-answers.accept');
     $router->resource('farmer-question-answers', FarmerQuestionAnswerController::class);
+
+    // ========================================
+    // VSLA MODULE - Village Savings & Loan Association
+    // ========================================
+    
+    // VSLA Meetings - View meeting records from mobile app
+    $router->resource('vsla-meetings', VslaMeetingController::class);
+    
+    // VSLA Loans - Loan management and tracking
+    $router->resource('vsla-loans', VslaLoanController::class);
+    
+    // VSLA Loan Transactions - Detailed loan event tracking
+    $router->resource('loan-transactions', LoanTransactionController::class);
+    
+    // VSLA Action Plans - Track action items from meetings
+    $router->resource('vsla-action-plans', VslaActionPlanController::class);
+    
+    // VSLA Meeting Attendance - View attendance records
+    $router->resource('vsla-meeting-attendance', VslaMeetingAttendanceController::class);
 });

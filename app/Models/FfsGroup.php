@@ -154,6 +154,22 @@ class FfsGroup extends Model
         return $this->belongsTo(User::class, 'created_by_id');
     }
 
+    // VSLA Relationships
+    public function vslaMeetings()
+    {
+        return $this->hasMany(VslaMeeting::class, 'group_id');
+    }
+
+    public function vslaLoans()
+    {
+        return $this->hasMany(VslaLoan::class, 'group_id');
+    }
+
+    public function vslaActionPlans()
+    {
+        return $this->hasMany(VslaActionPlan::class, 'group_id');
+    }
+
     // TODO: Uncomment when these models are created
     // public function members()
     // {

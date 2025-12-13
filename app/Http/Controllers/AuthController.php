@@ -17,7 +17,7 @@ class AuthController extends Controller
     {
         // If already authenticated, redirect to admin dashboard
         if (Auth::guard('admin')->check()) {
-            return redirect()->route('admin.dashboard');
+            return redirect(admin_base_path('/'));
         }
 
         return view('auth.login');
