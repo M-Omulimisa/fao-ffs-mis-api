@@ -92,7 +92,7 @@ class AccountTransactionController extends AdminController
             
             // Cycle filter
             $filter->equal('cycle_id', 'Cycle')
-                ->select(\App\Models\Project::where('is_active_cycle', 'Yes')->pluck('name', 'id'));
+                ->select(\App\Models\Project::where('is_active_cycle', 'Yes')->pluck('title', 'id'));
             
             // Account Type filter
             $filter->equal('account_type', 'Account Type')
@@ -258,9 +258,9 @@ class AccountTransactionController extends AdminController
             });
         
         // Cycle column
-        $grid->column('cycle.name', __('Cycle'))
-            ->display(function ($cycleName) {
-                return $cycleName ?? '<span class="text-muted">-</span>';
+        $grid->column('cycle.title', __('Cycle'))
+            ->display(function ($cycleTitle) {
+                return $cycleTitle ?? '<span class="text-muted">-</span>';
             });
         
         $grid->column('source', __('Source'))
@@ -353,7 +353,7 @@ class AccountTransactionController extends AdminController
         $show->field('meeting.meeting_number', __('Meeting Number'));
         $show->field('meeting.meeting_date', __('Meeting Date'));
         $show->field('cycle_id', __('Cycle ID'));
-        $show->field('cycle.name', __('Cycle Name'));
+        $show->field('cycle.title', __('Cycle Title'));
         
         // Double-entry information
         $show->divider('Double-Entry Accounting');
