@@ -134,6 +134,15 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
 });
 
 // ========================================
+// VSLA DASHBOARD - Role-based personalized dashboard
+// ========================================
+use App\Http\Controllers\Api\VslaDashboardController;
+
+Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/dashboard', [VslaDashboardController::class, 'getDashboard']); // New role-based dashboard
+});
+
+// ========================================
 // VSLA MEETINGS - Critical for offline meeting submission/sync
 // ========================================
 use App\Http\Controllers\Api\VslaMeetingController;
