@@ -13,10 +13,14 @@ class AddGroupIdToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->bigInteger('group_id')->unsigned()->nullable()->after('created_by_id');
-            $table->index('group_id');
-        });
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (!Schema::hasColumn('users', 'group_id')) {
+                    $table->bigInteger('group_id')->unsigned()->nullable()->after('created_by_id');
+                    $table->index('group_id');
+                }
+            });
+        }
     }
 
     /**

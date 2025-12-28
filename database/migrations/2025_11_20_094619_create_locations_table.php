@@ -13,7 +13,8 @@ class CreateLocationsTable extends Migration
      */
     public function up()
     {
-        Schema::create('locations', function (Blueprint $table) {
+        if (!Schema::hasTable('locations')) {
+            Schema::create('locations', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->enum('type', ['District', 'Subcounty', 'Parish'])->default('District');
@@ -23,7 +24,8 @@ class CreateLocationsTable extends Migration
             
             $table->index('type');
             $table->index('parent_id');
-        });
+            });
+        }
     }
 
     /**

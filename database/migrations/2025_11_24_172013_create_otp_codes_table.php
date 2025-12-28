@@ -13,10 +13,12 @@ class CreateOtpCodesTable extends Migration
      */
     public function up()
     {
-        Schema::create('otp_codes', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('otp_codes')) {
+            Schema::create('otp_codes', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

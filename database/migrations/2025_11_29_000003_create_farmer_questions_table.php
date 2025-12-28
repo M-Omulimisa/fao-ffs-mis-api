@@ -13,7 +13,8 @@ class CreateFarmerQuestionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('farmer_questions', function (Blueprint $table) {
+        if (!Schema::hasTable('farmer_questions')) {
+            Schema::create('farmer_questions', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->longText('content');
@@ -32,7 +33,8 @@ class CreateFarmerQuestionsTable extends Migration
             $table->index('author_id');
             $table->index('status');
             $table->index('created_at');
-        });
+            });
+        }
     }
 
     /**

@@ -800,3 +800,51 @@ Route::get('ajax/product-details/{id}', function ($id) {
         'sizes' => $product->sizes,
     ]);
 });
+
+// ========== ENTERPRISE & PRODUCTION PROTOCOL ROUTES ==========
+
+// Enterprises
+Route::prefix('enterprises')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\EnterpriseController::class, 'index']);
+    Route::get('/statistics', [\App\Http\Controllers\Api\EnterpriseController::class, 'statistics']);
+    Route::get('/{id}', [\App\Http\Controllers\Api\EnterpriseController::class, 'show']);
+    Route::post('/', [\App\Http\Controllers\Api\EnterpriseController::class, 'store'])->middleware(EnsureTokenIsValid::class);
+    Route::put('/{id}', [\App\Http\Controllers\Api\EnterpriseController::class, 'update'])->middleware(EnsureTokenIsValid::class);
+    Route::delete('/{id}', [\App\Http\Controllers\Api\EnterpriseController::class, 'destroy'])->middleware(EnsureTokenIsValid::class);
+});
+
+// Production Protocols
+Route::prefix('production-protocols')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\ProductionProtocolController::class, 'index']);
+    Route::get('/enterprise/{enterpriseId}', [\App\Http\Controllers\Api\ProductionProtocolController::class, 'getByEnterprise']);
+    Route::get('/timeline/{enterpriseId}', [\App\Http\Controllers\Api\ProductionProtocolController::class, 'timeline']);
+    Route::get('/{id}', [\App\Http\Controllers\Api\ProductionProtocolController::class, 'show']);
+    Route::post('/', [\App\Http\Controllers\Api\ProductionProtocolController::class, 'store'])->middleware(EnsureTokenIsValid::class);
+    Route::put('/{id}', [\App\Http\Controllers\Api\ProductionProtocolController::class, 'update'])->middleware(EnsureTokenIsValid::class);
+    Route::delete('/{id}', [\App\Http\Controllers\Api\ProductionProtocolController::class, 'destroy'])->middleware(EnsureTokenIsValid::class);
+});
+
+// Farm Management Routes
+Route::prefix('farms')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\FarmController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\Api\FarmController::class, 'store']);
+    Route::get('/{id}', [\App\Http\Controllers\Api\FarmController::class, 'show']);
+    Route::put('/{id}', [\App\Http\Controllers\Api\FarmController::class, 'update']);
+    Route::delete('/{id}', [\App\Http\Controllers\Api\FarmController::class, 'destroy']);
+    Route::get('/{id}/activities', [\App\Http\Controllers\Api\FarmController::class, 'getActivities']);
+    Route::get('/{id}/calendar', [\App\Http\Controllers\Api\FarmController::class, 'getCalendarView']);
+    Route::get('/{id}/stats', [\App\Http\Controllers\Api\FarmController::class, 'getStats']);
+});
+
+// Farm Activity Routes
+Route::prefix('farm-activities')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\FarmActivityController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\Api\FarmActivityController::class, 'store']);
+    Route::get('/overdue', [\App\Http\Controllers\Api\FarmActivityController::class, 'getOverdue']);
+    Route::get('/upcoming', [\App\Http\Controllers\Api\FarmActivityController::class, 'getUpcoming']);
+    Route::get('/{id}', [\App\Http\Controllers\Api\FarmActivityController::class, 'show']);
+    Route::post('/{id}/complete', [\App\Http\Controllers\Api\FarmActivityController::class, 'complete']);
+    Route::post('/{id}/skip', [\App\Http\Controllers\Api\FarmActivityController::class, 'skip']);
+    Route::post('/{id}/upload-photo', [\App\Http\Controllers\Api\FarmActivityController::class, 'uploadPhoto']);
+});
+

@@ -24,7 +24,8 @@ class CreateLoanTransactionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('loan_transactions', function (Blueprint $table) {
+        if (!Schema::hasTable('loan_transactions')) {
+            Schema::create('loan_transactions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('loan_id')->index();
             $table->decimal('amount', 15, 2)->comment('Positive for payments/waivers, Negative for principal/interest/penalties');
@@ -42,10 +43,13 @@ class CreateLoanTransactionsTable extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            // Foreign keys
-            $table->foreign('loan_id')->references('id')->on('vsla_loans')->onDelete('cascade');
+            // Foreign keys - only add if referenced table exists
+            if (Schema::hasTable('vsla_loans')) {
+                $table->foreign('loan_id')->references('id')->on('vsla_loans')->onDelete('cascade');
+            }
             // Note: created_by_id may not exist in users table, so we'll skip the foreign key constraint
-        });
+            });
+        }
     }
 
     /**

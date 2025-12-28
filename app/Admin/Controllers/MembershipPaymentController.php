@@ -210,7 +210,7 @@ class MembershipPaymentController extends AdminController
         $users = User::orderBy('name', 'asc')
             ->get()
             ->mapWithKeys(function ($user) {
-                $phone = $user->phone_number ?? $user->phone_number_2 ?? 'No phone';
+                $phone = $user->phone_number ?? $user->business_phone_number ?? 'No phone';
                 $address = $user->address ?? 'No address';
                 $label = $user->name . ' | ' . $phone . ' | ' . $address;
                 return [$user->id => $label];

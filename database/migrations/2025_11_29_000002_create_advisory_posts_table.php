@@ -13,7 +13,8 @@ class CreateAdvisoryPostsTable extends Migration
      */
     public function up()
     {
-        Schema::create('advisory_posts', function (Blueprint $table) {
+        if (!Schema::hasTable('advisory_posts')) {
+            Schema::create('advisory_posts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('category_id');
             $table->string('title');
@@ -44,7 +45,8 @@ class CreateAdvisoryPostsTable extends Migration
             $table->index('featured');
             $table->index('published_at');
             $table->index('language');
-        });
+            });
+        }
     }
 
     /**

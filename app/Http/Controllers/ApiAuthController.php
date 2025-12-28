@@ -80,7 +80,7 @@ class ApiAuthController extends Controller
             'SECTION_2_PRODUCTS' => $SECTION_2_PRODUCTS,
         ];
 
-        return $this->success($manifest, 'Success');
+        return $this->success('Success', $manifest);
     }
 
 
@@ -92,7 +92,7 @@ class ApiAuthController extends Controller
     public function me()
     {
         $query = auth('api')->user();
-        return $this->success($query, $message = "Profile details", 200);
+        return $this->success("Profile details", $query, 200);
     }
 
 
@@ -129,7 +129,7 @@ class ApiAuthController extends Controller
                 } catch (\Throwable $th) {
                     return $this->error('Failed to reset password because ' . $th->getMessage() . '.');
                 }
-                return $this->success($u, 'Password reset successfully.');
+                return $this->success('Password reset successfully.', $u);
             } else if ($r->task == 'request_password_reset') {
                 $u = User::where('email', $r->username)->first();
                 if ($u == null) {
@@ -140,7 +140,7 @@ class ApiAuthController extends Controller
                 } catch (\Throwable $th) {
                     return $this->error('Failed to send password reset email because ' . $th->getMessage() . '.');
                 }
-                return $this->success($u, 'Password reset CODE sent to your email address ' . $u->email . '.');
+                return $this->success('Password reset CODE sent to your email address ' . $u->email . '.', $u);
             }
             return $this->error('Invalid task.');
         }
@@ -183,7 +183,7 @@ class ApiAuthController extends Controller
         $u->token = $token;
         $u->remember_token = $token;
 
-        return $this->success($u, 'Logged in successfully.');
+        return $this->success('Logged in successfully.', $u);
     }
 
     public function register(Request $r)
@@ -310,6 +310,6 @@ class ApiAuthController extends Controller
         $new_user->token = $token;
         $new_user->remember_token = $token;
         
-        return $this->success($new_user, 'Account created successfully.');
+        return $this->success('Account created successfully.', $new_user);
     }
 }

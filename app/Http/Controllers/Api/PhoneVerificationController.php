@@ -209,7 +209,7 @@ class PhoneVerificationController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'phone_number' => $user->phone_number,
-                    'phone_number_2' => $user->phone_number_2,
+                    'business_phone_number' => $user->business_phone_number,
                     'email' => $user->email,
                     'is_group_admin' => $user->is_group_admin,
                     'is_group_secretary' => $user->is_group_secretary,

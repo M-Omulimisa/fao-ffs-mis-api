@@ -26,7 +26,8 @@ class AddVslaSpecificFieldsToFfsGroups extends Migration
      */
     public function up()
     {
-        Schema::table('ffs_groups', function (Blueprint $table) {
+        if (Schema::hasTable('ffs_groups')) {
+            Schema::table('ffs_groups', function (Blueprint $table) {
             // VSLA establishment and membership tracking
             $table->date('establishment_date')
                 ->nullable()
@@ -74,7 +75,8 @@ class AddVslaSpecificFieldsToFfsGroups extends Migration
             $table->index('secretary_id');
             $table->index('treasurer_id');
             $table->index('establishment_date');
-        });
+            });
+        }
     }
 
     /**

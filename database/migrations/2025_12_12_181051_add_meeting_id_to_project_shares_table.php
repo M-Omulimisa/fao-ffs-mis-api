@@ -13,10 +13,14 @@ class AddMeetingIdToProjectSharesTable extends Migration
      */
     public function up()
     {
-        Schema::table('project_shares', function (Blueprint $table) {
-            $table->foreignId('meeting_id')->nullable()->after('project_id')->constrained('vsla_meetings')->onDelete('set null');
-            $table->index('meeting_id');
-        });
+        if (Schema::hasTable('project_shares') && Schema::hasTable('vsla_meetings')) {
+            Schema::table('project_shares', function (Blueprint $table) {
+                if (!Schema::hasColumn('project_shares', 'meeting_id')) {
+                    $table->foreignId('meeting_id')->nullable()->after('project_id')->constrained('vsla_meetings')->onDelete('set null');
+                    $table->index('meeting_id');
+                }
+            });
+        }
     }
 
     /**

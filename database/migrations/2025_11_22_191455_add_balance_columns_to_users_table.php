@@ -13,10 +13,16 @@ class AddBalanceColumnsToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->decimal('balance', 15, 2)->default(0)->after('status')->comment('User account balance');
-            $table->decimal('loan_balance', 15, 2)->default(0)->after('balance')->comment('User loan balance');
-        });
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (!Schema::hasColumn('users', 'balance')) {
+                    $table->decimal('balance', 15, 2)->default(0)->after('status')->comment('User account balance');
+                }
+                if (!Schema::hasColumn('users', 'loan_balance')) {
+                    $table->decimal('loan_balance', 15, 2)->default(0)->after('balance')->comment('User loan balance');
+                }
+            });
+        }
     }
 
     /**

@@ -100,7 +100,7 @@ class FailedController extends AdminController
         $grid->column('nin', __('NIN'))->hide();
         $grid->column('village', __('Village'))->hide();
         $grid->column('address', __('Address'))->hide();
-        $grid->column('phone_number_2', __('Phone number 2'))->hide();
+        $grid->column('business_phone_number', __('Phone number 2'))->hide();
         $grid->column('weight', __('Weight'))->hide();
         $grid->column('height', __('Height'))->hide();
         $grid->column('religion', __('Religion'))->hide();
@@ -207,7 +207,7 @@ class FailedController extends AdminController
         $show->field('subcounty_id', __('Subcounty id'));
         $show->field('village', __('Village'));
         $show->field('address', __('Address'));
-        $show->field('phone_number_2', __('Phone number 2'));
+        $show->field('business_phone_number', __('Phone number 2'));
         $show->field('weight', __('Weight'));
         $show->field('height', __('Height'));
         $show->field('religion', __('Religion'));

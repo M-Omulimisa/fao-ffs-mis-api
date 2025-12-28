@@ -13,7 +13,8 @@ class CreateImportTasksTable extends Migration
      */
     public function up()
     {
-        Schema::create('import_tasks', function (Blueprint $table) {
+        if (!Schema::hasTable('import_tasks')) {
+            Schema::create('import_tasks', function (Blueprint $table) {
             $table->id();
             $table->string('task_name');
             $table->string('type')->default('user_data');
@@ -28,7 +29,8 @@ class CreateImportTasksTable extends Migration
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-        });
+            });
+        }
     }
 
     /**

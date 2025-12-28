@@ -13,12 +13,14 @@ class AddSponsorIdToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            // Check if column doesn't exist before adding
-            if (!Schema::hasColumn('users', 'sponsor_id')) {
-                $table->string('sponsor_id')->nullable()->after('business_name')->index();
-            }
-        });
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                // Check if column doesn't exist before adding
+                if (!Schema::hasColumn('users', 'sponsor_id')) {
+                    $table->string('sponsor_id')->nullable()->after('business_name')->index();
+                }
+            });
+        }
     }
 
     /**

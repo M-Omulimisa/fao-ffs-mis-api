@@ -27,7 +27,8 @@ class AddVslaOnboardingFieldsToUsers extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
             // VSLA Role Management Fields
             $table->enum('is_group_admin', ['Yes', 'No'])
                 ->default('No')
@@ -72,7 +73,8 @@ class AddVslaOnboardingFieldsToUsers extends Migration
             // Add indexes for performance
             $table->index('is_group_admin');
             $table->index('onboarding_step');
-        });
+            });
+        }
     }
 
     /**

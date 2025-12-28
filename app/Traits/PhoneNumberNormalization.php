@@ -92,12 +92,12 @@ trait PhoneNumberNormalization
         return $model::where(function($query) use ($variants, $last9Digits) {
             foreach ($variants as $variant) {
                 $query->orWhere('phone_number', $variant)
-                      ->orWhere('phone_number_2', $variant)
+                      ->orWhere('business_phone_number', $variant)
                       ->orWhere('username', $variant);
             }
             // Also search by last 9 digits to handle any format
             $query->orWhereRaw("REPLACE(REPLACE(REPLACE(phone_number, ' ', ''), '+', ''), '-', '') LIKE ?", ["%{$last9Digits}"])
-                  ->orWhereRaw("REPLACE(REPLACE(REPLACE(phone_number_2, ' ', ''), '+', ''), '-', '') LIKE ?", ["%{$last9Digits}"])
+                  ->orWhereRaw("REPLACE(REPLACE(REPLACE(business_phone_number, ' ', ''), '+', ''), '-', '') LIKE ?", ["%{$last9Digits}"])
                   ->orWhereRaw("REPLACE(REPLACE(REPLACE(username, ' ', ''), '+', ''), '-', '') LIKE ?", ["%{$last9Digits}"]);
         })->first();
     }

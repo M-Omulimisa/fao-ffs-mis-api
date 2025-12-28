@@ -103,9 +103,9 @@ class User extends Administrator implements JWTSubject
             $user->phone_number = self::normalizePhoneNumber($user->phone_number);
         }
         
-        // Normalize and validate phone_number_2
-        if (!empty($user->phone_number_2)) {
-            $user->phone_number_2 = self::normalizePhoneNumber($user->phone_number_2);
+        // Normalize and validate business_phone_number
+        if (!empty($user->business_phone_number)) {
+            $user->business_phone_number = self::normalizePhoneNumber($user->business_phone_number);
         }
         
         // Normalize emergency contact phone
@@ -621,7 +621,7 @@ class User extends Administrator implements JWTSubject
         'email',
         'password',
         'phone_number',
-        'phone_number_2',
+        'business_phone_number',
         'user_type',
         'is_membership_paid',
         'membership_paid_at',

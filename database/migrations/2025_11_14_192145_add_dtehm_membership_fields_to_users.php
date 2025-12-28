@@ -13,7 +13,8 @@ class AddDtehmMembershipFieldsToUsers extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
             // DTEHM Membership Status
             if (!Schema::hasColumn('users', 'is_dtehm_member')) {
                 $table->string('is_dtehm_member')->default('No');
@@ -42,7 +43,8 @@ class AddDtehmMembershipFieldsToUsers extends Migration
             if (!Schema::hasColumn('users', 'dtehm_membership_paid_amount')) {
                 $table->decimal('dtehm_membership_paid_amount', 10, 2)->nullable();
             }
-        });
+            });
+        }
     }
     /**
      * Reverse the migrations.

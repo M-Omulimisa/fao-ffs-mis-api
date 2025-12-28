@@ -13,14 +13,16 @@ class AddParentsToUsers extends Migration
      */
     public function up()
     {
-        for ($i = 1; $i <= 10; $i++) {
-            $column = 'parent_' . $i;
-            if (!Schema::hasColumn('users', $column)) {
-                Schema::table('users', function (Blueprint $table) use ($column) {
-                    // 10 Generation Parent Hierarchy
-                    // Each stores the user_id of the parent at that level
-                    $table->bigInteger($column)->nullable();
-                });
+        if (Schema::hasTable('users')) {
+            for ($i = 1; $i <= 10; $i++) {
+                $column = 'parent_' . $i;
+                if (!Schema::hasColumn('users', $column)) {
+                    Schema::table('users', function (Blueprint $table) use ($column) {
+                        // 10 Generation Parent Hierarchy
+                        // Each stores the user_id of the parent at that level
+                        $table->bigInteger($column)->nullable();
+                    });
+                }
             }
         }
     }

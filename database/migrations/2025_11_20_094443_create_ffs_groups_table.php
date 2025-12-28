@@ -13,7 +13,8 @@ class CreateFfsGroupsTable extends Migration
      */
     public function up()
     {
-        Schema::create('ffs_groups', function (Blueprint $table) {
+        if (!Schema::hasTable('ffs_groups')) {
+            Schema::create('ffs_groups', function (Blueprint $table) {
             $table->id();
             
             // Basic Information
@@ -82,7 +83,8 @@ class CreateFfsGroupsTable extends Migration
             $table->index('district_id');
             $table->index('facilitator_id');
             $table->index(['type', 'status']);
-        });
+            });
+        }
     }
 
     /**

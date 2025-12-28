@@ -13,7 +13,8 @@ class CreateDtehmMembershipsTable extends Migration
      */
     public function up()
     {
-        Schema::create('dtehm_memberships', function (Blueprint $table) {
+        if (!Schema::hasTable('dtehm_memberships')) {
+            Schema::create('dtehm_memberships', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id');
             $table->string('payment_reference')->unique();
@@ -48,7 +49,8 @@ class CreateDtehmMembershipsTable extends Migration
             
             $table->timestamps();
             $table->softDeletes();
-        });
+            });
+        }
     }
 
     /**

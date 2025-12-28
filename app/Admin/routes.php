@@ -165,4 +165,14 @@ Route::group([
     
     // VSLA Meeting Attendance - View attendance records
     $router->resource('vsla-meeting-attendance', VslaMeetingAttendanceController::class);
+
+    // ========================================
+    // ENTERPRISE & PRODUCTION PROTOCOLS - Farming Venture Blueprints
+    // ========================================
+    
+    // Enterprises - Farming ventures (livestock/crop based)
+    $router->resource('enterprises', EnterpriseController::class);
+    
+    // Production Protocols - Activity blueprints for enterprises
+    $router->resource('production-protocols', ProductionProtocolController::class);
 });

@@ -13,7 +13,8 @@ class CreateAdvisoryCategoriesTable extends Migration
      */
     public function up()
     {
-        Schema::create('advisory_categories', function (Blueprint $table) {
+        if (!Schema::hasTable('advisory_categories')) {
+            Schema::create('advisory_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
@@ -27,7 +28,8 @@ class CreateAdvisoryCategoriesTable extends Migration
             $table->index('status');
             $table->index('order');
             $table->index('created_by_id');
-        });
+            });
+        }
     }
 
     /**
