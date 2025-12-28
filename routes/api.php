@@ -450,6 +450,7 @@ Route::prefix('user-accounts')->group(function () {
 // Main Dashboard Routes
 // ========================================
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Api\ManifestController;
 use Illuminate\Support\Facades\DB;
 
 Route::prefix('dashboard')->group(function () {
@@ -476,7 +477,18 @@ Route::prefix('dashboard')->group(function () {
             'projects' => $projects
         ]);
     });
-    
+});
+
+// ========================================
+// User Manifest Routes (Account + App Info)
+// ========================================
+Route::middleware(EnsureTokenIsValid::class)->group(function () {
+    // Get comprehensive user manifest (account + app info)
+    Route::get('/manifest', [ManifestController::class, 'getManifest']);
+});
+
+// Public app configuration endpoint (no auth required)
+Route::get('/app-config', [ManifestController::class, 'getAppConfig']);
     // Fix project shares endpoint (one-time use)
     Route::post('/fix-project-shares', function() {
         $updates = [

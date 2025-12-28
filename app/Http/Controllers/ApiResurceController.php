@@ -520,17 +520,17 @@ class ApiResurceController extends Controller
             // Fetch fresh user data from database to ensure all relationships and computed fields are included
             $updatedUser = Administrator::with(['roles', 'permissions'])
                 ->find($u->id);
-            
+
             // Ensure all fields are fresh from database
             $updatedUser->refresh();
-            
+
             // Add insurance-specific field mappings for frontend compatibility
             // Map stored fields to expected field names
             $updatedUser->swimming = $updatedUser->occupation ?? ''; // Tribe
             $updatedUser->tribe = $updatedUser->occupation ?? ''; // Alternative field name
             $updatedUser->father_name = $updatedUser->title ?? ''; // Father's name
             $updatedUser->mother_name = $updatedUser->about ?? ''; // Mother's name
-            
+
             // Parse children data from JSON if stored
             $childrenData = [];
             if (!empty($updatedUser->remember_token)) {
@@ -553,20 +553,20 @@ class ApiResurceController extends Controller
                     ]);
                 }
             }
-            
+
             // Add sponsor ID with alternative field names
             $updatedUser->sponsor_id = $updatedUser->username ?? '';
             $updatedUser->phd_university_name = $updatedUser->username ?? '';
-            
+
             // Ensure avatar URL is complete
             if (!empty($updatedUser->avatar) && !str_starts_with($updatedUser->avatar, 'http')) {
                 $updatedUser->avatar_url = url('storage/' . $updatedUser->avatar);
             }
-            
+
             if (!empty($updatedUser->profile_photo) && !str_starts_with($updatedUser->profile_photo, 'http')) {
                 $updatedUser->profile_photo_url = url('storage/' . $updatedUser->profile_photo);
             }
-            
+
             Log::info('Profile updated successfully - returning fresh data', [
                 'user_id' => $updatedUser->id,
                 'name' => $updatedUser->name,
@@ -1188,14 +1188,14 @@ class ApiResurceController extends Controller
                 ])
                 ->orderBy('name', 'asc')
                 ->get();
-            
+
             // Add computed fields
-            $groups->each(function($group) {
+            $groups->each(function ($group) {
                 $group->type_text = $group->type_text ?? $group->type;
                 $group->district_name = $group->district_name ?? '';
                 $group->facilitator_name = $group->facilitator_name ?? '';
             });
-            
+
             return $this->success($groups, 'Groups retrieved successfully.', 200);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve groups: ' . $e->getMessage());
@@ -1209,11 +1209,11 @@ class ApiResurceController extends Controller
     {
         try {
             $group = \App\Models\FfsGroup::find($id);
-            
+
             if (!$group) {
                 return $this->error('Group not found.');
             }
-            
+
             return $this->success($group, 'Group details retrieved successfully.', 200);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve group: ' . $e->getMessage());
@@ -2788,59 +2788,17 @@ class ApiResurceController extends Controller
             // Base manifest data for all users (authenticated and guests)
             $manifest = [
                 'app_info' => [
-                    'name' => 'BlitXpress',
+                    'name' => 'FFS System',
                     'version' => '1.0.0',
                     'api_version' => '1.0',
                     'maintenance_mode' => false,
+                ], 
+                'account_info' => [
+                    //add here information about persoanl account
                 ],
-                'categories' => $this->getProductCategories(),
-                'delivery_locations' => $this->getDeliveryLocations(),
-                'settings' => [
-                    'currency' => 'UGX',
-                    'currency_symbol' => 'UGX',
-                    'tax_rate' => 0, // No tax for delivery-only
-                    'delivery_fee_varies' => true,
-                    'min_order_amount' => 0,
+                'group_info' => [
+                    //add here information about group account
                 ],
-                'features' => [
-                    'wishlist_enabled' => true,
-                    'reviews_enabled' => true,
-                    'chat_enabled' => true,
-                    'promotions_enabled' => true,
-                ],
-                'counts' => [
-                    'total_products' => Product::count(),
-                    'total_categories' => ProductCategory::count(),
-                    'total_orders' => Order::count(),
-                    'total_users' => Administrator::where('user_type', 'customer')->count(),
-                    'total_vendors' => Administrator::where('user_type', 'Vendor')->count(),
-                    'active_vendors' => Administrator::where('user_type', 'Vendor')->count(),
-                    'total_delivery_locations' => DeliveryAddress::count(),
-                    'active_promotions' => 0, // You can add this if you have promotions table
-                    'wishlist_count' => 0,
-                    'cart_count' => 0,
-                    'notifications_count' => 0,
-                    'unread_messages_count' => 0,
-                    'pending_orders' => Order::where('order_state', 0)->count(),
-                    'completed_orders' => Order::where('order_state', 2)->count(),
-                    'cancelled_orders' => Order::where('order_state', 3)->count(),
-                    'processing_orders' => Order::where('order_state', 1)->count(),
-                    'recent_orders_this_week' => Order::where('created_at', '>=', now()->subWeek())->count(),
-                    'orders_today' => Order::whereDate('created_at', today())->count(),
-                    'orders_this_month' => Order::whereMonth('created_at', now()->month)->count(),
-                    'new_users_this_week' => Administrator::where('created_at', '>=', now()->subWeek())->count(),
-                    'new_users_today' => Administrator::whereDate('created_at', today())->count(),
-                    'products_out_of_stock' => Product::where('in_stock', '<=', 0)->count(),
-                    'low_stock_products' => Product::where('in_stock', '>', 0)->where('in_stock', '<=', 10)->count(),
-                    'featured_products_count' => Product::where('rates', '>', 4)->count(),
-                    'total_revenue' => Order::where('order_state', 2)->sum('order_total'),
-                    'revenue_this_month' => Order::where('order_state', 2)
-                        ->whereMonth('created_at', now()->month)
-                        ->sum('order_total'),
-                    'average_order_value' => Order::where('order_state', 2)->avg('order_total') ?: 0,
-                ],
-                'user' => null,
-                'is_authenticated' => false,
             ];
 
             // If user is authenticated, add user-specific data
@@ -3382,31 +3340,47 @@ class ApiResurceController extends Controller
                 'phd_university_year_graduated' => 'child_4',
                 'phd_university_name' => 'sponsor_id',
             ];
-            
+
             // Update basic fields
             $basicFields = [
-                'name', 'first_name', 'last_name', 'email', 'phone_number',
-                'avatar', 'sex', 'dob', 'address', 'status', 'user_type', 'country'
+                'name',
+                'first_name',
+                'last_name',
+                'email',
+                'phone_number',
+                'avatar',
+                'sex',
+                'dob',
+                'address',
+                'status',
+                'user_type',
+                'country'
             ];
-            
+
             foreach ($basicFields as $field) {
                 if ($request->has($field)) {
                     $user->$field = $request->input($field);
                 }
             }
-            
+
             // Update insurance user specific fields (handle both old and new names)
             $insuranceFields = [
-                'tribe', 'father_name', 'mother_name', 
-                'child_1', 'child_2', 'child_3', 'child_4', 'sponsor_id'
+                'tribe',
+                'father_name',
+                'mother_name',
+                'child_1',
+                'child_2',
+                'child_3',
+                'child_4',
+                'sponsor_id'
             ];
-            
+
             foreach ($insuranceFields as $field) {
                 if ($request->has($field)) {
                     $user->$field = $request->input($field);
                 }
             }
-            
+
             // Handle old mobile app field names
             foreach ($fieldMapping as $oldName => $newName) {
                 if ($request->has($oldName)) {
@@ -3504,7 +3478,7 @@ class ApiResurceController extends Controller
         try {
             // Get authenticated user
             $user = $request->userModel ?? $request->user();
-            
+
             if (!$user) {
                 $user_id = $request->input('user_id');
                 if (!$user_id) {
@@ -3539,7 +3513,6 @@ class ApiResurceController extends Controller
             $membershipPayment->save();
 
             return $this->success($membershipPayment, 'Membership payment initiated successfully. Awaiting confirmation.', 201);
-
         } catch (\Exception $e) {
             \Log::error('Error creating membership payment: ' . $e->getMessage());
             \Log::error($e->getTraceAsString());
@@ -3556,25 +3529,25 @@ class ApiResurceController extends Controller
         try {
             // Try multiple ways to get the user
             $user = $request->userModel ?? $request->user();
-            
+
             if (!$user) {
                 // Try from User-Id header
                 $user_id = $request->header('User-Id');
-                
+
                 // Try from user_id parameter
                 if (!$user_id) {
                     $user_id = $request->input('user_id');
                 }
-                
+
                 // Try from user parameter
                 if (!$user_id) {
                     $user_id = $request->input('user');
                 }
-                
+
                 if (!$user_id) {
                     return $this->error('User authentication required', 401);
                 }
-                
+
                 $user = User::find($user_id);
                 if (!$user) {
                     return $this->error('User not found', 404);
@@ -3609,7 +3582,6 @@ class ApiResurceController extends Controller
             ];
 
             return $this->success($response, 'Membership status retrieved successfully', 200);
-
         } catch (\Exception $e) {
             \Log::error('Error getting membership status: ' . $e->getMessage());
             \Log::error($e->getTraceAsString());
@@ -3629,25 +3601,25 @@ class ApiResurceController extends Controller
         try {
             // Try multiple ways to get the user
             $user = $request->userModel ?? $request->user();
-            
+
             if (!$user) {
                 // Try from User-Id header
                 $user_id = $request->header('User-Id');
-                
+
                 // Try from user_id parameter
                 if (!$user_id) {
                     $user_id = $request->input('user_id');
                 }
-                
+
                 // Try from user parameter
                 if (!$user_id) {
                     $user_id = $request->input('user');
                 }
-                
+
                 if (!$user_id) {
                     return $this->error('User authentication required', 401);
                 }
-                
+
                 $user = User::find($user_id);
                 if (!$user) {
                     return $this->error('User not found', 404);
@@ -3681,7 +3653,6 @@ class ApiResurceController extends Controller
             \Log::info("Membership check for user {$user->id}: " . json_encode($response));
 
             return $this->success($response, 'Membership check completed', 200);
-
         } catch (\Exception $e) {
             \Log::error('Error in membership check: ' . $e->getMessage());
             \Log::error($e->getTraceAsString());
@@ -3739,7 +3710,6 @@ class ApiResurceController extends Controller
                     'membership_expiry_date' => $user->membership_expiry_date,
                 ]
             ], 'Membership payment confirmed successfully', 200);
-
         } catch (\Exception $e) {
             \Log::error('Error confirming membership payment: ' . $e->getMessage());
             \Log::error($e->getTraceAsString());
@@ -3809,25 +3779,25 @@ class ApiResurceController extends Controller
         try {
             // Try multiple ways to get the user
             $user = $request->userModel ?? $request->user();
-            
+
             if (!$user) {
                 // Try from User-Id header
                 $user_id = $request->header('User-Id');
-                
+
                 // Try from user_id parameter
                 if (!$user_id) {
                     $user_id = $request->input('user_id');
                 }
-                
+
                 // Try from user parameter
                 if (!$user_id) {
                     $user_id = $request->input('user');
                 }
-                
+
                 if (!$user_id) {
                     return $this->error('User authentication required', 401);
                 }
-                
+
                 $user = User::find($user_id);
                 if (!$user) {
                     return $this->error('User not found', 404);
@@ -3839,7 +3809,6 @@ class ApiResurceController extends Controller
                 ->get();
 
             return $this->success($payments, 'Membership payments retrieved successfully', 200);
-
         } catch (\Exception $e) {
             \Log::error('Error getting membership payments: ' . $e->getMessage());
             \Log::error($e->getTraceAsString());
