@@ -18,6 +18,9 @@ class EnterpriseController extends Controller
     public function index(Request $request)
     {
         try {
+            \Log::info('========== ENTERPRISES INDEX REQUEST ==========');
+            \Log::info('Request Parameters:', $request->all());
+            
             $query = Enterprise::with(['productionProtocols' => function ($q) {
                 $q->where('is_active', true)->orderBy('start_time', 'asc');
             }]);
@@ -25,28 +28,45 @@ class EnterpriseController extends Controller
             // Filter by type
             if ($request->has('type') && in_array($request->type, ['livestock', 'crop'])) {
                 $query->where('type', $request->type);
+                \Log::info('Filtering by type:', ['type' => $request->type]);
             }
 
             // Filter by active status
             if ($request->has('is_active')) {
                 $query->where('is_active', $request->is_active);
+                \Log::info('Filtering by active status:', ['is_active' => $request->is_active]);
             } else {
                 // Default: only show active enterprises
                 $query->where('is_active', true);
+                \Log::info('Using default filter: is_active = true');
             }
 
             // Search by name
             if ($request->has('search') && !empty($request->search)) {
                 $query->where('name', 'like', '%' . $request->search . '%');
+                \Log::info('Searching by name:', ['search' => $request->search]);
             }
 
             // Sorting
             $sortBy = $request->get('sort_by', 'created_at');
             $sortOrder = $request->get('sort_order', 'desc');
             $query->orderBy($sortBy, $sortOrder);
+            \Log::info('Sorting:', ['sort_by' => $sortBy, 'sort_order' => $sortOrder]);
 
             // Get all enterprises
             $enterprises = $query->get();
+            \Log::info('Enterprises Retrieved:', ['count' => $enterprises->count()]);
+            
+            if ($enterprises->count() > 0) {
+                \Log::info('First Enterprise Sample:', [
+                    'id' => $enterprises->first()->id,
+                    'name' => $enterprises->first()->name,
+                    'type' => $enterprises->first()->type,
+                    'protocols_count' => $enterprises->first()->productionProtocols->count()
+                ]);
+            }
+            
+            \Log::info('========== ENTERPRISES INDEX COMPLETED ==========');
 
             return response()->json([
                 'code' => 1,
@@ -54,6 +74,8 @@ class EnterpriseController extends Controller
                 'data' => $enterprises,
             ], 200);
         } catch (\Exception $e) {
+            \Log::error('========== ENTERPRISES INDEX FAILED ==========');
+            \Log::error('Error:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'code' => 0,
                 'message' => 'Failed to retrieve enterprises: ' . $e->getMessage(),
@@ -70,16 +92,28 @@ class EnterpriseController extends Controller
     public function show($id)
     {
         try {
+            \Log::info('========== ENTERPRISE SHOW REQUEST ==========');
+            \Log::info('Enterprise ID:', ['id' => $id]);
+            
             $enterprise = Enterprise::with(['productionProtocols' => function ($q) {
                 $q->where('is_active', true)->orderBy('order', 'asc')->orderBy('start_time', 'asc');
             }])->find($id);
 
             if (!$enterprise) {
+                \Log::warning('Enterprise not found:', ['id' => $id]);
                 return response()->json([
                     'code' => 0,
                     'message' => 'Enterprise not found',
                 ], 404);
             }
+
+            \Log::info('Enterprise Found:', [
+                'id' => $enterprise->id,
+                'name' => $enterprise->name,
+                'type' => $enterprise->type,
+                'protocols_count' => $enterprise->productionProtocols->count()
+            ]);
+            \Log::info('========== ENTERPRISE SHOW COMPLETED ==========');
 
             return response()->json([
                 'code' => 1,
@@ -87,6 +121,8 @@ class EnterpriseController extends Controller
                 'data' => $enterprise,
             ], 200);
         } catch (\Exception $e) {
+            \Log::error('========== ENTERPRISE SHOW FAILED ==========');
+            \Log::error('Error:', ['id' => $id, 'message' => $e->getMessage()]);
             return response()->json([
                 'code' => 0,
                 'message' => 'Failed to retrieve enterprise: ' . $e->getMessage(),

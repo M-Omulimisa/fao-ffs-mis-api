@@ -2776,6 +2776,7 @@ class ApiResurceController extends Controller
      */
     public function manifest(Request $request)
     {
+        return $this->success();
         try {
             $user_id = $request->user;
             $user = null;
