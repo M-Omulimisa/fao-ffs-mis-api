@@ -19,7 +19,7 @@ return new class extends Migration
             
             $table->string('name');
             $table->text('description')->nullable();
-            $table->enum('status', ['planning', 'active', 'completed', 'abandoned'])->default('planning');
+            $table->enum('status', ['planning', 'active', 'completed', 'abandoned'])->default('active');
             
             $table->date('start_date');
             $table->date('expected_end_date');
@@ -40,10 +40,10 @@ return new class extends Migration
             
             // Foreign keys - only add if referenced tables exist
             if (Schema::hasTable('enterprises')) {
-                $table->foreign('enterprise_id')->references('id')->on('enterprises');
+                // $table->foreign('enterprise_id')->references('id')->on('enterprises');
             }
             if (Schema::hasTable('users')) {
-                $table->foreign('user_id')->references('id')->on('users');
+                // $table->foreign('user_id')->references('id')->on('users');
             }
             
             // Indexes for better performance

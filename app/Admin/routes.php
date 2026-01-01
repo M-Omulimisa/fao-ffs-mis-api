@@ -175,4 +175,17 @@ Route::group([
     
     // Production Protocols - Activity blueprints for enterprises
     $router->resource('production-protocols', ProductionProtocolController::class);
+
+    // ========================================
+    // MARKET PRICES - Agricultural Product Pricing Information
+    // ========================================
+    
+    // Market Price Categories - Categories for agricultural products
+    $router->resource('market-price-categories', MarketPriceCategoryController::class);
+    
+    // Market Price Products - Individual agricultural products
+    $router->resource('market-price-products', MarketPriceProductController::class);
+    
+    // Market Prices - Price records for products
+    $router->resource('market-prices', MarketPriceController::class);
 });

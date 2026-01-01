@@ -84,7 +84,7 @@ class FarmController extends Controller
             'user_id' => $user->id,
             'name' => $request->name,
             'description' => $request->description,
-            'status' => 'planning',
+            'status' => 'active',
             'start_date' => $request->start_date,
             'gps_latitude' => $request->gps_latitude,
             'gps_longitude' => $request->gps_longitude,

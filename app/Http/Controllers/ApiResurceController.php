@@ -831,17 +831,30 @@ class ApiResurceController extends Controller
 
     public function upload_media(Request $request)
     {
+        \Log::info('🖼️  ========== UPLOAD MEDIA CALLED ==========');
+        \Log::info('Request data:', [
+            'parent_id' => $request->parent_id ?? 'null',
+            'parent_local_id' => $request->parent_local_id ?? 'null',
+            'type' => $request->type ?? 'null',
+            'note' => $request->note ?? 'null',
+            'product_id' => $request->product_id ?? 'null',
+            'parent_endpoint' => $request->parent_endpoint ?? 'null',
+        ]);
+
         $administrator_id = $request->user;
 
         $u = Administrator::find($administrator_id);
         if ($u == null) {
+            \Log::error('❌ User not found: ' . $administrator_id);
             return $this->error('User not found.');
         }
+        \Log::info('✅ User found: ' . $u->id);
 
         if (
             !isset($request->parent_local_id) ||
             $request->parent_local_id == null
         ) {
+            \Log::error('❌ Local parent ID is missing');
             return $this->error('Local parent ID is missing.');
         }
 
@@ -849,15 +862,19 @@ class ApiResurceController extends Controller
         if (
             strlen($request->parent_local_id) < 6
         ) {
+            \Log::error('❌ Local parent ID too short: ' . strlen($request->parent_local_id));
             return $this->error('Local parent ID is too short.');
         }
+        \Log::info('✅ parent_local_id validated: ' . $request->parent_local_id);
 
 
         if (
             empty($_FILES)
         ) {
+            \Log::error('❌ No files found');
             return $this->error('No files found.');
         }
+        \Log::info('✅ Files found: ' . count($_FILES));
 
 
 
@@ -866,11 +883,14 @@ class ApiResurceController extends Controller
 
 
         if (empty($images)) {
+            \Log::error('❌ Failed to upload files');
             return $this->error('Failed to upload files.');
         }
+        \Log::info('✅ Files uploaded to server: ' . count($images));
 
         $msg = "";
-        foreach ($images as $src) {
+        foreach ($images as $index => $src) {
+            \Log::info("📷 Processing image " . ($index + 1) . ": " . $src);
 
             $img = new Image();
             $img->administrator_id =  $administrator_id;
@@ -879,11 +899,34 @@ class ApiResurceController extends Controller
             $img->parent_endpoint =  $request->parent_endpoint;
             $img->parent_local_id =  $request->parent_local_id;
             $img->type =  $request->type;
-            $img->parent_id =  (int)($request->parent_id);
+            
+            // FIXED: Handle parent_id safely to avoid integer overflow
+            $parent_id_raw = $request->parent_id ?? '0';
+            \Log::info("  - parent_id received: " . $parent_id_raw);
+            
+            // If parent_id is a large timestamp-like value or non-numeric, set to 0
+            if (is_numeric($parent_id_raw)) {
+                $parent_id_num = (int)$parent_id_raw;
+                // MySQL INT max is 2147483647, if larger than this, set to 0
+                if ($parent_id_num > 2147483647 || $parent_id_num < -2147483648) {
+                    \Log::warning("  ⚠️  parent_id out of range, setting to 0: " . $parent_id_raw);
+                    $img->parent_id = 0;
+                } else {
+                    $img->parent_id = $parent_id_num;
+                }
+            } else {
+                \Log::warning("  ⚠️  parent_id not numeric, setting to 0: " . $parent_id_raw);
+                $img->parent_id = 0;
+            }
+            \Log::info("  - parent_id set to: " . $img->parent_id);
+            
             $pro = Product::where(['local_id' => $img->parent_local_id])->first();
             $img->product_id =  null;
             if ($pro != null) {
                 $img->product_id =  $pro->id;
+                \Log::info("  ✅ Product found and linked: " . $pro->id);
+            } else {
+                \Log::info("  ℹ️  Product not found yet (will be created)");
             }
             $img->size = 0;
             $img->note = '';
@@ -892,12 +935,20 @@ class ApiResurceController extends Controller
             ) {
                 $img->note =  $request->note;
             }
-            $img->save();
-            $_images[] = $img;
+            
+            try {
+                $img->save();
+                \Log::info("  ✅ Image saved to database: ID " . $img->id);
+                $_images[] = $img;
+            } catch (\Exception $e) {
+                \Log::error("  ❌ Failed to save image: " . $e->getMessage());
+                return $this->error('Failed to save image: ' . $e->getMessage());
+            }
         }
 
+        \Log::info('✅ ========== UPLOAD COMPLETE: ' . count($_images) . ' images ==========');
         return $this->success(
-            null,
+            'Success',
             count($_images) . " Files uploaded successfully."
         );
     }
@@ -1784,7 +1835,7 @@ class ApiResurceController extends Controller
         $pro->local_id = $r->local_id;
         $pro->summary = $r->data;
         $pro->metric = 1;
-        $pro->status = 0;
+        $pro->status = 1; // Set to active (1) so product appears in listings
         $pro->currency = 1;
         $pro->url = $u->url;
 
@@ -1998,17 +2049,88 @@ class ApiResurceController extends Controller
             return $this->error('Failed to delete image because ' . $th->getMessage());
         }
     }
-    public function products_delete(Request $r)
+
+    public function products_update(Request $r)
     {
-        $pro = Product::find($r->id);
+        \Log::info('========== PRODUCTS-UPDATE ENDPOINT CALLED ==========');
+        \Log::info('Request params:', $r->all());
+        
+        // Find product by ID or local_id
+        $pro = null;
+        if ($r->id) {
+            $pro = Product::find($r->id);
+            \Log::info('Product lookup by ID: ' . $r->id, ['found' => $pro != null]);
+        } elseif ($r->local_id) {
+            $pro = Product::where('local_id', $r->local_id)->first();
+            \Log::info('Product lookup by local_id: ' . $r->local_id, ['found' => $pro != null]);
+        }
+        
         if ($pro == null) {
+            \Log::warning('Product not found', ['id' => $r->id, 'local_id' => $r->local_id]);
             return $this->error('Product not found.');
         }
+        
         try {
-            $pro->delete();
-            return $this->success(null, $message = "Sussesfully deleted!", 200);
+            // Update basic fields
+            if ($r->has('name')) $pro->name = $r->name;
+            if ($r->has('price_1')) $pro->price_1 = $r->price_1;
+            if ($r->has('price_2')) $pro->price_2 = $r->price_2;
+            if ($r->has('description')) $pro->description = $r->description;
+            if ($r->has('category')) $pro->category = $r->category;
+            if ($r->has('status')) $pro->status = $r->status;
+            if ($r->has('currency')) $pro->currency = $r->currency;
+            if ($r->has('p_type')) $pro->p_type = $r->p_type;
+            if ($r->has('has_colors')) $pro->has_colors = $r->has_colors;
+            if ($r->has('has_sizes')) $pro->has_sizes = $r->has_sizes;
+            if ($r->has('home_section_1')) $pro->home_section_1 = $r->home_section_1;
+            if ($r->has('home_section_2')) $pro->home_section_2 = $r->home_section_2;
+            if ($r->has('home_section_3')) $pro->home_section_3 = $r->home_section_3;
+            
+            $pro->save();
+            
+            \Log::info('Product updated successfully', ['id' => $pro->id, 'name' => $pro->name]);
+            return $this->success($pro, 'Product updated successfully');
+            
         } catch (\Throwable $th) {
-            return $this->error('Failed to delete product.');
+            \Log::error('Failed to update product', ['error' => $th->getMessage(), 'trace' => $th->getTraceAsString()]);
+            return $this->error('Failed to update product: ' . $th->getMessage());
+        }
+    }
+
+    public function products_delete(Request $r)
+    {
+        \Log::info('========== PRODUCTS-DELETE ENDPOINT CALLED ==========');
+        \Log::info('Request ID:', ['id' => $r->id]);
+        
+        $pro = Product::find($r->id);
+        if ($pro == null) {
+            \Log::warning('Product not found', ['id' => $r->id]);
+            return $this->error('Product not found.');
+        }
+        
+        \Log::info('Product found, attempting delete', [
+            'id' => $pro->id,
+            'name' => $pro->name,
+            'user' => $pro->user
+        ]);
+        
+        try {
+            $productId = $pro->id;
+            $productName = $pro->name;
+            $pro->delete();
+            
+            \Log::info('Product deleted successfully', [
+                'id' => $productId,
+                'name' => $productName
+            ]);
+            
+            return $this->success(null, 'Successfully deleted!', 200);
+        } catch (\Throwable $th) {
+            \Log::error('Failed to delete product', [
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
+            ]);
+            return $this->error('Failed to delete product: ' . $th->getMessage());
         }
     }
     public function person_create(Request $r)
@@ -2094,9 +2216,23 @@ class ApiResurceController extends Controller
 
     public function products_1(Request $request)
     {
-        //latest 1000 products without pagination
-        $products = Product::where([])->limit(1000)->get();
-        return $this->success($products, 'Success');
+        \Log::info('========== PRODUCTS-1 ENDPOINT CALLED ==========');
+        \Log::info('Request params:', $request->all());
+        
+        //latest 1000 products without pagination, ordered by newest first
+        $products = Product::orderBy('id', 'DESC')->limit(1000)->get();
+        
+        \Log::info('Query executed, found products:', ['count' => $products->count()]);
+        if ($products->count() > 0) {
+            \Log::info('First 3 products:', [
+                'first' => ['id' => $products[0]->id ?? null, 'name' => $products[0]->name ?? null, 'user' => $products[0]->user ?? null],
+                'second' => $products->count() > 1 ? ['id' => $products[1]->id ?? null, 'name' => $products[1]->name ?? null, 'user' => $products[1]->user ?? null] : null,
+                'third' => $products->count() > 2 ? ['id' => $products[2]->id ?? null, 'name' => $products[2]->name ?? null, 'user' => $products[2]->user ?? null] : null,
+            ]);
+        }
+        
+        \Log::info('========== PRODUCTS-1 RETURNING ' . $products->count() . ' PRODUCTS ==========');
+        return $this->success('Success', $products);
     }
     public function products(Request $request)
     {
@@ -2776,7 +2912,6 @@ class ApiResurceController extends Controller
      */
     public function manifest(Request $request)
     {
-        return $this->success();
         try {
             $user_id = $request->user;
             $user = null;
@@ -2793,7 +2928,7 @@ class ApiResurceController extends Controller
                     'version' => '1.0.0',
                     'api_version' => '1.0',
                     'maintenance_mode' => false,
-                ], 
+                ],
                 'account_info' => [
                     //add here information about persoanl account
                 ],
@@ -3030,7 +3165,8 @@ class ApiResurceController extends Controller
 
             */
 
-            return $this->success($categories, 'Categories retrieved successfully');
+            // Fixed: swap parameters - message first, data second
+            return $this->success('Categories retrieved successfully', $categories);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve categories: ' . $e->getMessage());
         }
@@ -3814,6 +3950,266 @@ class ApiResurceController extends Controller
             \Log::error('Error getting membership payments: ' . $e->getMessage());
             \Log::error($e->getTraceAsString());
             return $this->error('Failed to get membership payments: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // ========================================
+    // MARKET PRICE API ENDPOINTS
+    // ========================================
+
+    /**
+     * Get all active market price categories
+     */
+    public function market_price_categories(Request $r)
+    {
+        try {
+            \Log::info('📊 Market Prices: Getting categories');
+
+            $categories = \App\Models\MarketPriceCategory::where('status', 'Active')
+                ->orderBy('order', 'asc')
+                ->orderBy('name', 'asc')
+                ->get()
+                ->map(function ($category) {
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                        'description' => $category->description,
+                        'photo' => $category->photo_url,
+                        'icon' => $category->icon,
+                        'order' => $category->order,
+                        'products_count' => $category->activeProducts()->count(),
+                        'created_at' => $category->created_at,
+                        'updated_at' => $category->updated_at,
+                    ];
+                });
+
+            \Log::info('✅ Market Prices: Found ' . $categories->count() . ' categories');
+            return $this->success('Categories retrieved successfully', $categories, 200);
+        } catch (\Exception $e) {
+            \Log::error('❌ Market Prices: Error getting categories - ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return $this->error('Failed to get categories: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get all active products, optionally filtered by category
+     */
+    public function market_price_products(Request $r)
+    {
+        try {
+            \Log::info('📦 Market Prices: Getting products', ['category_id' => $r->category_id]);
+
+            $query = \App\Models\MarketPriceProduct::where('status', 'Active')
+                ->with(['category', 'latestPrice']);
+
+            if ($r->category_id) {
+                $query->where('category_id', $r->category_id);
+            }
+
+            $products = $query->orderBy('name', 'asc')
+                ->get()
+                ->map(function ($product) {
+                    $latestPrice = $product->latestPrice;
+                    return [
+                        'id' => $product->id,
+                        'category_id' => $product->category_id,
+                        'category_name' => $product->category ? $product->category->name : null,
+                        'name' => $product->name,
+                        'description' => $product->description,
+                        'photo' => $product->photo_url,
+                        'unit' => $product->unit,
+                        'latest_price' => $latestPrice ? [
+                            'price' => (float) $latestPrice->price,
+                            'price_min' => $latestPrice->price_min ? (float) $latestPrice->price_min : null,
+                            'price_max' => $latestPrice->price_max ? (float) $latestPrice->price_max : null,
+                            'currency' => $latestPrice->currency,
+                            'date' => $latestPrice->date->format('Y-m-d'),
+                            'market_name' => $latestPrice->market_name,
+                            'district_name' => $latestPrice->district_name,
+                        ] : null,
+                        'created_at' => $product->created_at,
+                        'updated_at' => $product->updated_at,
+                    ];
+                });
+
+            \Log::info('✅ Market Prices: Found ' . $products->count() . ' products');
+            return $this->success('Products retrieved successfully', $products, 200);
+        } catch (\Exception $e) {
+            \Log::error('❌ Market Prices: Error getting products - ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return $this->error('Failed to get products: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get market prices with filters
+     */
+    public function market_prices(Request $r)
+    {
+        try {
+            \Log::info('💰 Market Prices: Getting prices', [
+                'product_id' => $r->product_id,
+                'district_id' => $r->district_id,
+                'sub_county_id' => $r->sub_county_id,
+                'start_date' => $r->start_date,
+                'end_date' => $r->end_date,
+                'limit' => $r->limit
+            ]);
+
+            $query = \App\Models\MarketPrice::where('status', 'Active')
+                ->with(['product.category']);
+
+            // Filter by product
+            if ($r->product_id) {
+                $query->where('product_id', $r->product_id);
+            }
+
+            // Filter by district
+            if ($r->district_id) {
+                $query->where('district_id', $r->district_id);
+            }
+
+            // Filter by sub county
+            if ($r->sub_county_id) {
+                $query->where('sub_county_id', $r->sub_county_id);
+            }
+
+            // Filter by date range
+            if ($r->start_date) {
+                $query->where('date', '>=', $r->start_date);
+            }
+            if ($r->end_date) {
+                $query->where('date', '<=', $r->end_date);
+            }
+
+            // Limit results
+            $limit = $r->limit ?? 100;
+            $query->orderBy('date', 'desc')->orderBy('id', 'desc')->limit($limit);
+
+            $prices = $query->get()->map(function ($price) {
+                return [
+                    'id' => $price->id,
+                    'product_id' => $price->product_id,
+                    'product_name' => $price->product->name,
+                    'product_photo' => $price->product->photo_url,
+                    'category_id' => $price->product->category_id,
+                    'category_name' => $price->product->category->name,
+                    'district_id' => $price->district_id,
+                    'district_name' => $price->district_name,
+                    'sub_county_id' => $price->sub_county_id,
+                    'sub_county_name' => $price->sub_county_name,
+                    'market_name' => $price->market_name,
+                    'price' => (float) $price->price,
+                    'price_min' => $price->price_min ? (float) $price->price_min : null,
+                    'price_max' => $price->price_max ? (float) $price->price_max : null,
+                    'currency' => $price->currency,
+                    'unit' => $price->unit ?? $price->product->unit,
+                    'quantity' => $price->quantity,
+                    'date' => $price->date->format('Y-m-d'),
+                    'source' => $price->source,
+                    'notes' => $price->notes,
+                    'created_at' => $price->created_at,
+                ];
+            });
+
+            \Log::info('✅ Market Prices: Found ' . $prices->count() . ' price records');
+            return $this->success('Market prices retrieved successfully', $prices, 200);
+        } catch (\Exception $e) {
+            \Log::error('❌ Market Prices: Error getting prices - ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return $this->error('Failed to get prices: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get latest prices for all products
+     */
+    public function market_prices_latest(Request $r)
+    {
+        try {
+            \Log::info('📈 Market Prices: Getting latest prices');
+
+            $products = \App\Models\MarketPriceProduct::where('status', 'Active')
+                ->with(['category', 'latestPrice'])
+                ->get()
+                ->filter(function ($product) {
+                    return $product->latestPrice != null;
+                })
+                ->map(function ($product) {
+                    $latestPrice = $product->latestPrice;
+                    return [
+                        'id' => $latestPrice->id,
+                        'product_id' => $product->id,
+                        'product_name' => $product->name,
+                        'product_photo' => $product->photo_url,
+                        'category_id' => $product->category_id,
+                        'category_name' => $product->category->name,
+                        'district_id' => $latestPrice->district_id,
+                        'district_name' => $latestPrice->district_name,
+                        'sub_county_id' => $latestPrice->sub_county_id,
+                        'sub_county_name' => $latestPrice->sub_county_name,
+                        'market_name' => $latestPrice->market_name,
+                        'price' => (float) $latestPrice->price,
+                        'price_min' => $latestPrice->price_min ? (float) $latestPrice->price_min : null,
+                        'price_max' => $latestPrice->price_max ? (float) $latestPrice->price_max : null,
+                        'currency' => $latestPrice->currency,
+                        'unit' => $latestPrice->unit ?? $product->unit,
+                        'date' => $latestPrice->date->format('Y-m-d'),
+                        'created_at' => $latestPrice->created_at,
+                    ];
+                })
+                ->values();
+
+            \Log::info('✅ Market Prices: Found ' . $products->count() . ' latest prices');
+            return $this->success('Latest prices retrieved successfully', $products, 200);
+        } catch (\Exception $e) {
+            \Log::error('❌ Market Prices: Error getting latest prices - ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return $this->error('Failed to get latest prices: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get price trend for a product (last 30 days)
+     */
+    public function market_price_trend(Request $r)
+    {
+        try {
+            if (!$r->product_id) {
+                return $this->error('Product ID is required', 400);
+            }
+
+            \Log::info('📊 Market Prices: Getting price trend', ['product_id' => $r->product_id]);
+
+            $days = $r->days ?? 30;
+            $startDate = now()->subDays($days)->format('Y-m-d');
+
+            $prices = \App\Models\MarketPrice::where('status', 'Active')
+                ->where('product_id', $r->product_id)
+                ->where('date', '>=', $startDate)
+                ->orderBy('date', 'asc')
+                ->get()
+                ->map(function ($price) {
+                    return [
+                        'id' => $price->id,
+                        'date' => $price->date->format('Y-m-d'),
+                        'price' => (float) $price->price,
+                        'price_min' => $price->price_min ? (float) $price->price_min : null,
+                        'price_max' => $price->price_max ? (float) $price->price_max : null,
+                        'currency' => $price->currency,
+                        'market_name' => $price->market_name,
+                        'district_name' => $price->district_name,
+                        'sub_county_name' => $price->sub_county_name,
+                    ];
+                });
+
+            \Log::info('✅ Market Prices: Found ' . $prices->count() . ' trend points');
+            return $this->success('Price trend retrieved successfully', $prices, 200);
+        } catch (\Exception $e) {
+            \Log::error('❌ Market Prices: Error getting price trend - ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return $this->error('Failed to get price trend: ' . $e->getMessage(), 500);
         }
     }
 }

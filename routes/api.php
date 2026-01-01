@@ -58,6 +58,7 @@ Route::get("locations", [ApiResurceController::class, "locations"]);
 Route::get("categories", [ApiResurceController::class, "categories"]);
 Route::get('products', [ApiResurceController::class, 'products']);
 Route::get('products-1', [ApiResurceController::class, 'products_1']);
+Route::post('products-update', [ApiResurceController::class, 'products_update']);
 Route::post('products-delete', [ApiResurceController::class, 'products_delete']);
 Route::post('images-delete', [ApiResurceController::class, 'images_delete']);
 Route::post('chat-start', [ApiResurceController::class, 'chat_start']);
@@ -189,6 +190,18 @@ Route::prefix('loan-transactions')->middleware(EnsureTokenIsValid::class)->group
     Route::post('/payment', [LoanTransactionController::class, 'createPayment']); // Record loan payment
     Route::post('/penalty', [LoanTransactionController::class, 'addPenalty']); // Add penalty
     Route::post('/waiver', [LoanTransactionController::class, 'addWaiver']); // Add waiver
+});
+
+// ========================================
+// USER LOANS API - View user's own loans
+// ========================================
+use App\Http\Controllers\Api\UserLoanController;
+
+Route::prefix('user-loans')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/', [UserLoanController::class, 'index']); // Get all loans for authenticated user
+    Route::get('/statistics', [UserLoanController::class, 'statistics']); // Get loan statistics
+    Route::get('/{id}', [UserLoanController::class, 'show']); // Get single loan details
+    Route::get('/{loanId}/transactions', [UserLoanController::class, 'transactions']); // Get loan transactions
 });
 
 // FFS Groups Management
@@ -489,58 +502,58 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
 
 // Public app configuration endpoint (no auth required)
 Route::get('/app-config', [ManifestController::class, 'getAppConfig']);
-    // Fix project shares endpoint (one-time use)
-    Route::post('/fix-project-shares', function() {
-        $updates = [
-            'Medicine Distribution Partnership' => 20,
-            'Farm-to-Profit Initiative' => 20,
-            'Property Wealth Builder' => 50000,
-            'Motorcycle Taxi Fleet' => 200,
-        ];
-        
-        $results = [];
-        DB::beginTransaction();
-        
-        try {
-            foreach ($updates as $title => $totalShares) {
-                $project = App\Models\Project::where('title', $title)->first();
+
+// Fix project shares endpoint (one-time use)
+Route::post('/fix-project-shares', function() {
+    $updates = [
+        'Medicine Distribution Partnership' => 20,
+        'Farm-to-Profit Initiative' => 20,
+        'Property Wealth Builder' => 50000,
+        'Motorcycle Taxi Fleet' => 200,
+    ];
+    
+    $results = [];
+    DB::beginTransaction();
+    
+    try {
+        foreach ($updates as $title => $totalShares) {
+            $project = App\Models\Project::where('title', $title)->first();
+            
+            if ($project) {
+                $oldShares = $project->total_shares;
+                $project->total_shares = $totalShares;
+                $project->save();
                 
-                if ($project) {
-                    $oldShares = $project->total_shares;
-                    $project->total_shares = $totalShares;
-                    $project->save();
-                    
-                    $results[] = [
-                        'title' => $project->title,
-                        'old_shares' => $oldShares,
-                        'new_shares' => $totalShares,
-                        'status' => 'updated'
-                    ];
-                } else {
-                    $results[] = [
-                        'title' => $title,
-                        'status' => 'not_found'
-                    ];
-                }
+                $results[] = [
+                    'title' => $project->title,
+                    'old_shares' => $oldShares,
+                    'new_shares' => $totalShares,
+                    'status' => 'updated'
+                ];
+            } else {
+                $results[] = [
+                    'title' => $title,
+                    'status' => 'not_found'
+                ];
             }
-            
-            DB::commit();
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Projects updated successfully',
-                'results' => $results,
-                'all_projects' => App\Models\Project::all(['id', 'title', 'status', 'total_shares', 'shares_sold'])
-            ]);
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
         }
-    });
+        
+        DB::commit();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Projects updated successfully',
+            'results' => $results,
+            'all_projects' => App\Models\Project::all(['id', 'title', 'status', 'total_shares', 'shares_sold'])
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
 });
 
 // ========================================
@@ -860,3 +873,11 @@ Route::prefix('farm-activities')->middleware(EnsureTokenIsValid::class)->group(f
     Route::post('/{id}/upload-photo', [\App\Http\Controllers\Api\FarmActivityController::class, 'uploadPhoto']);
 });
 
+// ========================================
+// MARKET PRICE ROUTES
+// ========================================
+Route::get('market-price-categories', [ApiResurceController::class, 'market_price_categories']);
+Route::get('market-price-products', [ApiResurceController::class, 'market_price_products']);
+Route::get('market-prices', [ApiResurceController::class, 'market_prices']);
+Route::get('market-prices-latest', [ApiResurceController::class, 'market_prices_latest']);
+Route::get('market-price-trend', [ApiResurceController::class, 'market_price_trend']);
