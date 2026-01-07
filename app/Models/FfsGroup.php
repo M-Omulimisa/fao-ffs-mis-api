@@ -17,10 +17,13 @@ class FfsGroup extends Model
         'type',
         'code',
         'registration_date',
+        'establishment_date',
         'district_id',
         'subcounty_id',
         'parish_id',
         'village',
+        'subcounty_text',
+        'parish_text',
         'meeting_venue',
         'meeting_day',
         'meeting_frequency',
@@ -31,7 +34,11 @@ class FfsGroup extends Model
         'female_members',
         'youth_members',
         'pwd_members',
+        'estimated_members',
         'facilitator_id',
+        'admin_id',
+        'secretary_id',
+        'treasurer_id',
         'contact_person_name',
         'contact_person_phone',
         'latitude',
@@ -50,6 +57,7 @@ class FfsGroup extends Model
 
     protected $casts = [
         'registration_date' => 'date',
+        'establishment_date' => 'date',
         'cycle_start_date' => 'date',
         'cycle_end_date' => 'date',
         'total_members' => 'integer',
@@ -57,6 +65,7 @@ class FfsGroup extends Model
         'female_members' => 'integer',
         'youth_members' => 'integer',
         'pwd_members' => 'integer',
+        'estimated_members' => 'integer',
         'cycle_number' => 'integer',
         'secondary_value_chains' => 'array',
         'latitude' => 'decimal:8',
@@ -152,6 +161,21 @@ class FfsGroup extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
+    }
+
+    public function secretary()
+    {
+        return $this->belongsTo(User::class, 'secretary_id');
+    }
+
+    public function treasurer()
+    {
+        return $this->belongsTo(User::class, 'treasurer_id');
     }
 
     // VSLA Relationships

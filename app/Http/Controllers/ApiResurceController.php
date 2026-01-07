@@ -593,6 +593,245 @@ class ApiResurceController extends Controller
         }
     }
 
+    /**
+     * Mobile App - Comprehensive User Profile Update
+     * Endpoint: POST /api/users/update-profile
+     * 
+     * Updates user profile with FFS-MIS specific fields
+     * Handles photo uploads, validation, and all profile data
+     */
+    public function users_update_profile(Request $request)
+    {
+        try {
+            // Get authenticated user ID
+            $userId = $request->user;
+            if (!$userId) {
+                return $this->error('Authentication required.');
+            }
+
+            // Find user
+            $user = User::find($userId);
+            if (!$user) {
+                return $this->error('User not found.');
+            }
+
+            \Log::info('Profile update request received', [
+                'user_id' => $userId,
+                'data' => $request->except(['photo', 'password'])
+            ]);
+
+            // ====================
+            // VALIDATION
+            // ====================
+            
+            // Required: First Name
+            $first_name = trim($request->first_name ?? '');
+            if (empty($first_name) || strlen($first_name) < 2) {
+                return $this->error('First name is required and must be at least 2 characters.');
+            }
+
+            // Required: Last Name
+            $last_name = trim($request->last_name ?? '');
+            if (empty($last_name) || strlen($last_name) < 2) {
+                return $this->error('Last name is required and must be at least 2 characters.');
+            }
+
+            // Required: Gender/Sex
+            $sex = $request->sex ?? '';
+            if (empty($sex) || !in_array($sex, ['Male', 'Female', 'male', 'female'])) {
+                return $this->error('Gender is required and must be Male or Female.');
+            }
+
+            // Required: Date of Birth
+            $dob = $request->dob ?? '';
+            if (empty($dob)) {
+                return $this->error('Date of birth is required.');
+            }
+
+            // Validate DOB format and age
+            try {
+                $dobDate = \Carbon\Carbon::parse($dob);
+                if ($dobDate->isFuture()) {
+                    return $this->error('Date of birth cannot be in the future.');
+                }
+                
+                $age = $dobDate->diffInYears(\Carbon\Carbon::now());
+                if ($age < 10) {
+                    return $this->error('You must be at least 10 years old to use this platform.');
+                }
+                
+                if ($age > 120) {
+                    return $this->error('Invalid date of birth.');
+                }
+            } catch (\Exception $e) {
+                return $this->error('Invalid date of birth format.');
+            }
+
+            // ====================
+            // UPDATE USER DATA
+            // ====================
+            
+            // Basic Information
+            $user->first_name = ucfirst($first_name);
+            $user->last_name = ucfirst($last_name);
+            $user->name = ucfirst($first_name) . ' ' . ucfirst($last_name);
+            $user->sex = ucfirst(strtolower($sex));
+            $user->dob = $dobDate->format('Y-m-d H:i:s');
+
+            // Optional: National ID Number (new field)
+            if ($request->has('national_id')) {
+                $user->national_id_number = trim($request->national_id);
+            }
+
+            // Location Information
+            if ($request->has('country')) {
+                $user->country = ucfirst(trim($request->country));
+            }
+
+            if ($request->has('district')) {
+                $district_name = trim($request->district);
+                $user->district_id = $this->getDistrictId($district_name);
+                // Store in legacy field if exists in your schema
+            }
+
+            if ($request->has('subcounty')) {
+                $subcounty_name = trim($request->subcounty);
+                $user->subcounty_id = $this->getSubcountyId($subcounty_name);
+            }
+
+            if ($request->has('parish')) {
+                $parish_name = trim($request->parish);
+                $user->parish_id = $this->getParishId($parish_name);
+            }
+
+            if ($request->has('village')) {
+                $user->village = ucfirst(trim($request->village));
+            }
+
+            if ($request->has('address')) {
+                $user->address = ucfirst(trim($request->address));
+            }
+
+            // Additional Information
+            if ($request->has('occupation')) {
+                $user->occupation = ucfirst(trim($request->occupation));
+            }
+
+            if ($request->has('marital_status')) {
+                $user->marital_status = ucfirst(trim($request->marital_status));
+            }
+
+            if ($request->has('education_level')) {
+                $user->education_level = trim($request->education_level);
+            }
+
+            if ($request->has('household_size')) {
+                $household_size = intval($request->household_size);
+                if ($household_size >= 0 && $household_size <= 100) {
+                    $user->household_size = $household_size;
+                }
+            }
+
+            // ====================
+            // HANDLE PHOTO UPLOAD
+            // ====================
+            if (!empty($_FILES)) {
+                try {
+                    $images = Utils::upload_images_2($_FILES, false);
+                    if (!empty($images)) {
+                        $imagePath = 'images/' . $images[0];
+                        $user->avatar = $imagePath;
+                        $user->profile_photo = $imagePath;
+                        
+                        \Log::info('Profile photo uploaded successfully', [
+                            'user_id' => $userId,
+                            'path' => $imagePath
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Photo upload failed', [
+                        'user_id' => $userId,
+                        'error' => $e->getMessage()
+                    ]);
+                    // Don't fail the entire update for photo upload issues
+                }
+            }
+
+            // ====================
+            // SAVE CHANGES
+            // ====================
+            $user->save();
+
+            // Reload user with fresh data
+            $user->refresh();
+
+            \Log::info('Profile updated successfully', [
+                'user_id' => $userId,
+                'name' => $user->name
+            ]);
+
+            // Return success with updated user data
+            return $this->success("Profile updated successfully!", $user, 200);
+
+        } catch (\Throwable $th) {
+            \Log::error('Profile update failed', [
+                'user_id' => $request->user ?? null,
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
+            ]);
+            
+            return $this->error('Failed to update profile: ' . $th->getMessage());
+        }
+    }
+
+    /**
+     * Helper: Get or create district ID by name
+     */
+    private function getDistrictId($districtName)
+    {
+        if (empty($districtName)) {
+            return null;
+        }
+
+        $location = Location::where('name', 'LIKE', '%' . $districtName . '%')
+            ->where('parent', 0)
+            ->first();
+
+        return $location ? $location->id : null;
+    }
+
+    /**
+     * Helper: Get or create subcounty ID by name
+     */
+    private function getSubcountyId($subcountyName)
+    {
+        if (empty($subcountyName)) {
+            return null;
+        }
+
+        $location = Location::where('name', 'LIKE', '%' . $subcountyName . '%')
+            ->where('parent', '>', 0)
+            ->first();
+
+        return $location ? $location->id : null;
+    }
+
+    /**
+     * Helper: Get or create parish ID by name
+     */
+    private function getParishId($parishName)
+    {
+        if (empty($parishName)) {
+            return null;
+        }
+
+        $location = Location::where('name', 'LIKE', '%' . $parishName . '%')
+            ->where('parent', '>', 0)
+            ->first();
+
+        return $location ? $location->id : null;
+    }
+
     public function delete_profile(Request $request)
     {
         $administrator_id = $request->user;
@@ -1878,11 +2117,69 @@ class ApiResurceController extends Controller
 
     public function locations(Request $r)
     {
-        $items = Location::all();
+        $items = Location::orderBy('name', 'ASC')->get();
         return $this->success(
+            "Successfully retrieved locations",
             $items,
-            $message = "Sussesfully",
-            1
+            200
+        );
+    }
+
+    public function locations_districts(Request $r)
+    {
+        $items = Location::get_districts();
+        return $this->success(
+            "Successfully retrieved districts",
+            $items,
+            200
+        );
+    }
+
+    public function locations_sub_counties(Request $r)
+    {
+        $items = Location::get_sub_counties();
+        return $this->success(
+            "Successfully retrieved sub-counties",
+            $items,
+            200
+        );
+    }
+
+    public function locations_sub_counties_by_district(Request $r, $district_id)
+    {
+        $items = Location::get_district_sub_counties($district_id);
+        return $this->success(
+            "Successfully retrieved sub-counties for district",
+            $items,
+            200
+        );
+    }
+
+    public function locations_parishes(Request $r, $sub_county_id)
+    {
+        $items = Location::get_parishes($sub_county_id);
+        return $this->success(
+            "Successfully retrieved parishes for sub-county",
+            $items,
+            200
+        );
+    }
+
+    public function location_details(Request $r, $id)
+    {
+        $location = Location::with('parent_location', 'children')->find($id);
+        
+        if (!$location) {
+            return $this->error('Location not found');
+        }
+
+        // Add full path
+        $location->full_hierarchy = $location->full_path;
+
+        return $this->success(
+            "Successfully retrieved location details",
+            $location,
+            200
         );
     }
 

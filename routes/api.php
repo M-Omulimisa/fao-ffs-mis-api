@@ -6,6 +6,7 @@ use App\Http\Controllers\PesapalController;
 use App\Http\Controllers\PesapalAdminController;
 use App\Http\Controllers\Api\PhoneVerificationController;
 use App\Http\Controllers\Api\UserRegistrationController;
+use App\Http\Controllers\Api\WeatherController;
 // InsuranceUserController removed - using ApiResurceController instead
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\DisbursementController;
@@ -35,6 +36,14 @@ Route::post("phone-verification/verify-otp", [PhoneVerificationController::class
 // USER REGISTRATION - Universal registration with role-based profiling
 Route::post("users/register", [UserRegistrationController::class, "register"]);
 
+// USER PROFILE ROUTES
+Route::post("users/update-profile", [ApiResurceController::class, 'users_update_profile'])->middleware(EnsureTokenIsValid::class);
+
+// ========================================
+// WEATHER ROUTES
+// ========================================
+Route::get('weather/forecast', [WeatherController::class, 'getForecast']);
+
 Route::post("account-verification", [ApiResurceController::class, 'account_verification']);
 Route::post("password-change", [ApiResurceController::class, 'password_change']);
 Route::post("update-profile", [ApiResurceController::class, 'update_profile'])->middleware(EnsureTokenIsValid::class);
@@ -55,6 +64,11 @@ Route::get("order", [ApiResurceController::class, "order"]);
 Route::get("vendors", [ApiResurceController::class, "vendors"]);
 Route::get("delivery-addresses", [ApiResurceController::class, "delivery_addresses"]);
 Route::get("locations", [ApiResurceController::class, "locations"]);
+Route::get("locations/districts", [ApiResurceController::class, "locations_districts"]);
+Route::get("locations/sub-counties", [ApiResurceController::class, "locations_sub_counties"]);
+Route::get("locations/sub-counties/{district_id}", [ApiResurceController::class, "locations_sub_counties_by_district"]);
+Route::get("locations/parishes/{sub_county_id}", [ApiResurceController::class, "locations_parishes"]);
+Route::get("locations/{id}", [ApiResurceController::class, "location_details"]);
 Route::get("categories", [ApiResurceController::class, "categories"]);
 Route::get('products', [ApiResurceController::class, 'products']);
 Route::get('products-1', [ApiResurceController::class, 'products_1']);
@@ -101,6 +115,35 @@ Route::prefix('vsla-onboarding')->group(function () {
         Route::get('/data/savings-cycle', [VslaOnboardingDataController::class, 'getSavingsCycleData']);
         Route::get('/data/all', [VslaOnboardingDataController::class, 'getAllOnboardingData']);
     });
+});
+
+// ========================================
+// VSLA CONFIGURATIONS ROUTES
+// ========================================
+use App\Http\Controllers\Api\VslaConfigurationController;
+use App\Http\Controllers\Api\VslaGroupManifestController;
+
+Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () {
+    // Group Basic Info
+    Route::get('groups/{group_id}', [VslaConfigurationController::class, 'getGroupInfo']);
+    Route::put('groups/{group_id}/basic-info', [VslaConfigurationController::class, 'updateGroupBasicInfo']);
+    
+    // Group Manifest - Offline Data Sync
+    Route::get('groups/{group_id}/manifest', [VslaGroupManifestController::class, 'getManifest']);
+    Route::get('groups/{group_id}/manifest/incremental', [VslaGroupManifestController::class, 'getIncrementalUpdates']);
+    
+    // Cycles Management (to be implemented in Phase 2)
+    // Route::get('cycles', [VslaConfigurationController::class, 'getCycles']);
+    // Route::get('cycles/{cycle_id}', [VslaConfigurationController::class, 'getCycleDetails']);
+    // Route::post('cycles', [VslaConfigurationController::class, 'createCycle']);
+    // Route::put('cycles/{cycle_id}', [VslaConfigurationController::class, 'updateCycle']);
+    // Route::post('cycles/{cycle_id}/close', [VslaConfigurationController::class, 'closeCycle']);
+    // Route::delete('cycles/{cycle_id}', [VslaConfigurationController::class, 'archiveCycle']);
+    // Route::get('cycles/active/{group_id}', [VslaConfigurationController::class, 'getActiveCycle']);
+    
+    // Shareouts (to be implemented in Phase 3)
+    // Route::get('shareouts', [VslaConfigurationController::class, 'getShareouts']);
+    // Route::get('shareouts/{shareout_id}', [VslaConfigurationController::class, 'getShareoutDetails']);
 });
 
 // ========================================
