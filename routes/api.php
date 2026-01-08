@@ -132,18 +132,28 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
     Route::get('groups/{group_id}/manifest', [VslaGroupManifestController::class, 'getManifest']);
     Route::get('groups/{group_id}/manifest/incremental', [VslaGroupManifestController::class, 'getIncrementalUpdates']);
     
-    // Cycles Management (to be implemented in Phase 2)
-    // Route::get('cycles', [VslaConfigurationController::class, 'getCycles']);
-    // Route::get('cycles/{cycle_id}', [VslaConfigurationController::class, 'getCycleDetails']);
-    // Route::post('cycles', [VslaConfigurationController::class, 'createCycle']);
-    // Route::put('cycles/{cycle_id}', [VslaConfigurationController::class, 'updateCycle']);
-    // Route::post('cycles/{cycle_id}/close', [VslaConfigurationController::class, 'closeCycle']);
-    // Route::delete('cycles/{cycle_id}', [VslaConfigurationController::class, 'archiveCycle']);
-    // Route::get('cycles/active/{group_id}', [VslaConfigurationController::class, 'getActiveCycle']);
+    // Cycles Management
+    Route::get('cycles', [VslaConfigurationController::class, 'getCycles']);
+    Route::put('cycles/{cycle_id}', [VslaConfigurationController::class, 'updateCycle']);
     
-    // Shareouts (to be implemented in Phase 3)
-    // Route::get('shareouts', [VslaConfigurationController::class, 'getShareouts']);
-    // Route::get('shareouts/{shareout_id}', [VslaConfigurationController::class, 'getShareoutDetails']);
+    // Shareouts - 6-Step Wizard Implementation
+    // Step 1: Get available cycles
+    Route::get('shareouts/available-cycles', [App\Http\Controllers\Api\VslaShareoutController::class, 'getAvailableCycles']);
+    // Step 2: Initiate shareout
+    Route::post('shareouts/initiate', [App\Http\Controllers\Api\VslaShareoutController::class, 'initiateShareout']);
+    // Step 3: Calculate distributions
+    Route::post('shareouts/{shareout_id}/calculate', [App\Http\Controllers\Api\VslaShareoutController::class, 'calculateDistributions']);
+    // Step 4: Get member distributions
+    Route::get('shareouts/{shareout_id}/distributions', [App\Http\Controllers\Api\VslaShareoutController::class, 'getMemberDistributions']);
+    // Step 5: Get summary statistics
+    Route::get('shareouts/{shareout_id}/summary', [App\Http\Controllers\Api\VslaShareoutController::class, 'getShareoutSummary']);
+    // Step 6: Approve and complete
+    Route::post('shareouts/{shareout_id}/approve', [App\Http\Controllers\Api\VslaShareoutController::class, 'approveShareout']);
+    Route::post('shareouts/{shareout_id}/complete', [App\Http\Controllers\Api\VslaShareoutController::class, 'completeShareout']);
+    // Additional endpoints
+    Route::get('shareouts/{shareout_id}', [App\Http\Controllers\Api\VslaShareoutController::class, 'getShareout']);
+    Route::post('shareouts/{shareout_id}/cancel', [App\Http\Controllers\Api\VslaShareoutController::class, 'cancelShareout']);
+    Route::get('shareouts/history', [App\Http\Controllers\Api\VslaShareoutController::class, 'getShareoutHistory']);
 });
 
 // ========================================
