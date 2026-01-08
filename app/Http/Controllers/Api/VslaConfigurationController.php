@@ -167,7 +167,7 @@ class VslaConfigurationController extends Controller
                 return $this->error('Validation failed', 422, $validator->errors());
             }
 
-            // Update allowed fields - only include fields that have actual values
+            // Update allowed fields - include all provided fields (validation already ensures correctness)
             $updateData = [];
             
             $allowedFields = [
@@ -184,19 +184,12 @@ class VslaConfigurationController extends Controller
             ];
 
             foreach ($allowedFields as $field) {
-                if ($request->has($field) && $request->input($field) !== null) {
-                    $value = $request->input($field);
-                    // Only add if not empty string for required fields, allow empty for description
-                    if ($field === 'description' || !empty($value)) {
-                        $updateData[$field] = $value;
-                    }
+                if ($request->has($field)) {
+                    $updateData[$field] = $request->input($field);
                 }
             }
 
-            if (empty($updateData)) {
-                return $this->error('No fields to update', 400);
-            }
-
+            // Update the group with all provided fields
             $group->update($updateData);
 
             return $this->success('Group information updated successfully', [

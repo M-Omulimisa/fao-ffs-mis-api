@@ -20687,3 +20687,88 @@ Did you mean one of these?
 [2026-01-07 21:34:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2026-01-07 21:34:12] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
 [2026-01-07 21:34:12] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 21:37:48] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:37:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:37:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:37:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:37:48] local.INFO: EnsureTokenIsValid - Response received: 400  
+[2026-01-07 21:54:39] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:54:39] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:54:39] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:54:39] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:54:39] local.INFO: EnsureTokenIsValid - Response received: 400  
+[2026-01-07 21:55:03] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:55:03] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:55:03] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:55:03] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:55:03] local.INFO: EnsureTokenIsValid - Response received: 400  
+[2026-01-07 21:56:27] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:56:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:56:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:56:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:56:27] local.INFO: EnsureTokenIsValid - Response received: 400  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:56:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 21:56:40] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:56:40] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:56:40] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:56:40] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:56:40] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 21:56:41] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:56:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:56:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:56:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:56:41] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 21:56:42] local.INFO: ========== PRODUCTS-1 ENDPOINT CALLED ==========  
+[2026-01-07 21:56:42] local.INFO: Request params:  
+[2026-01-07 21:56:42] local.INFO: Query executed, found products: {"count":21} 
+[2026-01-07 21:56:42] local.INFO: First 3 products: {"first":{"id":26,"name":"jgavshkas","user":1},"second":{"id":25,"name":"Some message","user":1},"third":{"id":21,"name":"ajbksakjsas","user":1}} 
+[2026-01-07 21:56:42] local.INFO: ========== PRODUCTS-1 RETURNING 21 PRODUCTS ==========  
+[2026-01-07 21:57:25] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:57:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:57:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:57:26] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:57:26] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 21:57:43] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:57:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:57:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:57:43] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:57:43] local.INFO: EnsureTokenIsValid - Response received: 400  
+[2026-01-07 21:57:58] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 21:57:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 21:57:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 21:57:58] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 21:57:58] local.INFO: EnsureTokenIsValid - Response received: 400  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 22:01:55] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 22:04:59] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 22:04:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 22:04:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 22:04:59] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 22:04:59] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 22:08:21] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 22:08:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 22:08:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 22:08:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 22:08:21] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-07 22:08:37] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-07 22:08:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-07 22:08:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-07 22:08:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-07 22:08:37] local.INFO: EnsureTokenIsValid - Response received: 200  
