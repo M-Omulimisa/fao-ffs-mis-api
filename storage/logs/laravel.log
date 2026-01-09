@@ -21000,3 +21000,28 @@ Did you mean one of these?
 [2026-01-09 05:59:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2026-01-09 05:59:18] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
 [2026-01-09 05:59:18] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-09 07:25:51] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-09 07:25:57] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-09 07:25:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-09 07:25:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-09 07:25:57] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-09 07:25:57] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-09 07:25:58] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-01-09 07:25:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-09 07:25:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-09 07:25:58] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-09 07:25:58] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-09 07:25:59] local.INFO: ========== PRODUCTS-1 ENDPOINT CALLED ==========  
+[2026-01-09 07:25:59] local.INFO: Request params:  
+[2026-01-09 07:25:59] local.INFO: Query executed, found products: {"count":21} 
+[2026-01-09 07:25:59] local.INFO: First 3 products: {"first":{"id":26,"name":"jgavshkas","user":1},"second":{"id":25,"name":"Some message","user":1},"third":{"id":21,"name":"ajbksakjsas","user":1}} 
+[2026-01-09 07:25:59] local.INFO: ========== PRODUCTS-1 RETURNING 21 PRODUCTS ==========  
