@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\InitiateShareoutRequest;
 use App\Models\VslaShareout;
 use App\Models\VslaShareoutDistribution;
 use App\Models\Project;
@@ -42,17 +43,21 @@ class VslaShareoutController extends Controller
     public function getAvailableCycles(Request $request)
     {
         try {
-            $user = auth('api')->user();
+            // Use auth()->user() (default guard) or $request->userModel set by EnsureTokenIsValid middleware
+            $user = auth()->user();
             
             if (!$user) {
                 return $this->error('Unauthorized', 401);
             }
             
+            // Get the user's group_id (check multiple possible field names)
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            
             // Get active cycles for user's group
             $cycles = Project::where('is_vsla_cycle', 'Yes')
                 ->where('is_active_cycle', 'Yes')
-                ->when($user->ffs_group_id, function ($query) use ($user) {
-                    return $query->where('group_id', $user->ffs_group_id);
+                ->when($userGroupId, function ($query) use ($userGroupId) {
+                    return $query->where('group_id', $userGroupId);
                 })
                 ->with('group')
                 ->get()
@@ -76,11 +81,9 @@ class VslaShareoutController extends Controller
                     ];
                 });
             
-            return $this->success($cycles, 'Available cycles retrieved successfully');
-            
+            return $this->success('Available cycles retrieved successfully', $cycles);            
         } catch (\Exception $e) {
-            return $this->error('Failed to retrieve cycles: ' . $e->getMessage(), 500);
-        }
+            return $this->error('Failed to retrieve cycles: ' . $e->getMessage(), 500);        }
     }
     
     /**
@@ -89,23 +92,16 @@ class VslaShareoutController extends Controller
      * POST /api/vsla/shareouts/initiate
      * Body: { cycle_id: 123 }
      */
-    public function initiateShareout(Request $request)
+    public function initiateShareout(InitiateShareoutRequest $request)
     {
         try {
-            $user = auth('api')->user();
+            $user = auth()->user();
             
             if (!$user) {
                 return $this->error('Unauthorized', 401);
             }
             
-            $validator = Validator::make($request->all(), [
-                'cycle_id' => 'required|exists:projects,id',
-            ]);
-            
-            if ($validator->fails()) {
-                return $this->error($validator->errors()->first(), 422);
-            }
-            
+            // Validation already handled by InitiateShareoutRequest
             $cycleId = $request->cycle_id;
             
             // Check if cycle is valid
@@ -160,7 +156,7 @@ class VslaShareoutController extends Controller
     public function calculateDistributions($shareoutId)
     {
         try {
-            $user = auth('api')->user();
+            $user = auth()->user();
             
             if (!$user) {
                 return $this->error('Unauthorized', 401);
@@ -172,8 +168,14 @@ class VslaShareoutController extends Controller
                 return $this->error('Shareout not found', 404);
             }
             
+            // Verify ownership - user must belong to the same group
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            if (!$userGroupId || $shareout->group_id != $userGroupId) {
+                return $this->error('Unauthorized: Shareout belongs to a different group', 403);
+            }
+            
             if (!$shareout->canRecalculate()) {
-                return $this->error('Shareout cannot be recalculated in current status', 400);
+                return $this->error('Shareout cannot be recalculated in current status: ' . $shareout->status, 400);
             }
             
             // Perform calculation
@@ -207,10 +209,22 @@ class VslaShareoutController extends Controller
     public function getMemberDistributions($shareoutId)
     {
         try {
+            $user = auth()->user();
+            
+            if (!$user) {
+                return $this->error('Unauthorized', 401);
+            }
+            
             $shareout = VslaShareout::with(['distributions.member'])->find($shareoutId);
             
             if (!$shareout) {
                 return $this->error('Shareout not found', 404);
+            }
+            
+            // Verify ownership - user must belong to the same group
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            if (!$userGroupId || $shareout->group_id != $userGroupId) {
+                return $this->error('Unauthorized: Shareout belongs to a different group', 403);
             }
             
             $distributions = $shareout->distributions->map(function ($dist) {
@@ -237,10 +251,22 @@ class VslaShareoutController extends Controller
     public function getShareoutSummary($shareoutId)
     {
         try {
+            $user = auth()->user();
+            
+            if (!$user) {
+                return $this->error('Unauthorized', 401);
+            }
+            
             $shareout = VslaShareout::with(['cycle', 'group', 'distributions'])->find($shareoutId);
             
             if (!$shareout) {
                 return $this->error('Shareout not found', 404);
+            }
+            
+            // Verify ownership - user must belong to the same group
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            if (!$userGroupId || $shareout->group_id != $userGroupId) {
+                return $this->error('Unauthorized: Shareout belongs to a different group', 403);
             }
             
             $summary = $shareout->getSummary();
@@ -283,7 +309,7 @@ class VslaShareoutController extends Controller
     public function approveShareout(Request $request, $shareoutId)
     {
         try {
-            $user = auth('api')->user();
+            $user = auth()->user();
             
             if (!$user) {
                 return $this->error('Unauthorized', 401);
@@ -295,8 +321,19 @@ class VslaShareoutController extends Controller
                 return $this->error('Shareout not found', 404);
             }
             
+            // Verify ownership - user must belong to the same group
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            if (!$userGroupId || $shareout->group_id != $userGroupId) {
+                return $this->error('Unauthorized: Shareout belongs to a different group', 403);
+            }
+            
             if (!$shareout->canApprove()) {
-                return $this->error('Shareout cannot be approved in current status', 400);
+                return $this->error('Shareout cannot be approved in current status: ' . $shareout->status, 400);
+            }
+            
+            // Verify distributions exist
+            if ($shareout->distributions()->count() === 0) {
+                return $this->error('Cannot approve: No distributions calculated yet', 400);
             }
             
             // Add optional notes
@@ -324,10 +361,22 @@ class VslaShareoutController extends Controller
     public function completeShareout($shareoutId)
     {
         try {
-            $user = auth('api')->user();
+            $user = auth()->user();
             
             if (!$user) {
                 return $this->error('Unauthorized', 401);
+            }
+            
+            $shareout = VslaShareout::find($shareoutId);
+            
+            if (!$shareout) {
+                return $this->error('Shareout not found', 404);
+            }
+            
+            // Verify ownership - user must belong to the same group
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            if (!$userGroupId || $shareout->group_id != $userGroupId) {
+                return $this->error('Unauthorized: Shareout belongs to a different group', 403);
             }
             
             $result = $this->calculationService->completeShareout($shareoutId, $user->id);
@@ -355,11 +404,23 @@ class VslaShareoutController extends Controller
     public function getShareout($shareoutId)
     {
         try {
+            $user = auth()->user();
+            
+            if (!$user) {
+                return $this->error('Unauthorized', 401);
+            }
+            
             $shareout = VslaShareout::with(['cycle', 'group', 'distributions.member'])
                 ->find($shareoutId);
             
             if (!$shareout) {
                 return $this->error('Shareout not found', 404);
+            }
+            
+            // Verify ownership - user must belong to the same group
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            if (!$userGroupId || $shareout->group_id != $userGroupId) {
+                return $this->error('Unauthorized: Shareout belongs to a different group', 403);
             }
             
             return $this->success([
@@ -380,14 +441,26 @@ class VslaShareoutController extends Controller
     public function cancelShareout($shareoutId)
     {
         try {
+            $user = auth()->user();
+            
+            if (!$user) {
+                return $this->error('Unauthorized', 401);
+            }
+            
             $shareout = VslaShareout::find($shareoutId);
             
             if (!$shareout) {
                 return $this->error('Shareout not found', 404);
             }
             
+            // Verify ownership - user must belong to the same group
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            if (!$userGroupId || $shareout->group_id != $userGroupId) {
+                return $this->error('Unauthorized: Shareout belongs to a different group', 403);
+            }
+            
             if (!$shareout->canCancel()) {
-                return $this->error('Shareout cannot be cancelled in current status', 400);
+                return $this->error('Shareout cannot be cancelled in current status: ' . $shareout->status, 400);
             }
             
             $shareout->markAsCancelled();
@@ -410,13 +483,16 @@ class VslaShareoutController extends Controller
     public function getShareoutHistory(Request $request)
     {
         try {
-            $user = auth('api')->user();
+            $user = auth()->user();
             
-            if (!$user || !$user->ffs_group_id) {
+            // Get the user's group_id (check multiple possible field names)
+            $userGroupId = $user->group_id ?? $user->ffs_group_id ?? null;
+            
+            if (!$user || !$userGroupId) {
                 return $this->error('User not associated with a group', 400);
             }
             
-            $shareouts = VslaShareout::where('group_id', $user->ffs_group_id)
+            $shareouts = VslaShareout::where('group_id', $userGroupId)
                 ->with(['cycle'])
                 ->orderBy('shareout_date', 'desc')
                 ->get()
@@ -424,7 +500,7 @@ class VslaShareoutController extends Controller
                     return $shareout->getSummary();
                 });
             
-            return $this->success($shareouts, 'Shareout history retrieved successfully');
+            return $this->success('Shareout history retrieved successfully', $shareouts);
             
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve history: ' . $e->getMessage(), 500);

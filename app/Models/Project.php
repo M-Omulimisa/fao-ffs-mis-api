@@ -26,6 +26,20 @@ class Project extends Model
         'total_expenses',
         'total_profits',
         'created_by_id',
+        // VSLA Cycle Fields
+        'is_vsla_cycle',
+        'group_id',
+        'cycle_name',
+        'cycle_start_date',
+        'cycle_end_date',
+        'share_value',
+        'meeting_frequency',
+        'loan_interest_rate_weekly',
+        'loan_interest_rate_monthly',
+        'loan_repayment_frequency',
+        'max_loan_amount',
+        'penalty_percentage',
+        'is_active',
     ];
 
     protected $casts = [

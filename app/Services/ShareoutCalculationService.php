@@ -119,8 +119,11 @@ class ShareoutCalculationService
                 'final_share_value' => $profitPerShare,
             ]);
             
-            // 7. Delete existing distributions and recalculate
-            $shareout->distributions()->delete();
+            // 7. Delete existing distributions before recalculating
+            // Use DB delete to ensure it runs immediately
+            DB::table('vsla_shareout_distributions')
+                ->where('shareout_id', $shareout->id)
+                ->delete();
             
             // 8. Calculate distribution for each member
             $totalActualPayout = 0;
@@ -381,11 +384,17 @@ class ShareoutCalculationService
                 ];
             }
             
-            if ($shareout->status !== 'approved') {
+            // Allow completion from calculated or approved status
+            if (!in_array($shareout->status, ['calculated', 'approved'])) {
                 return [
                     'success' => false,
-                    'message' => 'Shareout must be approved before completion',
+                    'message' => 'Shareout must be calculated or approved before completion',
                 ];
+            }
+            
+            // Auto-approve if still in calculated status
+            if ($shareout->status === 'calculated') {
+                $shareout->markAsApproved($userId);
             }
             
             // Mark all distributions as paid (in real scenario, this would be done individually)
@@ -400,7 +409,7 @@ class ShareoutCalculationService
             $cycle = $shareout->cycle;
             $cycle->update([
                 'is_active_cycle' => 'No',
-                'status' => 'Closed',
+                'status' => 'completed',
             ]);
             
             DB::commit();

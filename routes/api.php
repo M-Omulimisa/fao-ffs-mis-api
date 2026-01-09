@@ -134,9 +134,13 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
     
     // Cycles Management
     Route::get('cycles', [VslaConfigurationController::class, 'getCycles']);
+    Route::post('cycles', [VslaConfigurationController::class, 'createCycle']);
     Route::put('cycles/{cycle_id}', [VslaConfigurationController::class, 'updateCycle']);
+    Route::match(['put', 'patch'], 'cycles/{cycle_id}/status', [VslaConfigurationController::class, 'updateCycleStatus']);
     
     // Shareouts - 6-Step Wizard Implementation
+    // History endpoint (must be before {shareout_id} to avoid route conflict)
+    Route::get('shareouts/history', [App\Http\Controllers\Api\VslaShareoutController::class, 'getShareoutHistory']);
     // Step 1: Get available cycles
     Route::get('shareouts/available-cycles', [App\Http\Controllers\Api\VslaShareoutController::class, 'getAvailableCycles']);
     // Step 2: Initiate shareout
@@ -153,7 +157,6 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
     // Additional endpoints
     Route::get('shareouts/{shareout_id}', [App\Http\Controllers\Api\VslaShareoutController::class, 'getShareout']);
     Route::post('shareouts/{shareout_id}/cancel', [App\Http\Controllers\Api\VslaShareoutController::class, 'cancelShareout']);
-    Route::get('shareouts/history', [App\Http\Controllers\Api\VslaShareoutController::class, 'getShareoutHistory']);
 });
 
 // ========================================

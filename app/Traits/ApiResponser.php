@@ -7,20 +7,43 @@ trait ApiResponser
     /**
      * Return a success response
      * 
-     * @param string $message Success message
-     * @param array|null $data Response data
+     * @param string|array|null $dataOrMessage Response data or message
+     * @param string|array|null $messageOrData Success message or data
      * @param int $code HTTP status code
      * @return \Illuminate\Http\JsonResponse
      */
-    protected function success($message = "", $data = null, $code = 200)
+    protected function success($dataOrMessage = null, $messageOrData = null, $code = 200)
     {
+        $message = 'Success';
+        $data = null;
+        
+        // Handle flexible parameter order for backward compatibility
+        // Case 1: success($message, $data) - standard signature
+        if (is_string($dataOrMessage) && (is_array($messageOrData) || is_object($messageOrData) || $messageOrData === null)) {
+            $message = $dataOrMessage;
+            $data = $messageOrData;
+        }
+        // Case 2: success($data, $message) - reversed (current usage)
+        else if ((is_array($dataOrMessage) || is_object($dataOrMessage)) && (is_string($messageOrData) || $messageOrData === null)) {
+            $data = $dataOrMessage;
+            $message = $messageOrData ?? 'Success';
+        }
+        // Case 3: success($data) - only data provided
+        else if ($dataOrMessage !== null && $messageOrData === null) {
+            if (is_string($dataOrMessage)) {
+                $message = $dataOrMessage;
+            } else {
+                $data = $dataOrMessage;
+            }
+        }
+        
         $response = [
             'success' => true,
             'code' => 1,
             'status' => 1,
             'message' => $message,
         ];
-
+        
         if ($data !== null) {
             $response['data'] = $data;
         }
