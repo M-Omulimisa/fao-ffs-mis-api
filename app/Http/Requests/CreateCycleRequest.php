@@ -31,8 +31,11 @@ class CreateCycleRequest extends FormRequest
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after:start_date',
             
+            // Saving Type - determines if share_value is required
+            'saving_type' => ['required', Rule::in(['shares', 'any_amount'])],
+            
             // Financial Settings
-            'share_value' => 'required|numeric|min:100|max:1000000',
+            'share_value' => 'required_if:saving_type,shares|nullable|numeric|min:100|max:1000000',
             'meeting_frequency' => ['required', Rule::in(['Weekly', 'Bi-weekly', 'Monthly'])],
             
             // Loan Settings
@@ -63,7 +66,10 @@ class CreateCycleRequest extends FormRequest
             'end_date.date' => 'End date must be a valid date',
             'end_date.after' => 'End date must be after start date',
             
-            'share_value.required' => 'Share value is required',
+            'saving_type.required' => 'Saving type is required',
+            'saving_type.in' => 'Saving type must be either shares or any_amount',
+            
+            'share_value.required_if' => 'Share value is required when saving type is shares',
             'share_value.numeric' => 'Share value must be a number',
             'share_value.min' => 'Share value must be at least 100',
             'share_value.max' => 'Share value cannot exceed 1,000,000',

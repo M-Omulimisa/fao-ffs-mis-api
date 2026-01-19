@@ -122,6 +122,9 @@ class MemberController extends Controller
             if ($request->filled('occupation')) {
                 $member->occupation = $request->occupation;
             }
+            if ($request->filled('national_id_number')) {
+                $member->national_id_number = $request->national_id_number;
+            }
             if ($request->filled('emergency_contact_name')) {
                 $member->emergency_contact_name = $request->emergency_contact_name;
             }
@@ -173,6 +176,7 @@ class MemberController extends Controller
                     'education_level' => $member->education_level,
                     'marital_status' => $member->marital_status,
                     'occupation' => $member->occupation,
+                    'national_id_number' => $member->national_id_number,
                     'household_size' => $member->household_size,
                     'emergency_contact_name' => $member->emergency_contact_name,
                     'emergency_contact_phone' => $member->emergency_contact_phone,
@@ -325,6 +329,7 @@ class MemberController extends Controller
                 'education_level' => $member->education_level,
                 'marital_status' => $member->marital_status,
                 'occupation' => $member->occupation,
+                'national_id_number' => $member->national_id_number,
                 'household_size' => $member->household_size,
                 'balance' => floatval($member->balance ?? 0),
                 'loan_balance' => floatval($member->loan_balance ?? 0),

@@ -196,8 +196,11 @@ class VslaGroupManifestController extends Controller
      */
     private function getCurrentCycleInfo($group)
     {
+        // Get active cycle - must have is_active_cycle='Yes' AND status NOT completed/closed
         $cycle = Project::where('group_id', $group->id)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->orderBy('created_at', 'desc')
             ->first();
         
@@ -221,6 +224,7 @@ class VslaGroupManifestController extends Controller
             'start_date' => $cycle->start_date,
             'end_date' => $cycle->end_date,
             'status' => $cycle->status,
+            'saving_type' => $cycle->saving_type ?? 'shares',
             'weeks_elapsed' => $weeksElapsed,
             'weeks_remaining' => $weeksRemaining,
             'progress_percentage' => round($progressPercentage, 2),
@@ -312,7 +316,9 @@ class VslaGroupManifestController extends Controller
             ->get();
         
         $cycle = Project::where('group_id', $group->id)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         $membersList = [];
@@ -473,7 +479,9 @@ class VslaGroupManifestController extends Controller
     private function getRecentMeetings($group, $limit = 10)
     {
         $cycle = Project::where('group_id', $group->id)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         if (!$cycle) {
@@ -575,7 +583,9 @@ class VslaGroupManifestController extends Controller
     private function getActionPlans($group)
     {
         $cycle = Project::where('group_id', $group->id)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         if (!$cycle) {
@@ -665,7 +675,9 @@ class VslaGroupManifestController extends Controller
     private function getDashboardData($group)
     {
         $cycle = Project::where('group_id', $group->id)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         if (!$cycle) {
@@ -766,7 +778,9 @@ class VslaGroupManifestController extends Controller
     private function getReminders($group)
     {
         $cycle = Project::where('group_id', $group->id)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         if (!$cycle) {
@@ -857,7 +871,9 @@ class VslaGroupManifestController extends Controller
         
         $group = FfsGroup::find($groupId);
         $cycle = Project::where('group_id', $groupId)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         $updatedMembers = [];
@@ -879,7 +895,9 @@ class VslaGroupManifestController extends Controller
     private function getMeetingsSince($groupId, $sinceDate)
     {
         $cycle = Project::where('group_id', $groupId)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         if (!$cycle) {
@@ -913,7 +931,9 @@ class VslaGroupManifestController extends Controller
     private function getActionPlansSince($groupId, $sinceDate)
     {
         $cycle = Project::where('group_id', $groupId)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         if (!$cycle) {
@@ -945,7 +965,9 @@ class VslaGroupManifestController extends Controller
     private function getFinancialUpdatesSince($groupId, $sinceDate)
     {
         $cycle = Project::where('group_id', $groupId)
-            ->where('status', 'Active')
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
             ->first();
         
         if (!$cycle) {

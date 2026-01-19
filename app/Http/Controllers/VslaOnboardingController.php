@@ -112,6 +112,7 @@ class VslaOnboardingController extends Controller
                 'regex:/^(\+256|0)[7][0-9]{8}$/'
             ],
             'email' => 'nullable|email',
+            'national_id_number' => 'nullable|string|max:20',
             'password' => 'required|string|min:4|confirmed',
             'country' => 'nullable|string',
         ]);
@@ -175,6 +176,11 @@ class VslaOnboardingController extends Controller
             // Only update email if provided
             if ($request->filled('email')) {
                 $user->email = $request->email;
+            }
+            
+            // Only update national_id_number if provided
+            if ($request->filled('national_id_number')) {
+                $user->national_id_number = $request->national_id_number;
             }
             
             $user->password = Hash::make($request->password);
@@ -475,6 +481,7 @@ class VslaOnboardingController extends Controller
                 'regex:/^(\+256|0)[7][0-9]{8}$/'
             ],
             'secretary_email' => 'nullable|email',
+            'secretary_nin' => 'nullable|string|max:20',
             'treasurer_name' => 'required|string|min:3|max:255',
             'treasurer_phone' => [
                 'required',
@@ -483,6 +490,7 @@ class VslaOnboardingController extends Controller
                 'different:secretary_phone'
             ],
             'treasurer_email' => 'nullable|email',
+            'treasurer_nin' => 'nullable|string|max:20',
             'send_sms' => 'nullable|in:0,1,true,false',
         ]);
 
@@ -514,7 +522,8 @@ class VslaOnboardingController extends Controller
                 $secretaryPassword,
                 'Secretary',
                 $group,
-                $user
+                $user,
+                $request->secretary_nin
             );
 
             // Process Treasurer
@@ -526,7 +535,8 @@ class VslaOnboardingController extends Controller
                 $treasurerPassword,
                 'Treasurer',
                 $group,
-                $user
+                $user,
+                $request->treasurer_nin
             );
 
             // Update group with member IDs
@@ -634,7 +644,8 @@ class VslaOnboardingController extends Controller
             'cycle_name' => 'required|string|min:3|max:200',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            'share_value' => 'required|numeric|min:1000|max:100000',
+            'saving_type' => 'required|in:shares,any_amount',
+            'share_value' => 'required_if:saving_type,shares|nullable|numeric|min:1000|max:100000',
             'meeting_frequency' => 'required|in:Weekly,Bi-weekly,Monthly',
             'loan_interest_rate' => 'required|numeric|min:0|max:100',
             'interest_frequency' => 'required|in:Weekly,Monthly',
@@ -689,8 +700,17 @@ class VslaOnboardingController extends Controller
             
             // VSLA-specific fields
             $cycle->cycle_name = $request->cycle_name;
-            $cycle->share_value = $request->share_value;
-            $cycle->share_price = $request->share_value; // Keep consistency
+            $cycle->saving_type = $request->saving_type; // 'shares' or 'any_amount'
+            
+            // Only set share_value if saving_type is 'shares'
+            if ($request->saving_type === 'shares') {
+                $cycle->share_value = $request->share_value;
+                $cycle->share_price = $request->share_value; // Keep consistency
+            } else {
+                $cycle->share_value = null;
+                $cycle->share_price = null;
+            }
+            
             $cycle->meeting_frequency = $request->meeting_frequency;
             $cycle->loan_interest_rate = $request->loan_interest_rate;
             $cycle->interest_frequency = $request->interest_frequency;
@@ -939,7 +959,7 @@ class VslaOnboardingController extends Controller
     /**
      * Create or update a member (secretary or treasurer)
      */
-    private function createOrUpdateMember($name, $phone, $email, $password, $role, $group, $admin)
+    private function createOrUpdateMember($name, $phone, $email, $password, $role, $group, $admin, $nationalIdNumber = null)
     {
         // Prepare phone number
         if (substr($phone, 0, 1) === '0') {
@@ -957,6 +977,11 @@ class VslaOnboardingController extends Controller
             $member->first_name = $name;
             $member->email = $email ?? $member->email;
             $member->status = 'Active'; // Set as Active
+            
+            // Update national_id_number if provided
+            if (!empty($nationalIdNumber)) {
+                $member->national_id_number = $nationalIdNumber;
+            }
             
             // Update role
             if ($role === 'Secretary') {
@@ -980,6 +1005,11 @@ class VslaOnboardingController extends Controller
             $member->user_type = 'Customer';
             $member->status = 'Active';
             $member->country = 'Uganda';
+            
+            // Set national_id_number if provided
+            if (!empty($nationalIdNumber)) {
+                $member->national_id_number = $nationalIdNumber;
+            }
             
             // Set role
             if ($role === 'Secretary') {

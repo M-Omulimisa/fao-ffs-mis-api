@@ -137,6 +137,7 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
     Route::post('cycles', [VslaConfigurationController::class, 'createCycle']);
     Route::put('cycles/{cycle_id}', [VslaConfigurationController::class, 'updateCycle']);
     Route::match(['put', 'patch'], 'cycles/{cycle_id}/status', [VslaConfigurationController::class, 'updateCycleStatus']);
+    Route::post('cycles/auto-activate', [VslaConfigurationController::class, 'autoActivateCycle']);
     
     // Shareouts - 6-Step Wizard Implementation
     // History endpoint (must be before {shareout_id} to avoid route conflict)

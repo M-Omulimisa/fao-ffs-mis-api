@@ -252,10 +252,19 @@ class VslaConfigurationController extends Controller
                         ? min(100, ($elapsedDays / $totalDays) * 100) 
                         : 0;
                     
-                    // Determine status
-                    $status = 'Upcoming';
-                    if ($now->greaterThanOrEqualTo($startDate)) {
-                        $status = $now->lessThanOrEqualTo($endDate) ? 'Active' : 'Completed';
+                    // Use stored status value, don't override it
+                    // If cycle is manually closed, respect that
+                    $status = $cycle->status ?: 'ongoing';
+                    
+                    // Only calculate status if it's not manually set or is still ongoing
+                    if (empty($cycle->status) || in_array(strtolower($cycle->status), ['ongoing', 'active'])) {
+                        if ($now->lessThan($startDate)) {
+                            $status = 'Upcoming';
+                        } elseif ($now->lessThanOrEqualTo($endDate)) {
+                            $status = 'Active';
+                        } else {
+                            $status = 'Completed';
+                        }
                     }
                     
                     return [
@@ -263,12 +272,15 @@ class VslaConfigurationController extends Controller
                         'cycle_name' => $cycle->cycle_name,
                         'start_date' => $cycle->start_date,
                         'end_date' => $cycle->end_date,
-                        'status' => $status,
+                        'status' => ucfirst($status),
                         'is_active_cycle' => $cycle->is_active_cycle === 'Yes',
                         'progress_percentage' => round($progressPercentage, 1),
                         
+                        // Saving Type
+                        'saving_type' => $cycle->saving_type ?? 'shares',
+                        
                         // Financial Settings
-                        'share_value' => (float) $cycle->share_value,
+                        'share_value' => $cycle->share_value ? (float) $cycle->share_value : null,
                         'meeting_frequency' => $cycle->meeting_frequency,
                         
                         // Loan Settings
@@ -286,12 +298,18 @@ class VslaConfigurationController extends Controller
                     ];
                 });
 
+            // Find truly active cycle: is_active_cycle=true AND status is not 'completed'
+            $activeCycle = $cycles->first(function($cycle) {
+                return $cycle['is_active_cycle'] === true && 
+                       strtolower($cycle['status']) !== 'completed';
+            });
+
             return $this->success('Cycles retrieved successfully', [
                 'group_id' => $group->id,
                 'group_name' => $group->name,
                 'cycles' => $cycles,
                 'total_cycles' => $cycles->count(),
-                'active_cycle' => $cycles->firstWhere('is_active_cycle', true),
+                'active_cycle' => $activeCycle,
             ]);
 
         } catch (\Exception $e) {
@@ -344,9 +362,14 @@ class VslaConfigurationController extends Controller
             
             // Validation already handled by CreateCycleRequest
             // Double-check no active cycle exists (race condition prevention)
+            // A cycle is truly active if: is_active_cycle='Yes' AND status is not 'completed'
             $activeCycle = Project::where('is_vsla_cycle', 'Yes')
                 ->where('group_id', $userGroupId)
                 ->where('is_active_cycle', 'Yes')
+                ->where(function($query) {
+                    $query->whereNull('status')
+                        ->orWhere('status', '!=', 'completed');
+                })
                 ->lockForUpdate()
                 ->first();
             
@@ -367,10 +390,15 @@ class VslaConfigurationController extends Controller
             $weeklyRate = $request->interest_frequency === 'Weekly' ? $loanInterestRate : ($loanInterestRate / 4);
             $monthlyRate = $request->interest_frequency === 'Monthly' ? $loanInterestRate : ($loanInterestRate * 4);
             
+            // Determine saving type and share value
+            $savingType = $request->saving_type ?? 'shares';
+            $shareValue = ($savingType === 'shares') ? $request->share_value : null;
+            
             // Create the new cycle
             $cycle = Project::create([
                 // VSLA Identification
                 'is_vsla_cycle' => 'Yes',
+                'saving_type' => $savingType,
                 'group_id' => $userGroupId,
                 'cycle_name' => $request->cycle_name,
                 
@@ -379,12 +407,12 @@ class VslaConfigurationController extends Controller
                 'end_date' => $request->end_date,
                 
                 // Status
-                'status' => 'Active',
+                'status' => 'ongoing',
                 'is_active_cycle' => 'Yes',
                 
                 // Financial Settings
-                'share_value' => $request->share_value,
-                'share_price' => $request->share_value, // For compatibility
+                'share_value' => $shareValue,
+                'share_price' => $shareValue, // For compatibility
                 'meeting_frequency' => $request->meeting_frequency,
                 
                 // Loan Settings
@@ -422,8 +450,11 @@ class VslaConfigurationController extends Controller
                     'status' => 'Active',
                     'is_active_cycle' => true,
                     
+                    // Saving Type
+                    'saving_type' => $cycle->saving_type ?? 'shares',
+                    
                     // Financial Settings
-                    'share_value' => (float) $cycle->share_value,
+                    'share_value' => $cycle->share_value ? (float) $cycle->share_value : null,
                     'meeting_frequency' => $cycle->meeting_frequency,
                     
                     // Loan Settings
@@ -487,6 +518,7 @@ class VslaConfigurationController extends Controller
                 'cycle_name' => 'nullable|string|min:3|max:200',
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date|after:start_date',
+                'saving_type' => 'nullable|in:shares,any_amount',
                 'share_value' => 'nullable|numeric|min:0',
                 'meeting_frequency' => 'nullable|in:Weekly,Bi-weekly,Monthly',
                 'loan_interest_rate' => 'nullable|numeric|min:0|max:100',
@@ -509,6 +541,7 @@ class VslaConfigurationController extends Controller
                 'cycle_name',
                 'start_date',
                 'end_date',
+                'saving_type',
                 'share_value',
                 'meeting_frequency',
                 'loan_interest_rate',
@@ -524,6 +557,12 @@ class VslaConfigurationController extends Controller
                 if ($request->has($field)) {
                     $updateData[$field] = $request->input($field);
                 }
+            }
+            
+            // If saving_type changed to any_amount, clear share_value
+            if (isset($updateData['saving_type']) && $updateData['saving_type'] === 'any_amount') {
+                $updateData['share_value'] = null;
+                $updateData['share_price'] = null;
             }
 
             // Update the cycle
@@ -576,16 +615,23 @@ class VslaConfigurationController extends Controller
                 return $this->error('Only group chairperson can change cycle status', 403);
             }
 
-            // Validate request
-            $validator = Validator::make($request->all(), [
-                'is_active_cycle' => 'required|in:Yes,No',
-            ]);
-
-            if ($validator->fails()) {
-                return $this->error('Validation failed', 422, $validator->errors());
+            // Simple logic: Accept either 'is_active_cycle' or 'status' field
+            // If neither provided, toggle current status
+            $newStatus = $request->input('is_active_cycle') 
+                ?? $request->input('status');
+            
+            // If no status provided, auto-toggle based on current status
+            if (!$newStatus) {
+                $newStatus = ($cycle->is_active_cycle === 'Yes') ? 'No' : 'Yes';
+            }
+            
+            // Normalize status values
+            if (in_array(strtolower($newStatus), ['active', 'yes', '1', 'true', 'ongoing'])) {
+                $newStatus = 'Yes';
+            } elseif (in_array(strtolower($newStatus), ['inactive', 'no', '0', 'false', 'completed', 'closed'])) {
+                $newStatus = 'No';
             }
 
-            $newStatus = $request->input('is_active_cycle');
             $currentStatus = $cycle->is_active_cycle;
 
             // If trying to activate this cycle
@@ -616,8 +662,10 @@ class VslaConfigurationController extends Controller
                 ]);
             }
 
-            // If trying to deactivate this cycle
+            // If trying to deactivate/close this cycle
             if ($newStatus === 'No' && $currentStatus === 'Yes') {
+                // When closing a cycle, ALWAYS set both fields
+                // A completed cycle CANNOT be active - they are mutually exclusive
                 $cycle->update([
                     'is_active_cycle' => 'No',
                     'status' => 'completed',
@@ -636,6 +684,111 @@ class VslaConfigurationController extends Controller
 
         } catch (\Exception $e) {
             return $this->error('Failed to update cycle status: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Auto-activate a cycle if no active cycle exists
+     * 
+     * Activates the most recent non-completed cycle for the user's group
+     * Used when app detects no active cycle and needs to auto-activate one
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function autoActivateCycle(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $groupId = $request->input('vsla_group_id');
+            
+            // Get user's group - either from request or user's membership
+            if ($groupId) {
+                $group = FfsGroup::find($groupId);
+                
+                // Verify user has access to this group
+                if (!$group || 
+                    ($group->admin_id != $user->id && 
+                     $group->secretary_id != $user->id && 
+                     $group->treasurer_id != $user->id)) {
+                    return $this->error('User does not have access to this group', 403);
+                }
+            } else {
+                $group = FfsGroup::where('admin_id', $user->id)
+                    ->orWhere('secretary_id', $user->id)
+                    ->orWhere('treasurer_id', $user->id)
+                    ->first();
+            }
+
+            if (!$group) {
+                return $this->error('User is not part of any VSLA group', 404);
+            }
+
+            // Check if there's already an active cycle
+            $activeCycle = Project::where('group_id', $group->id)
+                ->where('is_vsla_cycle', 'Yes')
+                ->where('is_active_cycle', 'Yes')
+                ->whereNotIn('status', ['completed', 'closed'])
+                ->first();
+
+            if ($activeCycle) {
+                return $this->success('Active cycle already exists', [
+                    'cycle' => [
+                        'id' => $activeCycle->id,
+                        'cycle_name' => $activeCycle->cycle_name,
+                        'status' => $activeCycle->status ?: 'ongoing',
+                        'is_active_cycle' => true,
+                    ]
+                ]);
+            }
+
+            // Find the most recent cycle that is not completed
+            $cycleToActivate = Project::where('group_id', $group->id)
+                ->where('is_vsla_cycle', 'Yes')
+                ->whereNotIn('status', ['completed', 'closed'])
+                ->orderBy('start_date', 'desc')
+                ->first();
+
+            // If no suitable cycle found, try to find any cycle (including completed ones)
+            if (!$cycleToActivate) {
+                $cycleToActivate = Project::where('group_id', $group->id)
+                    ->where('is_vsla_cycle', 'Yes')
+                    ->orderBy('start_date', 'desc')
+                    ->first();
+            }
+
+            if (!$cycleToActivate) {
+                return $this->error('No cycles found for this group. Please create a cycle first.', 404);
+            }
+
+            // Activate the cycle
+            // Status logic: 
+            // - If cycle is completed/closed, set to 'ongoing' to reopen it
+            // - Otherwise keep current status or default to 'ongoing'
+            $newStatus = in_array($cycleToActivate->status, ['completed', 'closed']) 
+                ? 'ongoing' 
+                : ($cycleToActivate->status ?: 'ongoing');
+
+            $cycleToActivate->update([
+                'is_active_cycle' => 'Yes',
+                'status' => $newStatus,
+            ]);
+
+            return $this->success('Cycle activated automatically', [
+                'cycle' => [
+                    'id' => $cycleToActivate->id,
+                    'cycle_name' => $cycleToActivate->cycle_name,
+                    'start_date' => $cycleToActivate->start_date,
+                    'end_date' => $cycleToActivate->end_date,
+                    'status' => $newStatus,
+                    'is_active_cycle' => true,
+                    'saving_type' => $cycleToActivate->saving_type ?? 'shares',
+                ],
+                'message' => 'The most recent cycle has been activated for your group'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->error('Failed to auto-activate cycle: ' . $e->getMessage(), 500);
         }
     }
 }
