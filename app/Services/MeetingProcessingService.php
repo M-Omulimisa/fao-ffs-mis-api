@@ -14,6 +14,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Exception;
 
 /**
@@ -45,8 +46,7 @@ class MeetingProcessingService
             // Mark as processing
             $meeting->markAsProcessing();
 
-            // Start database transaction
-            DB::beginTransaction();
+            // Note: Transaction is managed by the controller, not here
 
             // Step 1: Validate meeting
             $validationResult = $this->validateMeeting($meeting);
@@ -56,8 +56,6 @@ class MeetingProcessingService
                 
                 // If critical errors, stop processing
                 if (!empty($validationResult['errors'])) {
-                    DB::rollBack();
-                    $meeting->markAsFailed($errors);
                     return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
                 }
             }
@@ -97,19 +95,16 @@ class MeetingProcessingService
             }
             $warnings = array_merge($warnings, $actionPlansResult['warnings']);
 
-            // If any critical errors occurred, rollback
+            // If any critical errors occurred, return error status
+            // The controller will handle the rollback
             if (!empty($errors)) {
-                DB::rollBack();
-                $meeting->markAsFailed($errors);
                 return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
             }
 
-            // Commit transaction
-            DB::commit();
-
-            // Mark as completed or needs review
+            // Mark as completed or needs review (controller will commit)
             if (!empty($warnings)) {
-                $meeting->markAsNeedsReview($warnings);
+                // Mark as completed even with warnings (processing_status enum doesn't have 'needs_review')
+                $meeting->markAsCompletedWithWarnings($warnings);
             } else {
                 $meeting->markAsCompleted();
             }
@@ -118,7 +113,7 @@ class MeetingProcessingService
 
         } catch (Exception $e) {
             DB::rollBack();
-            
+            // Let the exception bubble up to the controller to handle rollback
             $error = [
                 'type' => 'exception',
                 'message' => 'Processing failed: ' . $e->getMessage(),
@@ -130,8 +125,7 @@ class MeetingProcessingService
                 'error' => $error
             ]);
 
-            $meeting->markAsFailed([$error]);
-            
+            // Don't try to update meeting - let controller handle it
             return ['success' => false, 'errors' => [$error], 'warnings' => $warnings];
         }
     }
@@ -369,15 +363,9 @@ class MeetingProcessingService
 
         try {
             // Map account type to transaction source (for backward compatibility)
-            $sourceMap = [
-                'savings' => 'meeting_savings',
-                'welfare' => 'meeting_welfare',
-                'social_fund' => 'meeting_social_fund',
-                'fine' => 'meeting_fine',
-                'fines' => 'meeting_fine',
-            ];
-            
-            $source = $sourceMap[strtolower($accountType)] ?? 'meeting_savings';
+            // Valid source values: 'deposit', 'withdrawal', 'disbursement'
+            // Use 'deposit' for all member contributions to the group
+            $source = 'deposit';
 
             // 1. MEMBER DEBIT: Member pays money (negative amount)
             $memberTransaction = AccountTransaction::create([
@@ -397,7 +385,7 @@ class MeetingProcessingService
 
             // 2. GROUP CREDIT: Group receives money (positive amount)
             $groupTransaction = AccountTransaction::create([
-                'user_id' => null, // Group transactions have no user_id
+                'user_id' => $meeting->created_by_id, // Use creator's ID for group transactions
                 'owner_type' => 'group',
                 'group_id' => $meeting->group_id,
                 'meeting_id' => $meeting->id,
@@ -488,13 +476,13 @@ class MeetingProcessingService
                 // DOUBLE-ENTRY ACCOUNTING:
                 // Transaction 1: Group receives money (credit to group)
                 $groupTransaction = AccountTransaction::create([
-                    'user_id' => null, // Group transaction
+                    'user_id' => $meeting->created_by_id, // Use creator's ID for group transactions
                     'owner_type' => 'group',
                     'group_id' => $meeting->group_id,
                     'meeting_id' => $meeting->id,
                     'cycle_id' => $meeting->cycle_id,
                     'account_type' => 'share',
-                    'source' => 'share_purchase',
+                    'source' => 'deposit',
                     'amount' => $totalAmount, // Positive = credit (money in)
                     'transaction_date' => $meeting->meeting_date,
                     'description' => "Group received share payment from {$memberName}",
@@ -510,7 +498,7 @@ class MeetingProcessingService
                     'meeting_id' => $meeting->id,
                     'cycle_id' => $meeting->cycle_id,
                     'account_type' => 'share',
-                    'source' => 'share_purchase',
+                    'source' => 'deposit',
                     'amount' => $totalAmount, // Positive = member's contribution
                     'transaction_date' => $meeting->meeting_date,
                     'description' => "{$memberName} purchased {$numberOfShares} shares @ UGX " . number_format($sharePriceAtPurchase, 2),
@@ -711,13 +699,13 @@ class MeetingProcessingService
             // ACCOUNT TRANSACTIONS (group/member cash flow - double-entry):
             // AccountTransaction 1: Group loses money (debit to group)
             $groupTransaction = AccountTransaction::create([
-                'user_id' => null, // Group transaction
+                'user_id' => $meeting->created_by_id, // Use creator's ID for group transactions
                 'owner_type' => 'group',
                 'group_id' => $meeting->group_id,
                 'meeting_id' => $meeting->id,
                 'cycle_id' => $meeting->cycle_id,
                 'account_type' => 'loan',
-                'source' => 'loan_disbursement',
+                'source' => 'disbursement',
                 'amount' => -$amount, // Negative = debit (money out)
                 'transaction_date' => $meeting->meeting_date,
                 'description' => "Group disbursed loan to {$member->name}" . 
@@ -735,7 +723,7 @@ class MeetingProcessingService
                 'meeting_id' => $meeting->id,
                 'cycle_id' => $meeting->cycle_id,
                 'account_type' => 'loan',
-                'source' => 'loan_disbursement',
+                'source' => 'disbursement',
                 'amount' => -$amount, // Negative = member owes this money
                 'transaction_date' => $meeting->meeting_date,
                 'description' => "{$member->name} received loan of UGX " . 
@@ -807,34 +795,92 @@ class MeetingProcessingService
                     continue;
                 }
 
-                // Update status
-                $status = $planData['completionStatus'] ?? $plan->status;
-                $notes = $planData['completionNotes'] ?? null;
+                // Update status based on completion
+                $status = $planData['completionStatus'] ?? $planData['status'] ?? $plan->status;
+                $notes = $planData['completionNotes'] ?? $planData['completion_notes'] ?? null;
                 
-                $plan->updateStatus($status, $notes);
+                // Update the plan
+                if ($status === 'completed') {
+                    $plan->complete($notes);
+                } else {
+                    $plan->update([
+                        'status' => $status,
+                        'completion_notes' => $notes
+                    ]);
+                }
             }
 
             // Create new action plans
             $upcomingPlans = $meeting->upcoming_action_plans_data ?? [];
             
             foreach ($upcomingPlans as $planData) {
-                VslaActionPlan::create([
-                    'local_id' => $planData['planId'] ?? null,
-                    'meeting_id' => $meeting->id,
-                    'cycle_id' => $meeting->cycle_id,
-                    'action' => $planData['action'] ?? '',
-                    'description' => $planData['description'] ?? null,
-                    'assigned_to_member_id' => $planData['assignedToMemberId'] ?? null,
-                    'priority' => $planData['priority'] ?? 'medium',
-                    'due_date' => $planData['dueDate'] ?? null,
-                    'status' => 'pending',
-                    'created_by_id' => $meeting->created_by_id
-                ]);
+                try {
+                    // Support both mobile app format and old format
+                    // Mobile: responsible_member_id, description (as action), notes (as description), due_date
+                    // Old: assignedToMemberId, action, description, dueDate
+                    $action = $planData['action'] ?? $planData['description'] ?? '';
+                    $description = $planData['description'] ?? $planData['notes'] ?? null;
+                    $assignedTo = $planData['assignedToMemberId'] ?? $planData['assigned_to_member_id'] ?? $planData['responsible_member_id'] ?? null;
+                    $dueDate = $planData['dueDate'] ?? $planData['due_date'] ?? null;
+                    $localId = $planData['planId'] ?? $planData['local_id'] ?? null;
+                    
+                    VslaActionPlan::create([
+                        'local_id' => $localId,
+                        'meeting_id' => $meeting->id,
+                        'cycle_id' => $meeting->cycle_id,
+                        'action' => $action,
+                        'description' => $description,
+                        'assigned_to_member_id' => $assignedTo,
+                        'priority' => $planData['priority'] ?? 'medium',
+                        'due_date' => $dueDate,
+                        'status' => 'pending',
+                        'created_by_id' => $meeting->created_by_id
+                    ]);
+                } catch (\Exception $planError) {
+                    // If individual plan creation fails, log warning but continue
+                    $warnings[] = [
+                        'type' => 'action_plan_creation_failed',
+                        'message' => 'Failed to create action plan: ' . $planError->getMessage(),
+                        'suggestion' => 'This action plan was skipped'
+                    ];
+                    continue;
+                }
             }
 
             return ['success' => true, 'errors' => $errors, 'warnings' => $warnings];
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Model not found - shouldn't happen but handle gracefully
+            $warnings[] = [
+                'type' => 'action_plans_unavailable',
+                'message' => 'Action plans feature not yet available',
+                'suggestion' => 'Model or table not found: ' . $e->getMessage()
+            ];
+            return ['success' => true, 'errors' => [], 'warnings' => $warnings];
+            
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if this is a table-not-found error (SQL error code 42S02)
+            if ($e->getCode() === '42S02' || 
+                strpos($e->getMessage(), "Base table or view not found") !== false || 
+                strpos($e->getMessage(), "doesn't exist") !== false) {
+                // Non-critical: Action plans feature not available yet
+                $warnings[] = [
+                    'type' => 'action_plans_unavailable',
+                    'message' => 'Action plans feature not yet available',
+                    'suggestion' => 'Action plans table will be created when this feature is set up'
+                ];
+                return ['success' => true, 'errors' => [], 'warnings' => $warnings];
+            }
+            
+            // Other database errors
+            $errors[] = [
+                'type' => 'action_plan_database_error',
+                'message' => 'Database error processing action plans: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+            
         } catch (Exception $e) {
+            // Other general errors
             $errors[] = [
                 'type' => 'action_plan_processing_error',
                 'message' => 'Failed to process action plans: ' . $e->getMessage()

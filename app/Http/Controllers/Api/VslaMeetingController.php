@@ -165,6 +165,21 @@ class VslaMeetingController extends Controller
             // Process meeting immediately
             $processingResult = $this->meetingProcessor->processMeeting($meeting);
 
+            // Check if processing succeeded
+            if (!$processingResult['success']) {
+                // Processing failed - rollback and return meeting with error status
+                DB::rollBack();
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meeting submission failed due to processing errors',
+                    'code' => 422,
+                    'errors' => $processingResult['errors'] ?? [],
+                    'warnings' => $processingResult['warnings'] ?? [],
+                ], 422);
+            }
+
+            // Processing succeeded - commit
             DB::commit();
 
             // Reload meeting to get updated status

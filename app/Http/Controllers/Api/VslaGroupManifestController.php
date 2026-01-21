@@ -240,27 +240,27 @@ class VslaGroupManifestController extends Controller
     private function getCycleFinancialSummary($cycle)
     {
         // Get all transactions for this cycle
-        $transactions = AccountTransaction::where('project_id', $cycle->id)->get();
+        $transactions = AccountTransaction::where('cycle_id', $cycle->id)->get();
         
         // Share-related calculations
         $sharePrice = $cycle->share_price ?? 5000;
         $maxSharesPerMember = $cycle->max_shares_per_member ?? 10;
-        $totalSharesSold = $transactions->where('type', 'SHARE')->sum('amount') / $sharePrice;
+        $totalSharesSold = $transactions->where('account_type', 'SHARE')->sum('amount') / $sharePrice;
         $totalShareValue = $totalSharesSold * $sharePrice;
         
         // Savings calculations
-        $totalSavings = $transactions->whereIn('type', ['DEPOSIT', 'SAVING'])->sum('amount');
+        $totalSavings = $transactions->whereIn('account_type', ['DEPOSIT', 'SAVING'])->sum('amount');
         
         // Loans calculations
-        $totalLoansGiven = VslaLoan::where('project_id', $cycle->id)->sum('amount');
-        $totalLoansRepaid = $transactions->where('type', 'LOAN_REPAYMENT')->sum('amount');
-        $outstandingLoans = VslaLoan::where('project_id', $cycle->id)
+        $totalLoansGiven = VslaLoan::where('cycle_id', $cycle->id)->sum('loan_amount');
+        $totalLoansRepaid = $transactions->where('account_type', 'LOAN_REPAYMENT')->sum('amount');
+        $outstandingLoans = VslaLoan::where('cycle_id', $cycle->id)
             ->where('status', '!=', 'Paid')
             ->sum('balance');
         
         // Other funds
-        $totalFinesCollected = $transactions->where('type', 'FINE')->sum('amount');
-        $welfareFund = $transactions->where('type', 'WELFARE')->sum('amount');
+        $totalFinesCollected = $transactions->where('account_type', 'FINE')->sum('amount');
+        $welfareFund = $transactions->where('account_type', 'WELFARE')->sum('amount');
         
         // Calculate group cash balance
         $totalIncome = $totalSavings + $totalLoansRepaid + $totalFinesCollected + $welfareFund;
@@ -292,11 +292,11 @@ class VslaGroupManifestController extends Controller
         $targetSavings = $cycle->target_savings ?? 2000000;
         $targetLoans = $cycle->target_loans ?? 1000000;
         
-        $actualSavings = AccountTransaction::where('project_id', $cycle->id)
-            ->whereIn('type', ['DEPOSIT', 'SAVING'])
+        $actualSavings = AccountTransaction::where('cycle_id', $cycle->id)
+            ->whereIn('account_type', ['DEPOSIT', 'SAVING'])
             ->sum('amount');
         
-        $actualLoans = VslaLoan::where('project_id', $cycle->id)->sum('amount');
+        $actualLoans = VslaLoan::where('cycle_id', $cycle->id)->sum('loan_amount');
         
         return [
             'target_savings' => $targetSavings,
@@ -392,18 +392,18 @@ class VslaGroupManifestController extends Controller
         
         // Get transactions
         $transactions = AccountTransaction::where('user_id', $member->id)
-            ->where('project_id', $cycle->id)
+            ->where('cycle_id', $cycle->id)
             ->get();
         
-        $totalShares = $transactions->where('type', 'SHARE')->sum('amount') / $sharePrice;
+        $totalShares = $transactions->where('account_type', 'SHARE')->sum('amount') / $sharePrice;
         $shareValue = $totalShares * $sharePrice;
-        $savingsBalance = $transactions->whereIn('type', ['DEPOSIT', 'SAVING'])->sum('amount');
-        $finesBalance = $transactions->where('type', 'FINE')->sum('amount');
-        $welfareContribution = $transactions->where('type', 'WELFARE')->sum('amount');
+        $savingsBalance = $transactions->whereIn('account_type', ['DEPOSIT', 'SAVING'])->sum('amount');
+        $finesBalance = $transactions->where('account_type', 'FINE')->sum('amount');
+        $welfareContribution = $transactions->where('account_type', 'WELFARE')->sum('amount');
         
         // Get loan balance
-        $loanBalance = VslaLoan::where('user_id', $member->id)
-            ->where('project_id', $cycle->id)
+        $loanBalance = VslaLoan::where('borrower_id', $member->id)
+            ->where('cycle_id', $cycle->id)
             ->where('status', '!=', 'Paid')
             ->sum('balance');
         
@@ -437,29 +437,29 @@ class VslaGroupManifestController extends Controller
         }
         
         // Get meeting attendance
-        $totalMeetings = VslaMeeting::where('project_id', $cycle->id)->count();
-        $attendedMeetings = DB::table('vsla_meeting_attendances')
-            ->join('vsla_meetings', 'vsla_meeting_attendances.vsla_meeting_id', '=', 'vsla_meetings.id')
-            ->where('vsla_meetings.project_id', $cycle->id)
-            ->where('vsla_meeting_attendances.user_id', $member->id)
-            ->where('vsla_meeting_attendances.status', 'Present')
+        $totalMeetings = VslaMeeting::where('cycle_id', $cycle->id)->count();
+        $attendedMeetings = DB::table('vsla_meeting_attendance')
+            ->join('vsla_meetings', 'vsla_meeting_attendance.meeting_id', '=', 'vsla_meetings.id')
+            ->where('vsla_meetings.cycle_id', $cycle->id)
+            ->where('vsla_meeting_attendance.member_id', $member->id)
+            ->where('vsla_meeting_attendance.is_present', 1)
             ->count();
         
         $missedMeetings = $totalMeetings - $attendedMeetings;
         $attendanceRate = $totalMeetings > 0 ? ($attendedMeetings / $totalMeetings) * 100 : 0;
         
         // Get loan statistics
-        $loansTaken = VslaLoan::where('user_id', $member->id)
-            ->where('project_id', $cycle->id)
+        $loansTaken = VslaLoan::where('borrower_id', $member->id)
+            ->where('cycle_id', $cycle->id)
             ->count();
         
-        $loansFullyRepaid = VslaLoan::where('user_id', $member->id)
-            ->where('project_id', $cycle->id)
+        $loansFullyRepaid = VslaLoan::where('borrower_id', $member->id)
+            ->where('cycle_id', $cycle->id)
             ->where('status', 'Paid')
             ->count();
         
-        $currentActiveLoans = VslaLoan::where('user_id', $member->id)
-            ->where('project_id', $cycle->id)
+        $currentActiveLoans = VslaLoan::where('borrower_id', $member->id)
+            ->where('cycle_id', $cycle->id)
             ->where('status', '!=', 'Paid')
             ->count();
         
@@ -488,7 +488,7 @@ class VslaGroupManifestController extends Controller
             return [];
         }
         
-        $meetings = VslaMeeting::where('project_id', $cycle->id)
+        $meetings = VslaMeeting::where('cycle_id', $cycle->id)
             ->orderBy('meeting_date', 'desc')
             ->limit($limit)
             ->get();
@@ -505,7 +505,7 @@ class VslaGroupManifestController extends Controller
                 
                 'attendance' => $this->getMeetingAttendance($meeting, $group),
                 'financial_summary' => $this->getMeetingFinancialSummary($meeting),
-                'action_plans_count' => VslaActionPlan::where('vsla_meeting_id', $meeting->id)->count(),
+                'action_plans_count' => 0, // VslaActionPlan table doesn't exist yet
                 'notes' => $meeting->notes,
             ];
         }
@@ -520,16 +520,16 @@ class VslaGroupManifestController extends Controller
     {
         $totalMembers = User::where('group_id', $group->id)->count();
         
-        $attendances = DB::table('vsla_meeting_attendances')
-            ->where('vsla_meeting_id', $meeting->id)
+        $attendances = DB::table('vsla_meeting_attendance')
+            ->where('meeting_id', $meeting->id)
             ->get();
         
-        $membersPresent = $attendances->where('status', 'Present')->count();
+        $membersPresent = $attendances->where('is_present', 1)->count();
         $membersAbsent = $totalMembers - $membersPresent;
         $attendanceRate = $totalMembers > 0 ? ($membersPresent / $totalMembers) * 100 : 0;
         
         // Get names of absent members
-        $presentUserIds = $attendances->where('status', 'Present')->pluck('user_id');
+        $presentUserIds = $attendances->where('is_present', 1)->pluck('member_id');
         $absentMembers = User::where('group_id', $group->id)
             ->whereNotIn('id', $presentUserIds)
             ->pluck('name')
@@ -548,18 +548,18 @@ class VslaGroupManifestController extends Controller
      */
     private function getMeetingFinancialSummary($meeting)
     {
-        $transactions = AccountTransaction::where('vsla_meeting_id', $meeting->id)->get();
+        $transactions = AccountTransaction::where('meeting_id', $meeting->id)->get();
         
-        $totalSavingsCollected = $transactions->whereIn('type', ['DEPOSIT', 'SAVING'])->sum('amount');
-        $totalLoansRepayments = $transactions->where('type', 'LOAN_REPAYMENT')->sum('amount');
-        $totalFines = $transactions->where('type', 'FINE')->sum('amount');
-        $totalWelfare = $transactions->where('type', 'WELFARE')->sum('amount');
+        $totalSavingsCollected = $transactions->whereIn('account_type', ['DEPOSIT', 'SAVING'])->sum('amount');
+        $totalLoansRepayments = $transactions->where('account_type', 'LOAN_REPAYMENT')->sum('amount');
+        $totalFines = $transactions->where('account_type', 'FINE')->sum('amount');
+        $totalWelfare = $transactions->where('account_type', 'WELFARE')->sum('amount');
         
         // Get loans disbursed in this meeting
-        $totalLoansDisbursed = VslaLoan::where('vsla_meeting_id', $meeting->id)->sum('amount');
+        $totalLoansDisbursed = VslaLoan::where('meeting_id', $meeting->id)->sum('loan_amount');
         
         // Get shares sold
-        $shareTransactions = $transactions->where('type', 'SHARE');
+        $shareTransactions = $transactions->where('account_type', 'SHARE');
         $sharesSold = $shareTransactions->count();
         $shareValue = $shareTransactions->sum('amount');
         
@@ -582,27 +582,28 @@ class VslaGroupManifestController extends Controller
      */
     private function getActionPlans($group)
     {
-        $cycle = Project::where('group_id', $group->id)
-            ->where('is_vsla_cycle', 'Yes')
-            ->where('is_active_cycle', 'Yes')
-            ->whereNotIn('status', ['completed', 'closed'])
-            ->first();
-        
-        if (!$cycle) {
-            return [
-                'current_action_plans' => [],
-                'completed_action_plans' => [],
-                'summary' => [
-                    'total_active' => 0,
-                    'overdue' => 0,
-                    'due_this_week' => 0,
-                    'completed_this_month' => 0,
-                ],
-            ];
-        }
+        try {
+            $cycle = Project::where('group_id', $group->id)
+                ->where('is_vsla_cycle', 'Yes')
+                ->where('is_active_cycle', 'Yes')
+                ->whereNotIn('status', ['completed', 'closed'])
+                ->first();
+            
+            if (!$cycle) {
+                return [
+                    'current_action_plans' => [],
+                    'completed_action_plans' => [],
+                    'summary' => [
+                        'total_active' => 0,
+                        'overdue' => 0,
+                        'due_this_week' => 0,
+                        'completed_this_month' => 0,
+                    ],
+                ];
+            }
         
         // Get current (pending) action plans
-        $currentPlans = VslaActionPlan::where('project_id', $cycle->id)
+        $currentPlans = VslaActionPlan::where('cycle_id', $cycle->id)
             ->where('status', 'pending')
             ->orderBy('deadline', 'asc')
             ->get();
@@ -634,7 +635,7 @@ class VslaGroupManifestController extends Controller
         }
         
         // Get completed action plans (last 10)
-        $completedPlans = VslaActionPlan::where('project_id', $cycle->id)
+        $completedPlans = VslaActionPlan::where('cycle_id', $cycle->id)
             ->where('status', 'completed')
             ->orderBy('updated_at', 'desc')
             ->limit(10)
@@ -652,7 +653,7 @@ class VslaGroupManifestController extends Controller
             ];
         }
         
-        $completedThisMonth = VslaActionPlan::where('project_id', $cycle->id)
+        $completedThisMonth = VslaActionPlan::where('cycle_id', $cycle->id)
             ->where('status', 'completed')
             ->whereMonth('updated_at', Carbon::now()->month)
             ->count();
@@ -667,6 +668,19 @@ class VslaGroupManifestController extends Controller
                 'completed_this_month' => $completedThisMonth,
             ],
         ];
+        } catch (\Exception $e) {
+            // Return empty data if table doesn't exist
+            return [
+                'current_action_plans' => [],
+                'completed_action_plans' => [],
+                'summary' => [
+                    'total_active' => 0,
+                    'overdue' => 0,
+                    'due_this_week' => 0,
+                    'completed_this_month' => 0,
+                ],
+            ];
+        }
     }
     
     /**
@@ -687,12 +701,12 @@ class VslaGroupManifestController extends Controller
         $financialSummary = $this->getCycleFinancialSummary($cycle);
         
         // Calculate additional metrics
-        $totalLoans = VslaLoan::where('project_id', $cycle->id)->sum('amount');
-        $totalRepaid = AccountTransaction::where('project_id', $cycle->id)
-            ->where('type', 'LOAN_REPAYMENT')
+        $totalLoans = VslaLoan::where('cycle_id', $cycle->id)->sum('loan_amount');
+        $totalRepaid = AccountTransaction::where('cycle_id', $cycle->id)
+            ->where('account_type', 'LOAN_REPAYMENT')
             ->sum('amount');
         
-        $overdueLoans = VslaLoan::where('project_id', $cycle->id)
+        $overdueLoans = VslaLoan::where('cycle_id', $cycle->id)
             ->where('status', '!=', 'Paid')
             ->where('due_date', '<', Carbon::now())
             ->get();
@@ -708,8 +722,8 @@ class VslaGroupManifestController extends Controller
         
         foreach ($members as $member) {
             $savings = AccountTransaction::where('user_id', $member->id)
-                ->where('project_id', $cycle->id)
-                ->whereIn('type', ['DEPOSIT', 'SAVING'])
+                ->where('cycle_id', $cycle->id)
+                ->whereIn('account_type', ['DEPOSIT', 'SAVING'])
                 ->sum('amount');
             
             if ($savings > $highestAmount) {
@@ -719,8 +733,8 @@ class VslaGroupManifestController extends Controller
         }
         
         // Calculate growth this month
-        $growthThisMonth = AccountTransaction::where('project_id', $cycle->id)
-            ->whereIn('type', ['DEPOSIT', 'SAVING'])
+        $growthThisMonth = AccountTransaction::where('cycle_id', $cycle->id)
+            ->whereIn('account_type', ['DEPOSIT', 'SAVING'])
             ->whereMonth('created_at', Carbon::now()->month)
             ->sum('amount');
         
@@ -749,7 +763,7 @@ class VslaGroupManifestController extends Controller
                 'total_loans_disbursed' => $financialSummary['total_loans_disbursed'],
                 'total_repaid' => $totalRepaid,
                 'outstanding_balance' => $financialSummary['outstanding_loans'],
-                'active_loans_count' => VslaLoan::where('project_id', $cycle->id)
+                'active_loans_count' => VslaLoan::where('cycle_id', $cycle->id)
                     ->where('status', '!=', 'Paid')
                     ->count(),
                 'overdue_loans_count' => $overdueCount,
@@ -759,13 +773,13 @@ class VslaGroupManifestController extends Controller
             
             'fines_and_penalties' => [
                 'total_fines_collected' => $financialSummary['total_fines_collected'],
-                'fines_this_month' => AccountTransaction::where('project_id', $cycle->id)
-                    ->where('type', 'FINE')
+                'fines_this_month' => AccountTransaction::where('cycle_id', $cycle->id)
+                    ->where('account_type', 'FINE')
                     ->whereMonth('created_at', Carbon::now()->month)
                     ->sum('amount'),
                 'most_common_fine' => 'Late attendance', // Could be calculated from transaction descriptions
-                'members_with_fines' => AccountTransaction::where('project_id', $cycle->id)
-                    ->where('type', 'FINE')
+                'members_with_fines' => AccountTransaction::where('cycle_id', $cycle->id)
+                    ->where('account_type', 'FINE')
                     ->distinct('user_id')
                     ->count(),
             ],
@@ -788,7 +802,7 @@ class VslaGroupManifestController extends Controller
         }
         
         // Next meeting
-        $nextMeeting = VslaMeeting::where('project_id', $cycle->id)
+        $nextMeeting = VslaMeeting::where('cycle_id', $cycle->id)
             ->where('meeting_date', '>=', Carbon::now())
             ->orderBy('meeting_date', 'asc')
             ->first();
@@ -808,7 +822,7 @@ class VslaGroupManifestController extends Controller
         }
         
         // Loans due soon (within 7 days)
-        $loansDueSoon = VslaLoan::where('project_id', $cycle->id)
+        $loansDueSoon = VslaLoan::where('cycle_id', $cycle->id)
             ->where('status', '!=', 'Paid')
             ->where('due_date', '>=', Carbon::now())
             ->where('due_date', '<=', Carbon::now()->addDays(7))
@@ -826,21 +840,25 @@ class VslaGroupManifestController extends Controller
         }
         
         // Action plans due soon (within 7 days)
-        $actionPlansDue = VslaActionPlan::where('project_id', $cycle->id)
-            ->where('status', 'pending')
-            ->where('deadline', '>=', Carbon::now())
-            ->where('deadline', '<=', Carbon::now()->addDays(7))
-            ->get();
-        
         $actionPlansDueList = [];
-        foreach ($actionPlansDue as $plan) {
-            $daysRemaining = Carbon::now()->diffInDays(Carbon::parse($plan->deadline), false);
-            $actionPlansDueList[] = [
-                'description' => $plan->description,
-                'responsible' => User::find($plan->responsible_user_id)->name ?? 'N/A',
-                'due_date' => $plan->deadline,
-                'days_remaining' => (int) $daysRemaining,
-            ];
+        try {
+            $actionPlansDue = VslaActionPlan::where('cycle_id', $cycle->id)
+                ->where('status', 'pending')
+                ->where('deadline', '>=', Carbon::now())
+                ->where('deadline', '<=', Carbon::now()->addDays(7))
+                ->get();
+            
+            foreach ($actionPlansDue as $plan) {
+                $daysRemaining = Carbon::now()->diffInDays(Carbon::parse($plan->deadline), false);
+                $actionPlansDueList[] = [
+                    'description' => $plan->description,
+                    'responsible' => User::find($plan->responsible_user_id)->name ?? 'N/A',
+                    'due_date' => $plan->deadline,
+                    'days_remaining' => (int) $daysRemaining,
+                ];
+            }
+        } catch (\Exception $e) {
+            // Table doesn't exist yet
         }
         
         // Cycle milestones
@@ -904,7 +922,7 @@ class VslaGroupManifestController extends Controller
             return [];
         }
         
-        $meetings = VslaMeeting::where('project_id', $cycle->id)
+        $meetings = VslaMeeting::where('cycle_id', $cycle->id)
             ->where('created_at', '>=', $sinceDate)
             ->orderBy('meeting_date', 'desc')
             ->get();
@@ -940,7 +958,7 @@ class VslaGroupManifestController extends Controller
             return [];
         }
         
-        $plans = VslaActionPlan::where('project_id', $cycle->id)
+        $plans = VslaActionPlan::where('cycle_id', $cycle->id)
             ->where('created_at', '>=', $sinceDate)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -974,7 +992,7 @@ class VslaGroupManifestController extends Controller
             return [];
         }
         
-        $recentTransactions = AccountTransaction::where('project_id', $cycle->id)
+        $recentTransactions = AccountTransaction::where('cycle_id', $cycle->id)
             ->where('created_at', '>=', $sinceDate)
             ->count();
         

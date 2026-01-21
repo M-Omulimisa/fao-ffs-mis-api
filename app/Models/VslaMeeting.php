@@ -202,9 +202,20 @@ class VslaMeeting extends Model
     public function markAsNeedsReview($warnings = [])
     {
         $this->update([
-            'processing_status' => 'needs_review',
+            'processing_status' => 'completed', // Use 'completed' since 'needs_review' doesn't exist in enum
             'has_warnings' => true,
             'warnings' => $warnings,
+            'processed_at' => now(),
+        ]);
+    }
+
+    public function markAsCompletedWithWarnings($warnings = [])
+    {
+        $this->update([
+            'processing_status' => 'completed',
+            'has_warnings' => true,
+            'warnings' => $warnings,
+            'processed_at' => now(),
         ]);
     }
 

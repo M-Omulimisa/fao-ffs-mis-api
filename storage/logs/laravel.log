@@ -23582,3 +23582,1017 @@ Did you mean one of these?
 [2026-01-19 00:38:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2026-01-19 00:38:26] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
 [2026-01-19 00:38:26] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 00:55:31] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 00:55:31] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 00:55:31] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 00:55:31] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 00:55:31] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 00:55:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 00:55:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 00:55:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 00:55:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 00:55:37] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:01:33] local.ERROR: Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist in /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:373
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(373): PDOStatement->execute()
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(705): Illuminate\Database\Connection->{closure:Illuminate\Database\Connection::select():359}('SHOW COLUMNS FR...', Array)
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\Database\Connection->runQueryCallback('SHOW COLUMNS FR...', Array, Object(Closure))
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(359): Illuminate\Database\Connection->run('SHOW COLUMNS FR...', Array, Object(Closure))
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(442): Illuminate\Database\Connection->select('SHOW COLUMNS FR...')
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(261): Illuminate\Database\DatabaseManager->__call('select', Array)
+#6 Command line code(1): Illuminate\Support\Facades\Facade::__callStatic('select', Array)
+#7 {main}
+
+Next Illuminate\Database\QueryException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: SHOW COLUMNS FROM vsla_action_plans) in /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:712
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\Database\Connection->runQueryCallback('SHOW COLUMNS FR...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(359): Illuminate\Database\Connection->run('SHOW COLUMNS FR...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(442): Illuminate\Database\Connection->select('SHOW COLUMNS FR...')
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(261): Illuminate\Database\DatabaseManager->__call('select', Array)
+#4 Command line code(1): Illuminate\Support\Facades\Facade::__callStatic('select', Array)
+#5 {main}
+  thrown {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist in /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:373
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(373): PDOStatement->execute()
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(705): Illuminate\\Database\\Connection->{closure:Illuminate\\Database\\Connection::select():359}('SHOW COLUMNS FR...', Array)
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('SHOW COLUMNS FR...', Array, Object(Closure))
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(359): Illuminate\\Database\\Connection->run('SHOW COLUMNS FR...', Array, Object(Closure))
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(442): Illuminate\\Database\\Connection->select('SHOW COLUMNS FR...')
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(261): Illuminate\\Database\\DatabaseManager->__call('select', Array)
+#6 Command line code(1): Illuminate\\Support\\Facades\\Facade::__callStatic('select', Array)
+#7 {main}
+
+Next Illuminate\\Database\\QueryException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: SHOW COLUMNS FROM vsla_action_plans) in /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:712
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('SHOW COLUMNS FR...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(359): Illuminate\\Database\\Connection->run('SHOW COLUMNS FR...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(442): Illuminate\\Database\\Connection->select('SHOW COLUMNS FR...')
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(261): Illuminate\\Database\\DatabaseManager->__call('select', Array)
+#4 Command line code(1): Illuminate\\Support\\Facades\\Facade::__callStatic('select', Array)
+#5 {main}
+  thrown at /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:712)
+[stacktrace]
+#0 {main}
+"} 
+[2026-01-19 01:06:34] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:06:34] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:06:34] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:06:34] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:06:34] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:06:48] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:06:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:06:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:06:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:06:48] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:10:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:10:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:10:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:10:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:10:37] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:10:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:10:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:10:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:10:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:10:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:10:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:11:15] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:11:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:11:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:11:15] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:11:15] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:11:30] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:11:30] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:11:30] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:11:30] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:11:30] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:15:15] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:15:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:15:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:15:15] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:15:16] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:15:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:15:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:15:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:15:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:15:47] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:27:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:27:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:27:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:27:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:27:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:27:59] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:27:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:27:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:27:59] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:27:59] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:28:14] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:28:14] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:28:14] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:28:14] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:28:14] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:28:27] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:28:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:28:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:28:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:28:27] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:28:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:28:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:28:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:28:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:28:37] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:28:43] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:28:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:28:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:28:43] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:28:43] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:28:45] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:28:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:28:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:28:45] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:28:45] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:28:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:28:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:28:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:28:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:28:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:29:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:29:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:29:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:29:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:29:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:29:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:29:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:29:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:29:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:29:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:29:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:29:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:29:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:29:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:29:37] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:29:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:29:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:29:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:29:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:29:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:30:19] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:30:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:30:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:30:19] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:30:19] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:31:18] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:31:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:31:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:31:18] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:31:18] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:31:24] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:31:24] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:31:24] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:31:24] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:31:24] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:31:35] local.ERROR: Loan creation failed {"meeting_id":1,"borrower_id":212,"error":"SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'user_id' cannot be null (SQL: insert into `account_transactions` (`user_id`, `owner_type`, `group_id`, `meeting_id`, `cycle_id`, `account_type`, `source`, `amount`, `transaction_date`, `description`, `related_disbursement_id`, `is_contra_entry`, `created_by_id`, `updated_at`, `created_at`) values (?, group, 13, 1, 13, loan, loan_disbursement, -20000, 2026-01-19 00:00:00, Group disbursed loan to Bwambale Muhidin (some message), 1, 0, 211, 2026-01-19 01:31:35, 2026-01-19 01:31:35))"} 
+[2026-01-19 01:31:35] local.INFO: EnsureTokenIsValid - Response received: 207  
+[2026-01-19 01:40:03] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:40:03] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:40:03] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:40:03] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:40:03] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:40:06] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:40:06] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:40:06] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:40:06] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:40:06] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 01:40:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:40:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:40:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:40:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:40:07] local.INFO: EnsureTokenIsValid - Response received: 409  
+[2026-01-19 01:40:16] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:40:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:40:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:40:16] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:40:16] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:41:02] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:41:02] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:41:02] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:41:03] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:41:03] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 01:43:26] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 01:43:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 01:43:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 01:43:26] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 01:43:26] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 08:19:26] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 08:19:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 08:19:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 08:19:26] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 08:19:26] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 08:19:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 08:19:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 08:19:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 08:19:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 08:19:37] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 08:24:56] local.ERROR: count(): Argument #1 ($value) must be of type Countable|array, stdClass given {"userId":211,"exception":"[object] (TypeError(code: 0): count(): Argument #1 ($value) must be of type Countable|array, stdClass given at /Applications/MAMP/htdocs/fao-ffs-mis-api/test_manifest.php:24)
+[stacktrace]
+#0 {main}
+"} 
+[2026-01-19 08:26:44] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 08:26:44] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 08:26:44] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 08:26:44] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 08:26:44] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 08:34:43] local.ERROR: Meeting processing failed {"meeting_id":5,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"invalid_loan_amount\",\"message\":\"Loan amount must be greater than 0 for member ID: 213\",\"suggestion\":\"Skipping this loan entry\"}], `vsla_meetings`.`updated_at` = 2026-01-19 08:34:43 where `id` = 5)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(112): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(122): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 08:42:11] local.ERROR: Meeting processing failed {"meeting_id":8,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"invalid_loan_amount\",\"message\":\"Loan amount must be greater than 0 for member ID: 213\",\"suggestion\":\"Skipping this loan entry\"}], `vsla_meetings`.`updated_at` = 2026-01-19 08:42:11 where `id` = 8)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(112): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(122): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 08:57:45] local.INFO: Loan created for meeting #2 {"loan_id":2,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:00:17] local.INFO: Loan created for meeting #2 {"loan_id":3,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:02:57] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:02:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:02:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:02:57] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:02:57] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 09:03:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:01] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:01] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:03:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:14] local.INFO: EnsureTokenIsValid - Response received: 409  
+[2026-01-19 09:03:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:25] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:03:30] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:30] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:30] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:30] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:30] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:03:45] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:45] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:45] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:03:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:03:52] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:03:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:03:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:03:52] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:03:52] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:04:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:04:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:04:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:04:01] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:04:01] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:04:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:04:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:04:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:04:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:04:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:04:19] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:04:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:04:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:04:19] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:04:19] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:04:34] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:04:34] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:04:34] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:04:34] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:04:34] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:04:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:04:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:04:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:04:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:04:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:05:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:05:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:05:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:05:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:05:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:06:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:06:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:06:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:06:01] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:06:01] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:06:08] local.INFO: Loan created for meeting #2 {"loan_id":4,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:06:08] local.INFO: EnsureTokenIsValid - Response received: 207  
+[2026-01-19 09:08:58] local.INFO: Loan created for meeting #3 {"loan_id":5,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:08:58] local.ERROR: Meeting processing failed {"meeting_id":18,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:08:58 where `id` = 18)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(112): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(120): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:08:58] local.ERROR: Meeting processing failed {"meeting_id":19,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:08:58 where `id` = 19)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(112): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(287): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:08:58] local.ERROR: Meeting processing failed {"meeting_id":20,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:08:58 where `id` = 20)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(112): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(335): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:10:15] local.INFO: Loan created for meeting #3 {"loan_id":6,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:10:15] local.ERROR: Meeting processing failed {"meeting_id":21,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:10:15 where `id` = 21)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(112): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(120): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:10:15] local.ERROR: Meeting processing failed {"meeting_id":22,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:10:15 where `id` = 22)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(112): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(287): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:10:15] local.ERROR: Meeting processing failed {"meeting_id":23,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:10:15 where `id` = 23)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(112): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(335): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:11:26] local.INFO: Loan created for meeting #3 {"loan_id":7,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:11:26] local.ERROR: Meeting processing failed {"meeting_id":24,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:11:26 where `id` = 24)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(120): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:11:26] local.ERROR: Meeting processing failed {"meeting_id":25,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:11:26 where `id` = 25)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(287): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:11:26] local.ERROR: Meeting processing failed {"meeting_id":26,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table needs to be created in database\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:11:26 where `id` = 26)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(335): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:12:25] local.INFO: Loan created for meeting #3 {"loan_id":8,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:13:09] local.ERROR: Meeting processing failed {"meeting_id":30,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table will be created when this feature is set up\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:13:09 where `id` = 30)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_action_plans_error.php(61): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:13:49] local.ERROR: Meeting processing failed {"meeting_id":31,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table will be created when this feature is set up\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:13:49 where `id` = 31)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_action_plans_error.php(61): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:14:20] local.ERROR: Meeting processing failed {"meeting_id":32,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table will be created when this feature is set up\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:14:20 where `id` = 32)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_action_plans_error.php(61): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 09:29:50] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:29:50] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:29:50] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:29:50] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:29:50] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:29:56] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:29:56] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:29:56] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:29:56] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:29:56] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:29:56] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:29:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:29:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:29:57] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:29:57] local.INFO: Loan created for meeting #3 {"loan_id":9,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:29:57] local.ERROR: Meeting processing failed {"meeting_id":33,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table will be created when this feature is set up\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:29:57 where `id` = 33)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(45): Illuminate\\Routing\\Controller->callAction('submit', Array)
+#13 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Route.php(261): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Api\\VslaMeetingController), 'submit')
+#14 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Route.php(205): Illuminate\\Routing\\Route->runController()
+#15 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(721): Illuminate\\Routing\\Route->run()
+#16 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(128): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#17 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Middleware/EnsureTokenIsValid.php(98): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): App\\Http\\Middleware\\EnsureTokenIsValid->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#21 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php(90): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php(55): Illuminate\\Routing\\Middleware\\ThrottleRequests->handleRequestUsingNamedLimiter(Object(Illuminate\\Http\\Request), Object(Closure), 'api', Object(Closure))
+#23 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Routing\\Middleware\\ThrottleRequests->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'api')
+#24 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(719): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#26 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#27 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#28 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#29 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#30 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#31 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#34 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#35 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/fruitcake/laravel-cors/src/HandleCors.php(52): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#43 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#44 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#46 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#47 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#48 /Applications/MAMP/htdocs/fao-ffs-mis-api/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#49 /Applications/MAMP/htdocs/fao-ffs-mis-api/server.php(21): require_once('/Applications/M...')
+#50 {main}"}} 
+[2026-01-19 09:29:57] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 09:33:18] local.INFO: Loan created for meeting #3 {"loan_id":10,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:39:43] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:39:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:39:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:39:43] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:39:43] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:39:49] local.INFO: Loan created for meeting #3 {"loan_id":11,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:39:49] local.ERROR: Meeting processing failed {"meeting_id":37,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table will be created when this feature is set up\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:39:49 where `id` = 37)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(45): Illuminate\\Routing\\Controller->callAction('submit', Array)
+#13 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Route.php(261): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Api\\VslaMeetingController), 'submit')
+#14 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Route.php(205): Illuminate\\Routing\\Route->runController()
+#15 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(721): Illuminate\\Routing\\Route->run()
+#16 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(128): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#17 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Middleware/EnsureTokenIsValid.php(98): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): App\\Http\\Middleware\\EnsureTokenIsValid->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#21 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php(90): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php(55): Illuminate\\Routing\\Middleware\\ThrottleRequests->handleRequestUsingNamedLimiter(Object(Illuminate\\Http\\Request), Object(Closure), 'api', Object(Closure))
+#23 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Routing\\Middleware\\ThrottleRequests->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'api')
+#24 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(719): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#26 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#27 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#28 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#29 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#30 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#31 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#34 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#35 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/fruitcake/laravel-cors/src/HandleCors.php(52): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#43 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#44 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#46 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#47 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#48 /Applications/MAMP/htdocs/fao-ffs-mis-api/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#49 /Applications/MAMP/htdocs/fao-ffs-mis-api/server.php(21): require_once('/Applications/M...')
+#50 {main}"}} 
+[2026-01-19 09:39:49] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 09:43:59] local.INFO: Loan created for meeting #3 {"loan_id":12,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:55:35] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:55:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:55:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:55:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:55:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 09:55:41] local.INFO: Loan created for meeting #3 {"loan_id":13,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 09:55:41] local.ERROR: Meeting processing failed {"meeting_id":41,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-1768813430726, 41, 13, Action 3.1, Action 3.1, 213, medium, 2026-02-19 00:00:00, pending, 211, 2026-01-19 09:55:41, 2026-01-19 09:55:41))\",\"suggestion\":\"This action plan was skipped\"},{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-1768813451952, 41, 13, action 3.2, action 3.2, 212, medium, 2026-02-27 00:00:00, pending, 211, 2026-01-19 09:55:41, 2026-01-19 09:55:41))\",\"suggestion\":\"This action plan was skipped\"}], `vsla_meetings`.`updated_at` = 2026-01-19 09:55:41 where `id` = 41)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(45): Illuminate\\Routing\\Controller->callAction('submit', Array)
+#13 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Route.php(261): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Api\\VslaMeetingController), 'submit')
+#14 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Route.php(205): Illuminate\\Routing\\Route->runController()
+#15 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(721): Illuminate\\Routing\\Route->run()
+#16 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(128): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#17 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Middleware/EnsureTokenIsValid.php(98): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): App\\Http\\Middleware\\EnsureTokenIsValid->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#21 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php(90): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php(55): Illuminate\\Routing\\Middleware\\ThrottleRequests->handleRequestUsingNamedLimiter(Object(Illuminate\\Http\\Request), Object(Closure), 'api', Object(Closure))
+#23 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Routing\\Middleware\\ThrottleRequests->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'api')
+#24 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(719): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#26 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(698): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#27 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(662): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#28 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Router.php(651): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#29 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(167): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#30 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(128): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#31 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#34 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#35 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/fruitcake/laravel-cors/src/HandleCors.php(52): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Fruitcake\\Cors\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#43 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#44 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(167): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(103): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#46 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(142): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#47 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(111): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#48 /Applications/MAMP/htdocs/fao-ffs-mis-api/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#49 /Applications/MAMP/htdocs/fao-ffs-mis-api/server.php(21): require_once('/Applications/M...')
+#50 {main}"}} 
+[2026-01-19 09:55:41] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 10:35:37] local.INFO: Loan created for meeting #3 {"loan_id":14,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:35:37] local.ERROR: Meeting processing failed {"meeting_id":42,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table will be created when this feature is set up\"}], `vsla_meetings`.`updated_at` = 2026-01-19 10:35:37 where `id` = 42)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(120): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 10:35:37] local.ERROR: Meeting processing failed {"meeting_id":43,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table will be created when this feature is set up\"}], `vsla_meetings`.`updated_at` = 2026-01-19 10:35:37 where `id` = 43)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(287): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 10:35:37] local.ERROR: Meeting processing failed {"meeting_id":44,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plans_unavailable\",\"message\":\"Action plans feature not yet available\",\"suggestion\":\"Action plans table will be created when this feature is set up\"}], `vsla_meetings`.`updated_at` = 2026-01-19 10:35:37 where `id` = 44)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_meeting_submission.php(335): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 10:36:31] local.INFO: Loan created for meeting #3 {"loan_id":15,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:37:17] local.INFO: Loan created for meeting #3 {"loan_id":16,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:37:17] local.ERROR: Meeting processing failed {"meeting_id":48,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e095db652c, 48, 13, Action 3.1, Action 3.1, 213, medium, 2026-02-19 00:00:00, pending, 211, 2026-01-19 10:37:17, 2026-01-19 10:37:17))\",\"suggestion\":\"This action plan was skipped\"},{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e095db652d, 48, 13, action 3.2, action 3.2, 212, medium, 2026-02-27 00:00:00, pending, 211, 2026-01-19 10:37:17, 2026-01-19 10:37:17))\",\"suggestion\":\"This action plan was skipped\"}], `vsla_meetings`.`updated_at` = 2026-01-19 10:37:17 where `id` = 48)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_real_meeting.php(105): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 10:37:49] local.INFO: Loan created for meeting #3 {"loan_id":17,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:37:49] local.ERROR: Meeting processing failed {"meeting_id":49,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e097d16d14, 49, 13, Action 3.1, Action 3.1, 213, medium, 2026-02-19 00:00:00, pending, 211, 2026-01-19 10:37:49, 2026-01-19 10:37:49))\",\"suggestion\":\"This action plan was skipped\"},{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e097d16d15, 49, 13, action 3.2, action 3.2, 212, medium, 2026-02-27 00:00:00, pending, 211, 2026-01-19 10:37:49, 2026-01-19 10:37:49))\",\"suggestion\":\"This action plan was skipped\"}], `vsla_meetings`.`updated_at` = 2026-01-19 10:37:49 where `id` = 49)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_real_meeting.php(105): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 10:38:18] local.INFO: Loan created for meeting #3 {"loan_id":18,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:38:18] local.ERROR: Meeting processing failed {"meeting_id":50,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e099a28550, 50, 13, Action 3.1, Action 3.1, 213, medium, 2026-02-19 00:00:00, pending, 211, 2026-01-19 10:38:18, 2026-01-19 10:38:18))\",\"suggestion\":\"This action plan was skipped\"},{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e099a28551, 50, 13, action 3.2, action 3.2, 212, medium, 2026-02-27 00:00:00, pending, 211, 2026-01-19 10:38:18, 2026-01-19 10:38:18))\",\"suggestion\":\"This action plan was skipped\"}], `vsla_meetings`.`updated_at` = 2026-01-19 10:38:18 where `id` = 50)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(113): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_real_meeting.php(105): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 10:40:36] local.INFO: Loan created for meeting #3 {"loan_id":19,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:40:36] local.ERROR: Meeting processing failed {"meeting_id":51,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e0a247828f, 51, 13, Action 3.1, Action 3.1, 213, medium, 2026-02-19 00:00:00, pending, 211, 2026-01-19 10:40:36, 2026-01-19 10:40:36))\",\"suggestion\":\"This action plan was skipped\"},{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e0a2478290, 51, 13, action 3.2, action 3.2, 212, medium, 2026-02-27 00:00:00, pending, 211, 2026-01-19 10:40:36, 2026-01-19 10:40:36))\",\"suggestion\":\"This action plan was skipped\"}], `vsla_meetings`.`updated_at` = 2026-01-19 10:40:36 where `id` = 51)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(114): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_real_meeting.php(105): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 10:43:19] local.INFO: Loan created for meeting #3 {"loan_id":20,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:43:39] local.INFO: Loan created for meeting #3 {"loan_id":21,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:43:39] local.ERROR: Meeting processing failed {"meeting_id":55,"error":{"type":"exception","message":"Processing failed: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'processing_status' at row 1 (SQL: update `vsla_meetings` set `processing_status` = needs_review, `has_warnings` = 1, `warnings` = [{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e0adbb534b, 55, 13, Action 3.1, Action 3.1, 213, medium, 2026-02-19 00:00:00, pending, 211, 2026-01-19 10:43:39, 2026-01-19 10:43:39))\",\"suggestion\":\"This action plan was skipped\"},{\"type\":\"action_plan_creation_failed\",\"message\":\"Failed to create action plan: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.vsla_action_plans' doesn't exist (SQL: insert into `vsla_action_plans` (`local_id`, `meeting_id`, `cycle_id`, `action`, `description`, `assigned_to_member_id`, `priority`, `due_date`, `status`, `created_by_id`, `updated_at`, `created_at`) values (plan-696e0adbb534c, 55, 13, action 3.2, action 3.2, 212, medium, 2026-02-27 00:00:00, pending, 211, 2026-01-19 10:43:39, 2026-01-19 10:43:39))\",\"suggestion\":\"This action plan was skipped\"}], `vsla_meetings`.`updated_at` = 2026-01-19 10:43:39 where `id` = 55)","trace":"#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('update `vsla_me...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(514): Illuminate\\Database\\Connection->run('update `vsla_me...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(466): Illuminate\\Database\\Connection->affectingStatement('update `vsla_me...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3062): Illuminate\\Database\\Connection->update('update `vsla_me...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(921): Illuminate\\Database\\Query\\Builder->update(Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1072): Illuminate\\Database\\Eloquent\\Builder->update(Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(987): Illuminate\\Database\\Eloquent\\Model->performUpdate(Object(Illuminate\\Database\\Eloquent\\Builder))
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(885): Illuminate\\Database\\Eloquent\\Model->save(Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/VslaMeeting.php(204): Illuminate\\Database\\Eloquent\\Model->update(Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Services/MeetingProcessingService.php(106): App\\Models\\VslaMeeting->markAsNeedsReview(Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/VslaMeetingController.php(166): App\\Services\\MeetingProcessingService->processMeeting(Object(App\\Models\\VslaMeeting))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/test_real_meeting.php(105): App\\Http\\Controllers\\Api\\VslaMeetingController->submit(Object(Illuminate\\Http\\Request))
+#12 {main}"}} 
+[2026-01-19 10:45:40] local.INFO: Loan created for meeting #3 {"loan_id":22,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:45:58] local.INFO: Loan created for meeting #4 {"loan_id":23,"borrower":"Biirah Sabia","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:58:20] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 10:58:20] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 10:58:20] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 10:58:20] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 10:58:20] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 10:58:24] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 10:58:25] local.INFO: Loan created for meeting #4 {"loan_id":24,"borrower":"Muhindo Mubaraka Bentley","principal":50000.0,"interest":5000.0,"total_due":55000.0,"interest_rate":10.0,"duration":3} 
+[2026-01-19 10:58:25] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 10:58:36] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 10:58:36] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 10:58:36] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 10:58:36] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 10:58:36] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 10:59:18] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 10:59:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 10:59:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 10:59:18] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 10:59:18] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:04:30] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:04:30] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:04:30] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:04:30] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:04:30] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:04:33] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:04:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:04:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:04:33] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:04:33] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:04:38] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:04:38] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:04:38] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:04:38] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:04:38] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:04:48] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:04:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:04:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:04:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:04:48] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:05:14] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:05:14] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:05:14] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:05:14] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:05:14] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:05:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:05:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:05:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:05:58] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:05:58] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:06:11] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:06:11] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:06:11] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:06:11] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:06:12] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:06:35] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:06:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:06:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:06:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:06:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:06:40] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:06:40] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:06:40] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:06:40] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:06:40] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:06:50] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:06:50] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:06:50] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:06:50] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:06:50] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:07:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:07:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:07:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:07:01] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:07:01] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 11:07:16] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 11:07:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 11:07:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 11:07:16] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 11:07:16] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:03:56] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:03:56] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:03:56] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:03:56] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:03:57] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:04:08] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:04:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:04:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:04:08] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:04:08] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 21:04:09] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:04:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:04:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:04:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:04:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:05:29] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:05:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:05:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:05:29] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:05:29] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:05:36] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:05:36] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:05:36] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:05:36] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:05:36] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:06:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:06:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:06:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:06:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:06:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:06:17] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:06:17] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:06:17] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:06:17] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:06:17] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:06:23] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:06:23] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:06:23] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:06:23] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:06:23] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:06:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:06:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:06:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:06:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:06:25] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-01-19 21:06:33] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:06:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:06:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:06:33] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:06:33] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:07:29] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:07:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:07:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:07:29] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:07:29] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:07:33] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:07:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:07:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:07:33] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:07:33] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:07:35] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:07:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:07:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:07:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:07:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:07:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:07:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:07:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:07:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:07:37] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:07:39] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:07:39] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:07:39] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:07:39] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:07:39] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:07:41] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:07:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:07:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:07:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:07:41] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:07:42] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:07:42] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:07:42] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:07:42] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:07:42] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-01-19 21:07:59] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-01-19 21:07:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-01-19 21:07:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-01-19 21:07:59] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-01-19 21:07:59] local.INFO: EnsureTokenIsValid - Response received: 200  
