@@ -95,6 +95,14 @@ class AdvisoryController extends Controller
             if ($request->filled('category_id')) {
                 $query->where('category_id', $request->category_id);
             }
+            
+            // Filter by category name (for convenience)
+            if ($request->filled('category_name')) {
+                $category = AdvisoryCategory::where('name', 'LIKE', '%' . $request->category_name . '%')->first();
+                if ($category) {
+                    $query->where('category_id', $category->id);
+                }
+            }
 
             // Filter by language
             if ($request->filled('language')) {
@@ -109,6 +117,24 @@ class AdvisoryController extends Controller
             // Filter featured posts
             if ($request->filled('featured') && $request->featured == 'yes') {
                 $query->featured();
+            }
+            
+            // Filter by media type - PDF documents
+            if ($request->filled('has_pdf') && $request->has_pdf == 'yes') {
+                $query->where('has_pdf', 'Yes');
+            }
+            
+            // Filter by media type - Video content
+            if ($request->filled('has_video') && $request->has_video == 'yes') {
+                $query->where(function($q) {
+                    $q->where('has_video', 'Yes')
+                      ->orWhere('has_youtube_video', 'Yes');
+                });
+            }
+            
+            // Filter by media type - Audio content
+            if ($request->filled('has_audio') && $request->has_audio == 'yes') {
+                $query->where('has_audio', 'Yes');
             }
 
             $posts = $query->orderBy('published_at', 'desc')->paginate($perPage);
