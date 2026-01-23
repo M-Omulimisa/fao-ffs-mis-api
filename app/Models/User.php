@@ -1065,4 +1065,16 @@ class User extends Administrator implements JWTSubject
             return $response;
         }
     }
+
+    /**
+     * Check if user is a VSLA group administrator (Chairman, Secretary, or Treasurer)
+     * 
+     * @return bool
+     */
+    public function isVslaGroupAdmin()
+    {
+        return $this->is_group_admin === 'Yes' 
+            || $this->is_group_secretary === 'Yes' 
+            || $this->is_group_treasurer === 'Yes';
+    }
 }

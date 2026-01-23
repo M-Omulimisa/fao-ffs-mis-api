@@ -41,6 +41,8 @@ class LoanTransaction extends Model
         'transaction_date',
         'description',
         'type',
+        'payment_method',
+        'transaction_type',
         'created_by_id',
     ];
 

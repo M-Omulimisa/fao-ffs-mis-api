@@ -10,6 +10,7 @@ use App\Models\VslaMeeting;
 use App\Models\VslaActionPlan;
 use App\Models\VslaLoan;
 use App\Models\AccountTransaction;
+use App\Models\SocialFundTransaction;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,6 +61,8 @@ class VslaGroupManifestController extends Controller
                 'group_info' => $this->getGroupInfo($group),
                 'cycle_info' => $this->getCurrentCycleInfo($group),
                 'members' => $this->getMembersSummary($group),
+                'active_loans' => $this->getActiveLoans($group),
+                'social_fund_balance' => $this->getSocialFundBalance($group),
                 'recent_meetings' => $this->getRecentMeetings($group, 10),
                 'action_plans' => $this->getActionPlans($group),
                 'dashboard' => $this->getDashboardData($group),
@@ -605,7 +608,7 @@ class VslaGroupManifestController extends Controller
         // Get current (pending) action plans
         $currentPlans = VslaActionPlan::where('cycle_id', $cycle->id)
             ->where('status', 'pending')
-            ->orderBy('deadline', 'asc')
+            ->orderBy('due_date', 'asc')
             ->get();
         
         $currentActionPlans = [];
@@ -613,7 +616,7 @@ class VslaGroupManifestController extends Controller
         $dueThisWeek = 0;
         
         foreach ($currentPlans as $plan) {
-            $deadline = Carbon::parse($plan->deadline);
+            $deadline = Carbon::parse($plan->due_date);
             $daysRemaining = Carbon::now()->diffInDays($deadline, false);
             
             if ($daysRemaining < 0) {
@@ -625,8 +628,8 @@ class VslaGroupManifestController extends Controller
             $currentActionPlans[] = [
                 'id' => $plan->id,
                 'description' => $plan->description,
-                'responsible_member' => $this->getUserSummary(User::find($plan->responsible_user_id)),
-                'deadline' => $plan->deadline,
+                'responsible_member' => $this->getUserSummary(User::find($plan->assigned_to_member_id)),
+                'deadline' => $plan->due_date,
                 'status' => $plan->status,
                 'priority' => $plan->priority ?? 'medium',
                 'created_at' => $plan->created_at ? $plan->created_at->format('Y-m-d') : null,
@@ -644,12 +647,13 @@ class VslaGroupManifestController extends Controller
         $completedActionPlans = [];
         
         foreach ($completedPlans as $plan) {
+            $user = User::find($plan->assigned_to_member_id);
             $completedActionPlans[] = [
                 'id' => $plan->id,
                 'description' => $plan->description,
-                'completed_date' => $plan->updated_at ? $plan->updated_at->format('Y-m-d') : null,
-                'completion_notes' => $plan->completion_notes,
-                'responsible_member' => User::find($plan->responsible_user_id)->name ?? 'N/A',
+                'completed_date' => $plan->completed_at ? $plan->completed_at->format('Y-m-d') : ($plan->updated_at ? $plan->updated_at->format('Y-m-d') : null),
+                'completion_notes' => $plan->completion_notes ?? '',
+                'responsible_member' => $user ? $user->name : 'N/A',
             ];
         }
         
@@ -978,6 +982,63 @@ class VslaGroupManifestController extends Controller
     }
     
     /**
+     * Get active loans for offline loan repayments
+     * Returns loans in 'active' or 'overdue' status with full details
+     */
+    private function getActiveLoans($group)
+    {
+        // Get active cycle
+        $cycle = Project::where('group_id', $group->id)
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
+            ->whereNotIn('status', ['completed', 'closed'])
+            ->first();
+        
+        if (!$cycle) {
+            return [];
+        }
+        
+        // Get active loans (not fully paid)
+        $loans = VslaLoan::with('borrower')
+            ->where('cycle_id', $cycle->id)
+            ->whereIn('status', ['active', 'overdue'])
+            ->where('balance', '>', 0)
+            ->orderBy('borrower_id')
+            ->orderBy('disbursement_date', 'desc')
+            ->get();
+        
+        return $loans->map(function($loan) {
+            // Generate loan_number if not set
+            $loanNumber = $loan->loan_number ?? ('LN-' . str_pad($loan->id, 5, '0', STR_PAD_LEFT));
+            
+            // Check if overdue
+            $isOverdue = false;
+            if ($loan->due_date) {
+                $dueDate = is_string($loan->due_date) ? \Carbon\Carbon::parse($loan->due_date) : $loan->due_date;
+                $isOverdue = $dueDate->isPast() && $loan->balance > 0;
+            }
+            
+            return [
+                'id' => $loan->id,
+                'loan_number' => $loanNumber,
+                'borrower_id' => $loan->borrower_id,
+                'borrower_name' => $loan->borrower ? $loan->borrower->name : 'Unknown',
+                'loan_amount' => (float) $loan->loan_amount,
+                'interest_rate' => (float) ($loan->interest_rate ?? 0),
+                'total_amount_due' => (float) $loan->total_amount_due,
+                'amount_paid' => (float) ($loan->amount_paid ?? 0),
+                'balance' => (float) $loan->balance,
+                'status' => $loan->status,
+                'disbursement_date' => $loan->disbursement_date ? $loan->disbursement_date->format('Y-m-d') : null,
+                'due_date' => $loan->due_date ? (is_string($loan->due_date) ? $loan->due_date : $loan->due_date->format('Y-m-d')) : null,
+                'duration_months' => (int) ($loan->duration_months ?? 1),
+                'purpose' => $loan->purpose ?? '',
+                'is_overdue' => $isOverdue,
+            ];
+        })->values()->toArray();
+    }
+    
+    /**
      * Get financial updates since date
      */
     private function getFinancialUpdatesSince($groupId, $sinceDate)
@@ -1032,5 +1093,49 @@ class VslaGroupManifestController extends Controller
     {
         // User must be member of the group or an admin
         return $user->group_id == $group->id || $user->user_type === 'admin';
+    }
+
+    /**
+     * Get active cycle for a group
+     */
+    private function getActiveCycle($group)
+    {
+        return Project::where('group_id', $group->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
+
+    /**
+     * Get social fund balance for group
+     */
+    private function getSocialFundBalance($group)
+    {
+        $cycle = $this->getActiveCycle($group);
+        
+        if (!$cycle) {
+            return [
+                'balance' => 0,
+                'total_contributions' => 0,
+                'total_withdrawals' => 0,
+                'transaction_count' => 0,
+            ];
+        }
+
+        $balance = SocialFundTransaction::getGroupBalance($group->id, $cycle->id);
+        
+        $query = SocialFundTransaction::where('group_id', $group->id)
+            ->where('cycle_id', $cycle->id);
+
+        $totalContributions = (clone $query)->where('transaction_type', 'contribution')->sum('amount');
+        $totalWithdrawals = abs((clone $query)->where('transaction_type', 'withdrawal')->sum('amount'));
+        $transactionCount = (clone $query)->count();
+
+        return [
+            'balance' => (float) $balance,
+            'total_contributions' => (float) $totalContributions,
+            'total_withdrawals' => (float) $totalWithdrawals,
+            'transaction_count' => $transactionCount,
+        ];
     }
 }

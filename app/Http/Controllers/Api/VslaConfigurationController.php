@@ -224,11 +224,16 @@ class VslaConfigurationController extends Controller
                 return $this->error('User not authenticated', 401);
             }
 
-            // Get user's group
+            // Get user's group - check if user is a leader or a regular member
             $group = FfsGroup::where('admin_id', $user->id)
                 ->orWhere('secretary_id', $user->id)
                 ->orWhere('treasurer_id', $user->id)
                 ->first();
+
+            // If not a leader, check if user is a regular member
+            if (!$group && !empty($user->group_id)) {
+                $group = FfsGroup::find($user->group_id);
+            }
 
             if (!$group) {
                 return $this->error('User is not part of any VSLA group', 404);
@@ -706,11 +711,12 @@ class VslaConfigurationController extends Controller
             if ($groupId) {
                 $group = FfsGroup::find($groupId);
                 
-                // Verify user has access to this group
+                // Verify user has access to this group (leader or regular member)
                 if (!$group || 
                     ($group->admin_id != $user->id && 
                      $group->secretary_id != $user->id && 
-                     $group->treasurer_id != $user->id)) {
+                     $group->treasurer_id != $user->id &&
+                     $user->group_id != $group->id)) {
                     return $this->error('User does not have access to this group', 403);
                 }
             } else {
@@ -718,6 +724,11 @@ class VslaConfigurationController extends Controller
                     ->orWhere('secretary_id', $user->id)
                     ->orWhere('treasurer_id', $user->id)
                     ->first();
+                
+                // If not a leader, check if user is a regular member
+                if (!$group && !empty($user->group_id)) {
+                    $group = FfsGroup::find($user->group_id);
+                }
             }
 
             if (!$group) {

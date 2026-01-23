@@ -55,12 +55,15 @@ class VslaMeetingController extends Controller
                 'total_social_fund_collected' => 'nullable|numeric|min:0',
                 'total_fines_collected' => 'nullable|numeric|min:0',
                 'total_loans_disbursed' => 'nullable|numeric|min:0',
+                'total_loans_repaid' => 'nullable|numeric|min:0',
                 'total_shares_sold' => 'nullable|integer|min:0',
                 'total_share_value' => 'nullable|numeric|min:0',
                 
                 // JSON data arrays
                 'attendance_data' => 'required|array',
                 'transactions_data' => 'nullable|array',
+                'loan_repayments_data' => 'nullable|array',
+                'social_fund_contributions_data' => 'nullable|array',
                 'loans_data' => 'nullable|array',
                 'share_purchases_data' => 'nullable|array',
                 'previous_action_plans_data' => 'nullable|array',
@@ -108,20 +111,35 @@ class VslaMeetingController extends Controller
                 ]);
             }
 
-            // Validate group belongs to cycle (if group_id provided)
-            if ($request->group_id) {
-                $group = FfsGroup::find($request->group_id);
-                if (!$group) {
-                    return $this->error('Group not found', 404);
-                }
-                
-                if ($group->type !== 'VSLA') {
-                    return $this->error('Group is not a VSLA group', 422);
+            // Get group_id from request or from authenticated user's profile
+            $groupId = $request->group_id;
+            if (!$groupId) {
+                $user = Auth::user();
+                if ($user && $user->group_id) {
+                    $groupId = $user->group_id;
                 }
             }
 
+            // Validate group (if group_id available)
+            if ($groupId) {
+                $group = FfsGroup::find($groupId);
+                if (!$group) {
+                    return $this->error('Group not found #' . $groupId, 404);
+                }
+                
+                // Only validate type if it's explicitly set and not VSLA
+                // This allows groups without explicit type to pass (backward compatibility)
+                if (!empty($group->type) && $group->type !== 'VSLA' && $group->type !== 'FFS') {
+                    return $this->error('Group type "' . $group->type . '" is not supported for VSLA meetings', 422);
+                }
+            } else {
+                // No group_id available from request or user profile
+                // This is acceptable - group_id is optional
+                $groupId = null;
+            }
+
             // Auto-generate meeting number (server-controlled)
-            $meetingNumber = $this->generateMeetingNumber($request->cycle_id, $request->group_id);
+            $meetingNumber = $this->generateMeetingNumber($request->cycle_id, $groupId);
 
             // Get authenticated user ID (server-controlled)
             // Try multiple methods: Auth facade, request user, request userModel, or request parameter
@@ -137,7 +155,7 @@ class VslaMeetingController extends Controller
             $meeting = VslaMeeting::create([
                 'local_id' => $request->local_id,
                 'cycle_id' => $request->cycle_id,
-                'group_id' => $request->group_id,
+                'group_id' => $groupId,
                 'meeting_date' => $request->meeting_date,
                 'meeting_number' => $meetingNumber,
                 'notes' => $request->notes,
@@ -148,10 +166,13 @@ class VslaMeetingController extends Controller
                 'total_social_fund_collected' => $request->total_social_fund_collected ?? 0,
                 'total_fines_collected' => $request->total_fines_collected ?? 0,
                 'total_loans_disbursed' => $request->total_loans_disbursed ?? 0,
+                'total_loans_repaid' => $request->total_loans_repaid ?? 0,
                 'total_shares_sold' => $request->total_shares_sold ?? 0,
                 'total_share_value' => $request->total_share_value ?? 0,
                 'attendance_data' => $request->attendance_data,
                 'transactions_data' => $request->transactions_data ?? [],
+                'loan_repayments_data' => $request->loan_repayments_data ?? [],
+                'social_fund_contributions_data' => $request->social_fund_contributions_data ?? [],
                 'loans_data' => $request->loans_data ?? [],
                 'share_purchases_data' => $request->share_purchases_data ?? [],
                 'previous_action_plans_data' => $request->previous_action_plans_data ?? [],

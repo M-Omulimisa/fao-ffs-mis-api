@@ -10,6 +10,7 @@ use App\Models\ProjectShare;
 use App\Models\AccountTransaction;
 use App\Models\LoanTransaction;
 use App\Models\VslaLoan;
+use App\Models\SocialFundTransaction;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -81,14 +82,28 @@ class MeetingProcessingService
             }
             $warnings = array_merge($warnings, $sharesResult['warnings']);
 
-            // Step 5: Process loan disbursements
+            // Step 5: Process loan repayments
+            $loanRepaymentsResult = $this->processLoanRepayments($meeting);
+            if (!$loanRepaymentsResult['success']) {
+                $errors = array_merge($errors, $loanRepaymentsResult['errors']);
+            }
+            $warnings = array_merge($warnings, $loanRepaymentsResult['warnings']);
+
+            // Step 5.5: Process social fund contributions
+            $socialFundResult = $this->processSocialFundContributions($meeting);
+            if (!$socialFundResult['success']) {
+                $errors = array_merge($errors, $socialFundResult['errors']);
+            }
+            $warnings = array_merge($warnings, $socialFundResult['warnings']);
+
+            // Step 6: Process loan disbursements
             $loansResult = $this->processLoans($meeting);
             if (!$loansResult['success']) {
                 $errors = array_merge($errors, $loansResult['errors']);
             }
             $warnings = array_merge($warnings, $loansResult['warnings']);
 
-            // Step 6: Process action plans
+            // Step 7: Process action plans
             $actionPlansResult = $this->processActionPlans($meeting);
             if (!$actionPlansResult['success']) {
                 $errors = array_merge($errors, $actionPlansResult['errors']);
@@ -525,6 +540,198 @@ class MeetingProcessingService
     }
 
     /**
+     * Process loan repayments from meeting
+     * 
+     * Mobile app sends: loan_id, amount, payment_method, payment_date, notes
+     * Updates: VslaLoan (amount_paid, balance, status), creates LoanTransaction, creates AccountTransaction
+     */
+    protected function processLoanRepayments(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            $repaymentsData = $meeting->loan_repayments_data ?? [];
+            
+            foreach ($repaymentsData as $repayment) {
+                $loanId = $repayment['loan_id'] ?? null;
+                $amount = $repayment['amount'] ?? 0;
+                $paymentMethod = $repayment['payment_method'] ?? 'cash';
+                $paymentDate = $repayment['payment_date'] ?? $meeting->meeting_date;
+                $notes = $repayment['notes'] ?? null;
+
+                if (!$loanId) {
+                    $warnings[] = [
+                        'type' => 'missing_loan_id',
+                        'message' => 'Loan repayment missing loan_id',
+                        'suggestion' => 'Skipping this repayment entry'
+                    ];
+                    continue;
+                }
+
+                if ($amount <= 0) {
+                    $warnings[] = [
+                        'type' => 'invalid_repayment_amount',
+                        'message' => "Repayment amount must be greater than 0 for loan ID: {$loanId}",
+                        'suggestion' => 'Skipping this repayment entry'
+                    ];
+                    continue;
+                }
+
+                // Find the loan
+                $loan = VslaLoan::find($loanId);
+                if (!$loan) {
+                    $warnings[] = [
+                        'type' => 'loan_not_found',
+                        'message' => "Loan not found: ID {$loanId}",
+                        'suggestion' => 'Loan repayment needs verification'
+                    ];
+                    continue;
+                }
+
+                // Validate payment amount doesn't exceed balance
+                if ($amount > $loan->balance) {
+                    $warnings[] = [
+                        'type' => 'overpayment',
+                        'message' => "Repayment amount (UGX " . number_format($amount, 2) . ") exceeds loan balance (UGX " . number_format($loan->balance, 2) . ") for {$loan->borrower_name}",
+                        'suggestion' => 'Adjusting payment to loan balance'
+                    ];
+                    $amount = $loan->balance;
+                }
+
+                // Process the repayment
+                $result = $this->createLoanRepayment($meeting, $loan, $amount, $paymentMethod, $paymentDate, $notes);
+                
+                if (!$result['success']) {
+                    $errors = array_merge($errors, $result['errors']);
+                } else if (!empty($result['warnings'])) {
+                    $warnings = array_merge($warnings, $result['warnings']);
+                }
+            }
+
+            return ['success' => empty($errors), 'errors' => $errors, 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'loan_repayment_processing_error',
+                'message' => 'Failed to process loan repayments: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Create loan repayment with transaction tracking
+     * 
+     * Updates VslaLoan:
+     * - Increases amount_paid
+     * - Decreases balance
+     * - Updates status to 'paid' if balance reaches 0
+     * 
+     * Creates LoanTransaction:
+     * - Records repayment with payment method
+     * - Links to loan
+     * 
+     * Creates AccountTransactions (2 - double entry):
+     * - Group: +amount (cash in)
+     * - Member: +amount (debt reduced)
+     */
+    protected function createLoanRepayment(
+        VslaMeeting $meeting,
+        VslaLoan $loan,
+        float $amount,
+        string $paymentMethod,
+        string $paymentDate,
+        ?string $notes
+    ): array {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            // Calculate principal and interest portions
+            // For simplicity, we'll apply payment to reduce balance directly
+            // More sophisticated systems would track principal vs interest separately
+            $balanceBefore = $loan->balance;
+            $balanceAfter = max(0, $balanceBefore - $amount);
+
+            // Update loan
+            $loan->amount_paid += $amount;
+            $loan->balance = $balanceAfter;
+            
+            // Update status if fully paid
+            if ($loan->balance <= 0) {
+                $loan->status = 'paid';
+            }
+            
+            $loan->save();
+
+            // Create LoanTransaction record
+            LoanTransaction::create([
+                'loan_id' => $loan->id,
+                'cycle_id' => $meeting->cycle_id,
+                'meeting_id' => $meeting->id,
+                'borrower_id' => $loan->borrower_id,
+                'transaction_type' => 'repayment',
+                'payment_method' => $paymentMethod,
+                'amount' => $amount,
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceAfter,
+                'transaction_date' => $paymentDate,
+                'description' => $notes ?? "Repayment of UGX " . number_format($amount, 2) . " via {$paymentMethod}",
+                'created_by_id' => $meeting->created_by_id,
+            ]);
+
+            // Create AccountTransactions (double-entry)
+            // Transaction 1: Group receives cash (+amount)
+            $groupTransaction = AccountTransaction::create([
+                'user_id' => $meeting->created_by_id, // Use creator's ID for group transactions
+                'owner_type' => 'group',
+                'group_id' => $meeting->group_id,
+                'meeting_id' => $meeting->id,
+                'cycle_id' => $meeting->cycle_id,
+                'account_type' => 'loan_repayment',
+                'source' => 'deposit',
+                'amount' => $amount, // Positive = cash in
+                'transaction_date' => $paymentDate,
+                'description' => "{$loan->borrower_name} repaid loan {$loan->loan_number} via {$paymentMethod}" . ($notes ? " - {$notes}" : ""),
+                'is_contra_entry' => true,
+                'created_by_id' => $meeting->created_by_id,
+            ]);
+
+            // Transaction 2: Member's debt reduced (+amount = less debt)
+            $memberTransaction = AccountTransaction::create([
+                'user_id' => $loan->borrower_id,
+                'owner_type' => 'member',
+                'group_id' => $meeting->group_id,
+                'meeting_id' => $meeting->id,
+                'cycle_id' => $meeting->cycle_id,
+                'account_type' => 'loan_repayment',
+                'source' => 'withdrawal',
+                'amount' => $amount, // Positive = debt reduced
+                'transaction_date' => $paymentDate,
+                'description' => "Repaid loan {$loan->loan_number} via {$paymentMethod}" . ($notes ? " - {$notes}" : ""),
+                'is_contra_entry' => true,
+                'contra_entry_id' => $groupTransaction->id,
+                'created_by_id' => $meeting->created_by_id,
+            ]);
+
+            // Link group transaction to member transaction
+            $groupTransaction->update([
+                'contra_entry_id' => $memberTransaction->id
+            ]);
+
+            return ['success' => true, 'errors' => $errors, 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'loan_repayment_creation_error',
+                'message' => 'Failed to create loan repayment: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
      * Process loan disbursements
      */
     /**
@@ -778,7 +985,8 @@ class MeetingProcessingService
             $previousPlans = $meeting->previous_action_plans_data ?? [];
             
             foreach ($previousPlans as $planData) {
-                $localId = $planData['planId'] ?? null;
+                // Support multiple field name formats
+                $localId = $planData['planId'] ?? $planData['action_plan_id'] ?? $planData['local_id'] ?? null;
                 
                 if (!$localId) {
                     continue;
@@ -789,14 +997,14 @@ class MeetingProcessingService
                 if (!$plan) {
                     $warnings[] = [
                         'type' => 'plan_not_found',
-                        'message' => "Previous action plan not found: {$planData['action']}",
+                        'message' => "Previous action plan not found: " . ($planData['action'] ?? $planData['description'] ?? 'Unknown'),
                         'suggestion' => 'Plan may have been created offline'
                     ];
                     continue;
                 }
 
-                // Update status based on completion
-                $status = $planData['completionStatus'] ?? $planData['status'] ?? $plan->status;
+                // Update status based on completion - support multiple field formats
+                $status = $planData['completionStatus'] ?? $planData['completion_status'] ?? $planData['status'] ?? $plan->status;
                 $notes = $planData['completionNotes'] ?? $planData['completion_notes'] ?? null;
                 
                 // Update the plan
@@ -884,6 +1092,73 @@ class MeetingProcessingService
             $errors[] = [
                 'type' => 'action_plan_processing_error',
                 'message' => 'Failed to process action plans: ' . $e->getMessage()
+            ];
+            return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
+        }
+    }
+
+    /**
+     * Process social fund contributions from offline meeting
+     * 
+     * Creates SocialFundTransaction records for each contributor
+     * Similar to attendance - members either contributed or didn't
+     */
+    protected function processSocialFundContributions(VslaMeeting $meeting): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            $contributionsData = $meeting->social_fund_contributions_data ?? [];
+            
+            // If no contributions data, skip
+            if (empty($contributionsData)) {
+                return ['success' => true, 'errors' => [], 'warnings' => []];
+            }
+
+            foreach ($contributionsData as $contribution) {
+                $memberId = $contribution['member_id'] ?? null;
+                $amount = $contribution['amount'] ?? 0;
+                $contributed = $contribution['contributed'] ?? false;
+
+                // Skip if member didn't contribute or amount is 0
+                if (!$contributed || $amount <= 0) {
+                    continue;
+                }
+
+                // Validate member exists
+                $member = User::find($memberId);
+                if (!$member) {
+                    $memberName = $contribution['member_name'] ?? "ID: {$memberId}";
+                    $warnings[] = [
+                        'type' => 'member_not_found',
+                        'message' => "Member not found for social fund contribution: {$memberName}",
+                        'suggestion' => 'Contribution needs verification'
+                    ];
+                    continue;
+                }
+
+                // Create social fund transaction
+                SocialFundTransaction::create([
+                    'group_id' => $meeting->group_id,
+                    'cycle_id' => $meeting->cycle_id,
+                    'member_id' => $member->id,
+                    'meeting_id' => $meeting->id,
+                    'transaction_type' => 'contribution',
+                    'amount' => $amount,
+                    'transaction_date' => $meeting->meeting_date,
+                    'description' => "Social fund contribution from {$member->name} at Meeting #{$meeting->meeting_number}",
+                    'reason' => $contribution['notes'] ?? null,
+                    'created_by_id' => $meeting->created_by_id,
+                ]);
+            }
+
+            return ['success' => true, 'errors' => [], 'warnings' => $warnings];
+
+        } catch (Exception $e) {
+            $errors[] = [
+                'type' => 'social_fund_processing_error',
+                'message' => 'Failed to process social fund contributions: ' . $e->getMessage()
             ];
             return ['success' => false, 'errors' => $errors, 'warnings' => $warnings];
         }

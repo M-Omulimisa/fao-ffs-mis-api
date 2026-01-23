@@ -205,6 +205,7 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
 // ========================================
 use App\Http\Controllers\Api\VslaMeetingController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\VslaLoansController;
 
 Route::prefix('vsla-meetings')->middleware(EnsureTokenIsValid::class)->group(function () {
     Route::post('/submit', [VslaMeetingController::class, 'submit']); // Submit offline meeting from mobile app
@@ -214,6 +215,32 @@ Route::prefix('vsla-meetings')->middleware(EnsureTokenIsValid::class)->group(fun
     Route::put('/{id}/reprocess', [VslaMeetingController::class, 'reprocess']); // Reprocess failed meeting
     Route::delete('/{id}', [VslaMeetingController::class, 'destroy']); // Delete pending meeting (admin only)
 });
+
+// ========================================
+// VSLA LOANS - Simplified loan management
+// ========================================
+Route::prefix('vsla/loans')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/', [VslaLoansController::class, 'index']); // List loans for cycle
+    Route::get('/{id}', [VslaLoansController::class, 'show']); // Get loan details
+    Route::post('/{id}/repayments', [VslaLoansController::class, 'recordRepayment']); // Record loan repayment
+});
+
+// ========================================
+// VSLA SOCIAL FUND - Track contributions and withdrawals
+// ========================================
+use App\Http\Controllers\Api\SocialFundTransactionController;
+use App\Http\Controllers\Api\VslaGroupStatsController;
+
+Route::prefix('social-fund')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/transactions', [SocialFundTransactionController::class, 'index']); // List transactions
+    Route::post('/transactions', [SocialFundTransactionController::class, 'store']); // Create transaction (contribution/withdrawal)
+    Route::get('/transactions/{id}', [SocialFundTransactionController::class, 'show']); // Get transaction details
+    Route::get('/balance', [SocialFundTransactionController::class, 'getBalance']); // Get group balance
+});
+
+// VSLA GROUP STATS
+// ========================================
+Route::get('vsla-groups/stats', [VslaGroupStatsController::class, 'getGroupStats'])->middleware(EnsureTokenIsValid::class);
 
 // VSLA MEETINGS - Alternative route prefix for mobile app compatibility
 Route::prefix('vsla/meetings')->middleware(EnsureTokenIsValid::class)->group(function () {
