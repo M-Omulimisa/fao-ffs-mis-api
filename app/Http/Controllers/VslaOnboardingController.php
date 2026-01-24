@@ -161,10 +161,55 @@ class VslaOnboardingController extends Controller
             }
             
             // ========== VALIDATION: CHECK ONBOARDING STATUS ==========
-            // Security check: ensure user hasn't already completed onboarding
+            // If user has already completed onboarding, just update their credentials and return login
             if ($user->onboarding_step === 'step_7_complete') {
-                DB::rollBack();
-                return $this->error('This account has already completed onboarding. Please login instead.');
+                // Update password if provided
+                if ($request->filled('password')) {
+                    $user->password = Hash::make($request->password);
+                }
+                
+                // Update other fields if provided
+                if ($request->filled('name')) {
+                    $user->name = $request->name;
+                    $user->first_name = $request->name;
+                }
+                if ($request->filled('email')) {
+                    $user->email = $request->email;
+                }
+                if ($request->filled('national_id_number')) {
+                    $user->national_id_number = $request->national_id_number;
+                }
+                
+                $user->saveQuietly();
+                
+                // Generate token for auto-login
+                JWTAuth::factory()->setTTL(60 * 24 * 30 * 365);
+                $token = auth('api')->login($user);
+                
+                // Refresh user to get latest data
+                $user->refresh();
+                
+                // Prepare clean user data
+                $userData = $user->toArray();
+                $userData['token'] = $token;
+                $userData['remember_token'] = $token;
+                
+                // Remove relationship objects
+                unset($userData['district']);
+                unset($userData['subcounty']);
+                unset($userData['parish']);
+                unset($userData['group']);
+                
+                DB::commit();
+                
+                return $this->success(
+                    'Welcome back! Your credentials have been updated.',
+                    [
+                        'user' => $userData,
+                        'token' => $token,
+                        'already_onboarded' => true
+                    ]
+                );
             }
 
             // ========== UPDATE EXISTING USER PROFILE ==========
@@ -301,12 +346,6 @@ class VslaOnboardingController extends Controller
         // VALIDATION 3: User must be marked as chairperson
         if ($user->is_group_admin !== 'Yes') {
             return $this->error('Access denied. Only registered chairpersons can create VSLA groups.');
-        }
-
-        // VALIDATION 4: User must have completed Step 3
-        $allowedSteps = ['step_3_registration', 'step_4_group'];
-        if (!in_array($user->onboarding_step, $allowedSteps)) {
-            return $this->error('Please complete your profile registration (Step 3) before creating a group.');
         }
 
         // ========== INPUT VALIDATION ==========

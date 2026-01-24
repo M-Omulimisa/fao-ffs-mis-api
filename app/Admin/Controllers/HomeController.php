@@ -27,65 +27,62 @@ class HomeController extends Controller
         Admin::script('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
         
         Admin::style('
+            /* Flat, Compact Design - Square Corners */
             .info-box { border: none; background: #05179F; color: white; }
-            .small-box { border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px; }
-            .box { border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-            .box-header { background: linear-gradient(135deg, #05179F 0%, #0652DD 100%); color: white; border-bottom: none; border-radius: 8px 8px 0 0; }
-            .box-header .box-title { color: white; font-weight: 600; }
-            .box-body { padding: 20px; }
+            .small-box { border: none; box-shadow: none; border-radius: 0; }
+            .box { border: 1px solid #ddd; border-radius: 0; box-shadow: none; }
+            .box-header { background: #05179F; color: white; border-bottom: 1px solid #ddd; border-radius: 0; padding: 10px 15px; }
+            .box-header .box-title { color: white; font-weight: 600; font-size: 14px; }
+            .box-body { padding: 15px; }
+            
+            /* Compact Stat Cards */
             .stat-card {
                 background: white;
-                border-radius: 12px;
-                padding: 24px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-                transition: all 0.3s ease;
-                border: 1px solid #e8e8e8;
+                border: 1px solid #ddd;
+                padding: 12px;
+                margin-bottom: 0;
             }
-            .stat-card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-            }
-            .stat-number {
-                font-size: 36px;
-                font-weight: 700;
-                margin: 10px 0;
-                background: linear-gradient(135deg, #05179F, #0652DD);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-            .stat-label {
-                font-size: 14px;
-                color: #666;
-                font-weight: 500;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            .stat-detail {
-                font-size: 13px;
-                color: #999;
-                margin-top: 8px;
+            .stat-card-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 6px;
             }
             .stat-icon {
-                width: 56px;
-                height: 56px;
-                border-radius: 12px;
+                width: 36px;
+                height: 36px;
+                background: #05179F;
+                color: white;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                font-size: 16px;
+                margin-right: 10px;
+                flex-shrink: 0;
+            }
+            .stat-content {
+                flex: 1;
+                min-width: 0;
+            }
+            .stat-number {
                 font-size: 24px;
-                color: white;
-                margin-bottom: 12px;
+                font-weight: 700;
+                color: #05179F;
+                line-height: 1.1;
             }
-            .trend-badge {
-                display: inline-block;
-                padding: 4px 10px;
-                border-radius: 12px;
-                font-size: 12px;
+            .stat-label {
+                font-size: 11px;
+                color: #666;
                 font-weight: 600;
-                margin-top: 8px;
+                text-transform: uppercase;
+                margin-top: 3px;
+                line-height: 1.2;
             }
-            .trend-up { background: #e8f5e9; color: #4caf50; }
-            .trend-down { background: #ffebee; color: #f44336; }
+            .stat-detail {
+                font-size: 10px;
+                color: #999;
+                margin-top: 4px;
+                line-height: 1.3;
+            }
         ');
         
         return $content
@@ -120,12 +117,10 @@ class HomeController extends Controller
             $lastMonthGroups = FfsGroup::whereMonth('created_at', now()->subMonth()->month)->count();
             
             $content = $this->renderModernKPICard(
+                'fa-users',
                 $totalGroups,
                 'FFS Groups',
-                'Active in 9 districts',
-                'fa-users',
-                $lastMonthGroups > 0 ? "+{$lastMonthGroups} last month" : 'No change',
-                '#05179F'
+                'Active in 9 districts'
             );
             $box = new Box('', $content);
             $column->append($box->style('solid'));
@@ -140,12 +135,10 @@ class HomeController extends Controller
             $malePercent = $totalMembers > 0 ? round(($maleMembers / $totalMembers) * 100) : 0;
             
             $content = $this->renderModernKPICard(
+                'fa-user',
                 $totalMembers,
                 'Registered Members',
-                "{$femalePercent}% Female | {$malePercent}% Male",
-                'fa-user',
-                'Active members',
-                '#4caf50'
+                "{$femalePercent}% Female | {$malePercent}% Male"
             );
             $box = new Box('', $content);
             $column->append($box->style('solid'));
@@ -157,12 +150,10 @@ class HomeController extends Controller
             $totalSavings = AccountTransaction::where('account_type', 'share')->sum('amount');
             
             $content = $this->renderModernKPICard(
+                'fa-piggy-bank',
                 $vslaGroups,
                 'VSLA Groups',
-                'UGX ' . number_format($totalSavings) . ' total savings',
-                'fa-piggy-bank',
-                'Financial inclusion',
-                '#ff9800'
+                'UGX ' . number_format($totalSavings) . ' total savings'
             );
             $box = new Box('', $content);
             $column->append($box->style('solid'));
@@ -174,12 +165,10 @@ class HomeController extends Controller
             $publishedPosts = AdvisoryPost::where('status', 'published')->count();
             
             $content = $this->renderModernKPICard(
+                'fa-newspaper',
                 $publishedPosts,
                 'Advisory Posts',
-                "{$totalPosts} total posts",
-                'fa-newspaper',
-                'Knowledge sharing',
-                '#2196f3'
+                "{$totalPosts} total posts"
             );
             $box = new Box('', $content);
             $column->append($box->style('solid'));
@@ -201,43 +190,41 @@ class HomeController extends Controller
             $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->count();
             
             $content = "
-                <div style='background: linear-gradient(135deg, #05179F 0%, #0652DD 100%); padding: 30px; border-radius: 12px; color: white; margin-bottom: 20px;'>
-                    <div class='row'>
-                        <div class='col-md-3'>
+                <div style='background: #05179F; padding: 20px; color: white;'>
+                    <div class='row' style='margin: 0;'>
+                        <div class='col-md-3' style='padding: 10px; border-right: 1px solid rgba(255,255,255,0.2);'>
                             <div style='text-align: center;'>
-                                <i class='fa fa-piggy-bank' style='font-size: 32px; opacity: 0.9;'></i>
-                                <h2 style='margin: 15px 0 5px 0; color: white; font-weight: 700;'>UGX " . number_format($totalSavings) . "</h2>
-                                <p style='margin: 0; opacity: 0.9; font-size: 13px;'>Total Savings</p>
+                                <i class='fa fa-piggy-bank' style='font-size: 24px;'></i>
+                                <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 24px;'>UGX " . number_format($totalSavings) . "</h3>
+                                <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Total Savings</p>
                             </div>
                         </div>
-                        <div class='col-md-3'>
-                            <div style='text-align: center; border-left: 1px solid rgba(255,255,255,0.2);'>
-                                <i class='fa fa-hand-holding-usd' style='font-size: 32px; opacity: 0.9;'></i>
-                                <h2 style='margin: 15px 0 5px 0; color: white; font-weight: 700;'>UGX " . number_format($activeLoans) . "</h2>
-                                <p style='margin: 0; opacity: 0.9; font-size: 13px;'>Active Loans Portfolio</p>
+                        <div class='col-md-3' style='padding: 10px; border-right: 1px solid rgba(255,255,255,0.2);'>
+                            <div style='text-align: center;'>
+                                <i class='fa fa-hand-holding-usd' style='font-size: 24px;'></i>
+                                <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 24px;'>UGX " . number_format($activeLoans) . "</h3>
+                                <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Active Loans</p>
                             </div>
                         </div>
-                        <div class='col-md-3'>
-                            <div style='text-align: center; border-left: 1px solid rgba(255,255,255,0.2);'>
-                                <i class='fa fa-heart' style='font-size: 32px; opacity: 0.9;'></i>
-                                <h2 style='margin: 15px 0 5px 0; color: white; font-weight: 700;'>UGX " . number_format($socialFund) . "</h2>
-                                <p style='margin: 0; opacity: 0.9; font-size: 13px;'>Social Fund Balance</p>
+                        <div class='col-md-3' style='padding: 10px; border-right: 1px solid rgba(255,255,255,0.2);'>
+                            <div style='text-align: center;'>
+                                <i class='fa fa-heart' style='font-size: 24px;'></i>
+                                <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 24px;'>UGX " . number_format($socialFund) . "</h3>
+                                <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Social Fund</p>
                             </div>
                         </div>
-                        <div class='col-md-3'>
-                            <div style='text-align: center; border-left: 1px solid rgba(255,255,255,0.2);'>
-                                <i class='fa fa-percentage' style='font-size: 32px; opacity: 0.9;'></i>
-                                <h2 style='margin: 15px 0 5px 0; color: white; font-weight: 700;'>{$repaymentRate}%</h2>
-                                <p style='margin: 0; opacity: 0.9; font-size: 13px;'>Loan Repayment Rate</p>
+                        <div class='col-md-3' style='padding: 10px;'>
+                            <div style='text-align: center;'>
+                                <i class='fa fa-percentage' style='font-size: 24px;'></i>
+                                <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 24px;'>{$repaymentRate}%</h3>
+                                <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Repayment Rate</p>
                             </div>
                         </div>
                     </div>
-                    <div style='text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);'>
-                        <p style='margin: 0; font-size: 14px; opacity: 0.9;'>
-                            <i class='fa fa-sync-alt'></i> {$activeCycles} Active Cycles | 
-                            <i class='fa fa-calendar'></i> UGX " . number_format($totalDisbursed) . " Total Disbursed | 
-                            <i class='fa fa-check-circle'></i> UGX " . number_format($totalRepaid) . " Repaid
-                        </p>
+                    <div style='text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);'>
+                        <span style='font-size: 11px; margin-right: 15px;'><i class='fa fa-sync-alt'></i> {$activeCycles} Active Cycles</span>
+                        <span style='font-size: 11px; margin-right: 15px;'><i class='fa fa-arrow-up'></i> UGX " . number_format($totalDisbursed) . " Disbursed</span>
+                        <span style='font-size: 11px;'><i class='fa fa-check-circle'></i> UGX " . number_format($totalRepaid) . " Repaid</span>
                     </div>
                 </div>
             ";
@@ -406,26 +393,26 @@ class HomeController extends Controller
             $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->count();
             
             $content = "
-                <div style='text-align: center; padding: 20px;'>
-                    <div style='background: linear-gradient(135deg, #05179F, #0652DD); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px;'>
-                        <i class='fa fa-calendar-alt' style='font-size: 36px; opacity: 0.9;'></i>
-                        <h2 style='margin: 15px 0 5px 0; color: white; font-weight: 700;'>{$totalMeetings}</h2>
-                        <p style='margin: 0; opacity: 0.9;'>Total Meetings</p>
+                <div style='padding: 15px;'>
+                    <div style='background: #05179F; color: white; padding: 15px; text-align: center; margin-bottom: 15px;'>
+                        <i class='fa fa-calendar-alt' style='font-size: 24px;'></i>
+                        <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 28px;'>{$totalMeetings}</h3>
+                        <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Total Meetings</p>
                     </div>
                     
-                    <table class='table table-borderless' style='margin-bottom: 0;'>
+                    <table class='table' style='margin-bottom: 0;'>
                         <tbody>
-                            <tr style='border-bottom: 1px solid #e0e0e0;'>
-                                <td style='padding: 12px;'><i class='fa fa-calendar-day' style='color: #05179F;'></i> <strong>This Week</strong></td>
-                                <td class='text-right' style='padding: 12px;'><span style='background: #e3f2fd; color: #2196f3; padding: 4px 12px; border-radius: 12px; font-weight: 600;'>{$thisWeekMeetings}</span></td>
-                            </tr>
-                            <tr style='border-bottom: 1px solid #e0e0e0;'>
-                                <td style='padding: 12px;'><i class='fa fa-calendar-week' style='color: #05179F;'></i> <strong>This Month</strong></td>
-                                <td class='text-right' style='padding: 12px;'><span style='background: #e8f5e9; color: #4caf50; padding: 4px 12px; border-radius: 12px; font-weight: 600;'>{$thisMonthMeetings}</span></td>
+                            <tr>
+                                <td style='padding: 8px; border-top: none;'><i class='fa fa-calendar-day' style='color: #05179F;'></i> This Week</td>
+                                <td class='text-right' style='padding: 8px; border-top: none;'><strong>{$thisWeekMeetings}</strong></td>
                             </tr>
                             <tr>
-                                <td style='padding: 12px;'><i class='fa fa-sync-alt' style='color: #05179F;'></i> <strong>Active Cycles</strong></td>
-                                <td class='text-right' style='padding: 12px;'><span style='background: #fff3e0; color: #ff9800; padding: 4px 12px; border-radius: 12px; font-weight: 600;'>{$activeCycles}</span></td>
+                                <td style='padding: 8px;'><i class='fa fa-calendar-week' style='color: #4caf50;'></i> This Month</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$thisMonthMeetings}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-sync-alt' style='color: #ff9800;'></i> Active Cycles</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$activeCycles}</strong></td>
                             </tr>
                         </tbody>
                     </table>
@@ -445,26 +432,26 @@ class HomeController extends Controller
             $repaymentRate = $totalDisbursed > 0 ? round(($totalRepaid / $totalDisbursed) * 100, 1) : 0;
             
             $content = "
-                <div style='text-align: center; padding: 20px;'>
-                    <div style='background: linear-gradient(135deg, #4caf50, #8bc34a); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px;'>
-                        <i class='fa fa-hand-holding-usd' style='font-size: 36px; opacity: 0.9;'></i>
-                        <h2 style='margin: 15px 0 5px 0; color: white; font-weight: 700;'>{$activeLoansCount}</h2>
-                        <p style='margin: 0; opacity: 0.9;'>Active Loans</p>
+                <div style='padding: 15px;'>
+                    <div style='background: #4caf50; color: white; padding: 15px; text-align: center; margin-bottom: 15px;'>
+                        <i class='fa fa-hand-holding-usd' style='font-size: 24px;'></i>
+                        <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 28px;'>{$activeLoansCount}</h3>
+                        <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Active Loans</p>
                     </div>
                     
-                    <table class='table table-borderless' style='margin-bottom: 0;'>
+                    <table class='table' style='margin-bottom: 0;'>
                         <tbody>
-                            <tr style='border-bottom: 1px solid #e0e0e0;'>
-                                <td style='padding: 12px;'><i class='fa fa-money-bill-wave' style='color: #4caf50;'></i> <strong>Portfolio Value</strong></td>
-                                <td class='text-right' style='padding: 12px; font-weight: 600;'>UGX " . number_format($activeLoansAmount) . "</td>
-                            </tr>
-                            <tr style='border-bottom: 1px solid #e0e0e0;'>
-                                <td style='padding: 12px;'><i class='fa fa-arrow-up' style='color: #4caf50;'></i> <strong>Total Disbursed</strong></td>
-                                <td class='text-right' style='padding: 12px;'>UGX " . number_format($totalDisbursed) . "</td>
+                            <tr>
+                                <td style='padding: 8px; border-top: none;'><i class='fa fa-money-bill-wave' style='color: #4caf50;'></i> Portfolio</td>
+                                <td class='text-right' style='padding: 8px; border-top: none;'><strong>UGX " . number_format($activeLoansAmount) . "</strong></td>
                             </tr>
                             <tr>
-                                <td style='padding: 12px;'><i class='fa fa-percentage' style='color: #4caf50;'></i> <strong>Repayment Rate</strong></td>
-                                <td class='text-right' style='padding: 12px;'><span style='background: #e8f5e9; color: #4caf50; padding: 4px 12px; border-radius: 12px; font-weight: 700;'>{$repaymentRate}%</span></td>
+                                <td style='padding: 8px;'><i class='fa fa-arrow-up' style='color: #4caf50;'></i> Disbursed</td>
+                                <td class='text-right' style='padding: 8px;'><strong>UGX " . number_format($totalDisbursed) . "</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-percentage' style='color: #4caf50;'></i> Repayment</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$repaymentRate}%</strong></td>
                             </tr>
                         </tbody>
                     </table>
@@ -483,26 +470,26 @@ class HomeController extends Controller
             $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->count();
             
             $content = "
-                <div style='text-align: center; padding: 20px;'>
-                    <div style='background: linear-gradient(135deg, #ff9800, #ffc107); color: white; padding: 30px; border-radius: 12px; margin-bottom: 20px;'>
-                        <i class='fa fa-chart-line' style='font-size: 36px; opacity: 0.9;'></i>
-                        <h2 style='margin: 15px 0 5px 0; color: white; font-weight: 700;'>{$totalGroups}</h2>
-                        <p style='margin: 0; opacity: 0.9;'>Total Groups</p>
+                <div style='padding: 15px;'>
+                    <div style='background: #ff9800; color: white; padding: 20px; text-align: center; margin-bottom: 15px;'>
+                        <i class='fa fa-chart-line' style='font-size: 28px;'></i>
+                        <h2 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 32px;'>{$totalGroups}</h2>
+                        <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Total Groups</p>
                     </div>
                     
-                    <table class='table table-borderless' style='margin-bottom: 0;'>
+                    <table class='table' style='margin-bottom: 0;'>
                         <tbody>
-                            <tr style='border-bottom: 1px solid #e0e0e0;'>
-                                <td style='padding: 12px;'><i class='fa fa-users' style='color: #ff9800;'></i> <strong>Members</strong></td>
-                                <td class='text-right' style='padding: 12px;'><span style='background: #fff3e0; color: #ff9800; padding: 4px 12px; border-radius: 12px; font-weight: 600;'>{$totalMembers}</span></td>
-                            </tr>
-                            <tr style='border-bottom: 1px solid #e0e0e0;'>
-                                <td style='padding: 12px;'><i class='fa fa-newspaper' style='color: #ff9800;'></i> <strong>Advisory Posts</strong></td>
-                                <td class='text-right' style='padding: 12px;'><span style='background: #fff3e0; color: #ff9800; padding: 4px 12px; border-radius: 12px; font-weight: 600;'>{$totalPosts}</span></td>
+                            <tr>
+                                <td style='padding: 8px; border-top: none;'><i class='fa fa-users' style='color: #ff9800;'></i> Members</td>
+                                <td class='text-right' style='padding: 8px; border-top: none;'><strong>{$totalMembers}</strong></td>
                             </tr>
                             <tr>
-                                <td style='padding: 12px;'><i class='fa fa-sync-alt' style='color: #ff9800;'></i> <strong>Active Cycles</strong></td>
-                                <td class='text-right' style='padding: 12px;'><span style='background: #fff3e0; color: #ff9800; padding: 4px 12px; border-radius: 12px; font-weight: 600;'>{$activeCycles}</span></td>
+                                <td style='padding: 8px;'><i class='fa fa-newspaper' style='color: #2196f3;'></i> Advisory Posts</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$totalPosts}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-sync-alt' style='color: #4caf50;'></i> Active Cycles</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$activeCycles}</strong></td>
                             </tr>
                         </tbody>
                     </table>
@@ -567,75 +554,50 @@ class HomeController extends Controller
             
             $content = "
                 <style>
-                    .activity-timeline {
-                        padding: 0;
-                        margin: 0;
-                    }
+                    .activity-timeline { padding: 0; margin: 0; }
                     .activity-item {
                         display: flex;
                         align-items: flex-start;
-                        padding: 20px;
-                        border-left: 3px solid #e0e0e0;
-                        margin-left: 20px;
-                        position: relative;
-                        transition: all 0.3s ease;
+                        padding: 12px 15px;
+                        border-bottom: 1px solid #e0e0e0;
                     }
-                    .activity-item:hover {
-                        background-color: #f9f9f9;
-                        border-left-color: #05179F;
-                    }
-                    .activity-item:before {
-                        content: '';
-                        position: absolute;
-                        left: -8px;
-                        top: 20px;
-                        width: 12px;
-                        height: 12px;
-                        border-radius: 50%;
-                        background: white;
-                        border: 3px solid #e0e0e0;
-                    }
-                    .activity-item:hover:before {
-                        border-color: #05179F;
-                        background: #05179F;
-                    }
+                    .activity-item:last-child { border-bottom: none; }
                     .activity-icon {
-                        width: 48px;
-                        height: 48px;
-                        border-radius: 12px;
+                        width: 36px;
+                        height: 36px;
+                        background: #05179F;
+                        color: white;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 20px;
-                        color: white;
-                        margin-right: 20px;
+                        font-size: 16px;
+                        margin-right: 12px;
                         flex-shrink: 0;
                     }
-                    .activity-content {
-                        flex: 1;
-                    }
+                    .activity-content { flex: 1; }
                     .activity-title {
                         font-weight: 600;
-                        font-size: 15px;
+                        font-size: 13px;
                         margin-bottom: 4px;
                         color: #333;
                     }
                     .activity-description {
-                        font-size: 13px;
+                        font-size: 12px;
                         color: #666;
-                        margin-bottom: 8px;
+                        margin-bottom: 4px;
                     }
                     .activity-meta {
-                        font-size: 12px;
+                        font-size: 11px;
                         color: #999;
                     }
                     .activity-badge {
                         display: inline-block;
-                        padding: 4px 10px;
-                        border-radius: 12px;
-                        font-size: 11px;
+                        padding: 2px 8px;
+                        background: #f5f5f5;
+                        font-size: 10px;
                         font-weight: 600;
                         margin-left: 8px;
+                        color: #666;
                     }
                 </style>
                 <div class='activity-timeline'>";
@@ -670,21 +632,24 @@ class HomeController extends Controller
             $column->append($box);
         });
     }
-
+    
     /**
-     * Render Modern KPI Card
+     * Render modern KPI card
      */
-    private function renderModernKPICard($number, $label, $detail, $icon, $trend, $color)
+    private function renderModernKPICard($icon, $number, $label, $detail)
     {
         return "
             <div class='stat-card'>
-                <div class='stat-icon' style='background: linear-gradient(135deg, {$color}, " . $this->adjustBrightness($color, 30) . ");'>
-                    <i class='fa {$icon}'></i>
+                <div class='stat-card-header'>
+                    <div class='stat-icon'>
+                        <i class='fa {$icon}'></i>
+                    </div>
+                    <div class='stat-content'>
+                        <div class='stat-number'>{$number}</div>
+                        <div class='stat-label'>{$label}</div>
+                    </div>
                 </div>
-                <div class='stat-number'>{$number}</div>
-                <div class='stat-label'>{$label}</div>
                 <div class='stat-detail'>{$detail}</div>
-                <div class='trend-badge trend-up'><i class='fa fa-arrow-up'></i> {$trend}</div>
             </div>
         ";
     }
