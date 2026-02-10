@@ -1465,12 +1465,20 @@ class ApiResurceController extends Controller
     public function ffs_groups(Request $r)
     {
         try {
-            $groups = \App\Models\FfsGroup::where('status', 'Active')
-                ->select([
+            $query = \App\Models\FfsGroup::where('status', 'Active');
+
+            // IP scoping: only show groups from user's IP
+            $user = auth('api')->user();
+            if ($user && $user->ip_id) {
+                $query->where('ip_id', $user->ip_id);
+            }
+
+            $groups = $query->select([
                     'id',
                     'name',
                     'code',
                     'type',
+                    'ip_id',
                     'district_id',
                     'village',
                     'total_members',

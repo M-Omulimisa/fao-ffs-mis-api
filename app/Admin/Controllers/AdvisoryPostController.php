@@ -5,6 +5,8 @@ namespace App\Admin\Controllers;
 use App\Models\AdvisoryPost;
 use App\Models\AdvisoryCategory;
 use App\Models\User;
+use App\Models\ImplementingPartner;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -14,6 +16,7 @@ use Carbon\Carbon;
 
 class AdvisoryPostController extends AdminController
 {
+    use IpScopeable;
     /**
      * Title for current resource.
      *
@@ -34,10 +37,12 @@ class AdvisoryPostController extends AdminController
 
         // Default ordering - newest first
         $grid->model()->orderBy('created_at', 'desc');
+        $this->applyIpScope($grid);
 
         // Filters
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
+            $this->addIpFilter($filter);
 
             $filter->equal('category_id', 'Category')->select(function () {
                 return AdvisoryCategory::where('status', 'Active')
@@ -215,6 +220,7 @@ class AdvisoryPostController extends AdminController
     protected function form()
     {
         $form = new Form(new AdvisoryPost());
+        $this->addIpFieldToForm($form);
 
         $form->divider('Article Details');
 

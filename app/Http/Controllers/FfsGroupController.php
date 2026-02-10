@@ -20,6 +20,12 @@ class FfsGroupController extends Controller
             $query = FfsGroup::query()
                 ->with(['district', 'subcounty', 'parish', 'facilitator']);
 
+            // IP scoping: only show groups from user's IP
+            $user = auth('api')->user() ?? auth()->user();
+            if ($user && $user->ip_id) {
+                $query->where('ip_id', $user->ip_id);
+            }
+
             // Filter by type
             if ($request->has('type') && $request->type != 'All') {
                 $query->where('type', $request->type);
@@ -115,6 +121,11 @@ class FfsGroupController extends Controller
             // Set created_by_id
             if (auth()->check()) {
                 $data['created_by_id'] = auth()->id();
+                // Inherit IP from creating user
+                $authUser = auth('api')->user() ?? auth()->user();
+                if ($authUser && $authUser->ip_id) {
+                    $data['ip_id'] = $authUser->ip_id;
+                }
             }
 
             // Create group

@@ -179,6 +179,7 @@ class VslaMeetingController extends Controller
                 'upcoming_action_plans_data' => $request->upcoming_action_plans_data ?? [],
                 'processing_status' => 'pending',
                 'created_by_id' => $createdById,
+                'ip_id' => optional(Auth::user())->ip_id ?? optional($group ?? null)->ip_id,
                 'submitted_from_app_at' => now(),
                 'received_at' => now(),
             ]);
@@ -253,6 +254,11 @@ class VslaMeetingController extends Controller
             
             $query = VslaMeeting::with(['cycle', 'group', 'creator'])
                 ->where('processing_status', 'completed'); // Only show completed meetings
+
+            // IP scoping: only show meetings from user's IP
+            if ($user && $user->ip_id) {
+                $query->where('ip_id', $user->ip_id);
+            }
 
             // Filter by current user's group if they are not an admin
             if (!$user->isAdmin()) {

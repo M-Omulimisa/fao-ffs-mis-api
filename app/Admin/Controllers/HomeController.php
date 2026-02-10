@@ -11,6 +11,10 @@ use App\Models\VslaLoan;
 use App\Models\SocialFundTransaction;
 use App\Models\VslaMeeting;
 use App\Models\AdvisoryPost;
+use App\Models\ImplementingPartner;
+use App\Models\SeriesMovie;
+use App\Models\Movie;
+use App\Admin\Traits\IpScopeable;
 use Carbon\Carbon;
 use Encore\Admin\Layout\Column;
 use Encore\Admin\Layout\Content;
@@ -21,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
+    use IpScopeable;
     public function index(Content $content)
     {
         // Add Chart.js CDN and custom styles
@@ -85,11 +90,26 @@ class HomeController extends Controller
             }
         ');
         
+        $ipId = $this->getAdminIpId();
+        $ipBanner = '';
+        if ($ipId) {
+            $ip = ImplementingPartner::find($ipId);
+            $ipName = $ip ? $ip->name . ' (' . $ip->short_name . ')' : 'Unknown IP';
+            $ipBanner = "<div style='background:#05179F;color:#fff;padding:10px 15px;margin-bottom:15px;display:flex;align-items:center;gap:10px;'>"
+                . "<i class='fa fa-building' style='font-size:18px;'></i>"
+                . "<span style='font-weight:600;'>Implementing Partner: {$ipName}</span>"
+                . "</div>";
+        }
+        
         return $content
             ->title('📊 FAO FFS-MIS Dashboard')
             ->description('Farmer Field School Management Information System - Karamoja Region')
+            ->row($ipBanner)
             ->row(function (Row $row) {
                 $this->addKPICards($row);
+            })
+            ->row(function (Row $row) {
+                $this->addContentDebugOverview($row);
             })
             ->row(function (Row $row) {
                 $this->addVSLAFinancialOverview($row);
@@ -112,9 +132,10 @@ class HomeController extends Controller
     {
         // FFS Groups
         $row->column(3, function (Column $column) {
-            $totalGroups = FfsGroup::count();
-            $activeGroups = FfsGroup::where('status', 'Active')->count();
-            $lastMonthGroups = FfsGroup::whereMonth('created_at', now()->subMonth()->month)->count();
+            $ipId = $this->getAdminIpId();
+            $totalGroups = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $activeGroups = FfsGroup::where('status', 'Active')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $lastMonthGroups = FfsGroup::whereMonth('created_at', now()->subMonth()->month)->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             
             $content = $this->renderModernKPICard(
                 'fa-users',
@@ -128,9 +149,10 @@ class HomeController extends Controller
 
         // Registered Members
         $row->column(3, function (Column $column) {
-            $totalMembers = User::whereNotNull('group_id')->where('group_id', '!=', '')->count();
-            $femaleMembers = User::whereNotNull('group_id')->where('sex', 'Female')->count();
-            $maleMembers = User::whereNotNull('group_id')->where('sex', 'Male')->count();
+            $ipId = $this->getAdminIpId();
+            $totalMembers = User::whereNotNull('group_id')->where('group_id', '!=', '')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $femaleMembers = User::whereNotNull('group_id')->where('sex', 'Female')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $maleMembers = User::whereNotNull('group_id')->where('sex', 'Male')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             $femalePercent = $totalMembers > 0 ? round(($femaleMembers / $totalMembers) * 100) : 0;
             $malePercent = $totalMembers > 0 ? round(($maleMembers / $totalMembers) * 100) : 0;
             
@@ -146,7 +168,8 @@ class HomeController extends Controller
 
         // VSLA Groups & Savings
         $row->column(3, function (Column $column) {
-            $vslaGroups = FfsGroup::where('type', 'VSLA')->count();
+            $ipId = $this->getAdminIpId();
+            $vslaGroups = FfsGroup::where('type', 'VSLA')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             $totalSavings = AccountTransaction::where('account_type', 'share')->sum('amount');
             
             $content = $this->renderModernKPICard(
@@ -161,8 +184,9 @@ class HomeController extends Controller
 
         // Advisory Posts
         $row->column(3, function (Column $column) {
-            $totalPosts = AdvisoryPost::count();
-            $publishedPosts = AdvisoryPost::where('status', 'published')->count();
+            $ipId = $this->getAdminIpId();
+            $totalPosts = AdvisoryPost::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $publishedPosts = AdvisoryPost::where('status', 'published')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             
             $content = $this->renderModernKPICard(
                 'fa-newspaper',
@@ -172,6 +196,121 @@ class HomeController extends Controller
             );
             $box = new Box('', $content);
             $column->append($box->style('solid'));
+        });
+    }
+
+    /**
+     * Content & Debug Overview — Series Movies + Movies fix status stats
+     */
+    private function addContentDebugOverview(Row $row)
+    {
+        $row->column(12, function (Column $column) {
+            // Series Movies stats
+            $smTotal   = SeriesMovie::count();
+            $smPending = SeriesMovie::fixPending()->count();
+            $smSuccess = SeriesMovie::fixSuccess()->count();
+            $smFailed  = SeriesMovie::fixFailed()->count();
+
+            // Movies stats
+            $mvTotal   = Movie::count();
+            $mvPending = Movie::fixPending()->count();
+            $mvSuccess = Movie::fixSuccess()->count();
+            $mvFailed  = Movie::fixFailed()->count();
+
+            // Combined totals
+            $totalContent  = $smTotal + $mvTotal;
+            $totalPending  = $smPending + $mvPending;
+            $totalSuccess  = $smSuccess + $mvSuccess;
+            $totalFailed   = $smFailed + $mvFailed;
+            $successRate   = $totalContent > 0 ? round(($totalSuccess / $totalContent) * 100, 1) : 0;
+
+            $content = "
+                <div style='display:flex;gap:0;'>
+                    <!-- Left: Combined Stats -->
+                    <div style='flex:1;background:#05179F;color:#fff;padding:20px;'>
+                        <div style='text-align:center;margin-bottom:15px;'>
+                            <i class='fa fa-bug' style='font-size:24px;'></i>
+                            <h3 style='margin:8px 0 4px;color:#fff;font-weight:700;font-size:28px;'>{$totalContent}</h3>
+                            <p style='margin:0;font-size:11px;text-transform:uppercase;'>Total Content Items</p>
+                        </div>
+                        <div style='display:flex;justify-content:space-around;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);'>
+                            <div style='text-align:center;'>
+                                <div style='font-size:20px;font-weight:700;'>{$totalPending}</div>
+                                <div style='font-size:10px;text-transform:uppercase;'>Pending</div>
+                            </div>
+                            <div style='text-align:center;'>
+                                <div style='font-size:20px;font-weight:700;'>{$totalSuccess}</div>
+                                <div style='font-size:10px;text-transform:uppercase;'>Success</div>
+                            </div>
+                            <div style='text-align:center;'>
+                                <div style='font-size:20px;font-weight:700;'>{$totalFailed}</div>
+                                <div style='font-size:10px;text-transform:uppercase;'>Failed</div>
+                            </div>
+                            <div style='text-align:center;'>
+                                <div style='font-size:20px;font-weight:700;'>{$successRate}%</div>
+                                <div style='font-size:10px;text-transform:uppercase;'>Success Rate</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle: Series Movies -->
+                    <div style='flex:1;background:#fff;border:1px solid #ddd;padding:20px;'>
+                        <div style='display:flex;align-items:center;margin-bottom:12px;'>
+                            <div style='width:36px;height:36px;background:#05179F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;margin-right:10px;'>
+                                <i class='fa fa-film'></i>
+                            </div>
+                            <div>
+                                <div style='font-size:18px;font-weight:700;color:#05179F;'>{$smTotal}</div>
+                                <div style='font-size:11px;color:#666;text-transform:uppercase;font-weight:600;'>Series Movies</div>
+                            </div>
+                        </div>
+                        <table style='width:100%;font-size:12px;'>
+                            <tr>
+                                <td style='padding:4px 0;'><span style='display:inline-block;width:8px;height:8px;background:#ff9800;margin-right:6px;'></span>Pending</td>
+                                <td style='text-align:right;font-weight:600;'><a href='" . admin_url('series-movies-pending') . "'>{$smPending}</a></td>
+                            </tr>
+                            <tr>
+                                <td style='padding:4px 0;'><span style='display:inline-block;width:8px;height:8px;background:#4caf50;margin-right:6px;'></span>Success</td>
+                                <td style='text-align:right;font-weight:600;'><a href='" . admin_url('series-movies-success') . "'>{$smSuccess}</a></td>
+                            </tr>
+                            <tr>
+                                <td style='padding:4px 0;'><span style='display:inline-block;width:8px;height:8px;background:#f44336;margin-right:6px;'></span>Failed</td>
+                                <td style='text-align:right;font-weight:600;'><a href='" . admin_url('series-movies-fail') . "'>{$smFailed}</a></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Right: Movies -->
+                    <div style='flex:1;background:#fff;border:1px solid #ddd;border-left:none;padding:20px;'>
+                        <div style='display:flex;align-items:center;margin-bottom:12px;'>
+                            <div style='width:36px;height:36px;background:#05179F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;margin-right:10px;'>
+                                <i class='fa fa-video'></i>
+                            </div>
+                            <div>
+                                <div style='font-size:18px;font-weight:700;color:#05179F;'>{$mvTotal}</div>
+                                <div style='font-size:11px;color:#666;text-transform:uppercase;font-weight:600;'>Movies</div>
+                            </div>
+                        </div>
+                        <table style='width:100%;font-size:12px;'>
+                            <tr>
+                                <td style='padding:4px 0;'><span style='display:inline-block;width:8px;height:8px;background:#ff9800;margin-right:6px;'></span>Pending</td>
+                                <td style='text-align:right;font-weight:600;'><a href='" . admin_url('movies-pending') . "'>{$mvPending}</a></td>
+                            </tr>
+                            <tr>
+                                <td style='padding:4px 0;'><span style='display:inline-block;width:8px;height:8px;background:#4caf50;margin-right:6px;'></span>Success</td>
+                                <td style='text-align:right;font-weight:600;'><a href='" . admin_url('movies-success') . "'>{$mvSuccess}</a></td>
+                            </tr>
+                            <tr>
+                                <td style='padding:4px 0;'><span style='display:inline-block;width:8px;height:8px;background:#f44336;margin-right:6px;'></span>Failed</td>
+                                <td style='text-align:right;font-weight:600;'><a href='" . admin_url('movies-fail') . "'>{$mvFailed}</a></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            ";
+
+            $box = new Box('🐛 Content & Debug Overview', $content);
+            $column->append($box);
         });
     }
 
@@ -245,12 +384,14 @@ class HomeController extends Controller
             $months = [];
             $meetingsData = [];
             $loansData = [];
+            $ipId = $this->getAdminIpId();
             
             for ($i = 5; $i >= 0; $i--) {
                 $date = now()->subMonths($i);
                 $months[] = $date->format('M Y');
                 $meetingsData[] = VslaMeeting::whereYear('meeting_date', $date->year)
                     ->whereMonth('meeting_date', $date->month)
+                    ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
                     ->count();
                 $loansData[] = VslaLoan::whereYear('created_at', $date->year)
                     ->whereMonth('created_at', $date->month)
@@ -324,10 +465,11 @@ class HomeController extends Controller
 
         // Group Types Distribution
         $row->column(4, function (Column $column) {
-            $vslaGroups = FfsGroup::where('type', 'VSLA')->count();
-            $ffsGroups = FfsGroup::where('type', 'FFS')->count();
-            $fbsGroups = FfsGroup::where('type', 'FBS')->count();
-            $otherGroups = FfsGroup::whereNotIn('type', ['VSLA', 'FFS', 'FBS'])->count();
+            $ipId = $this->getAdminIpId();
+            $vslaGroups = FfsGroup::where('type', 'VSLA')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $ffsGroups = FfsGroup::where('type', 'FFS')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $fbsGroups = FfsGroup::where('type', 'FBS')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $otherGroups = FfsGroup::whereNotIn('type', ['VSLA', 'FFS', 'FBS'])->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             
             $types = ['VSLA', 'FFS', 'FBS', 'Other'];
             $counts = [$vslaGroups, $ffsGroups, $fbsGroups, $otherGroups];
@@ -387,9 +529,10 @@ class HomeController extends Controller
     {
         // Meeting Statistics
         $row->column(4, function (Column $column) {
-            $totalMeetings = VslaMeeting::count();
-            $thisMonthMeetings = VslaMeeting::whereMonth('meeting_date', now()->month)->count();
-            $thisWeekMeetings = VslaMeeting::whereBetween('meeting_date', [now()->startOfWeek(), now()->endOfWeek()])->count();
+            $ipId = $this->getAdminIpId();
+            $totalMeetings = VslaMeeting::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $thisMonthMeetings = VslaMeeting::whereMonth('meeting_date', now()->month)->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $thisWeekMeetings = VslaMeeting::whereBetween('meeting_date', [now()->startOfWeek(), now()->endOfWeek()])->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->count();
             
             $content = "
@@ -464,9 +607,10 @@ class HomeController extends Controller
 
         // System Overview
         $row->column(4, function (Column $column) {
-            $totalGroups = FfsGroup::count();
-            $totalMembers = User::whereNotNull('group_id')->where('group_id', '!=', '')->count();
-            $totalPosts = AdvisoryPost::count();
+            $ipId = $this->getAdminIpId();
+            $totalGroups = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $totalMembers = User::whereNotNull('group_id')->where('group_id', '!=', '')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $totalPosts = AdvisoryPost::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->count();
             
             $content = "
@@ -507,10 +651,11 @@ class HomeController extends Controller
     private function addRecentActivitiesTimeline(Row $row)
     {
         $row->column(12, function (Column $column) {
+            $ipId = $this->getAdminIpId();
             // Get recent activities from different sources
-            $recentMeetings = VslaMeeting::with('group')->orderBy('created_at', 'desc')->limit(3)->get();
+            $recentMeetings = VslaMeeting::with('group')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->orderBy('created_at', 'desc')->limit(3)->get();
             $recentLoans = VslaLoan::with('borrower')->orderBy('created_at', 'desc')->limit(3)->get();
-            $recentPosts = AdvisoryPost::orderBy('created_at', 'desc')->limit(3)->get();
+            $recentPosts = AdvisoryPost::when($ipId, fn($q) => $q->where('ip_id', $ipId))->orderBy('created_at', 'desc')->limit(3)->get();
             
             $activities = [];
             

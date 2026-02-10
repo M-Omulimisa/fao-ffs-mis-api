@@ -13,6 +13,7 @@ class FfsGroup extends Model
     protected $table = 'ffs_groups';
 
     protected $fillable = [
+        'ip_id',
         'name',
         'type',
         'code',
@@ -147,6 +148,11 @@ class FfsGroup extends Model
      * Relationships
      */
     
+    public function implementingPartner()
+    {
+        return $this->belongsTo(ImplementingPartner::class, 'ip_id');
+    }
+
     public function district()
     {
         return $this->belongsTo(Location::class, 'district_id');

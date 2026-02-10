@@ -16,6 +16,12 @@ Route::group([
     // ========================================
     $router->get('/', 'HomeController@index')->name('home');
 
+    // ========================================
+    // IMPLEMENTING PARTNERS (IP) — Backbone Multi-Tenancy
+    // Super Admins manage all IPs; IP admins see their own only
+    // ========================================
+    $router->resource('implementing-partners', ImplementingPartnerController::class);
+
     $router->resource('deliveries', DeliveryController::class);
     $router->resource('dtehm-memberships', DtehmMembershipController::class);
     $router->resource('product-categories', ProductCategoryController::class);
@@ -201,4 +207,22 @@ Route::group([
     
     // Market Prices - Price records for products
     $router->resource('market-prices', MarketPriceController::class);
+
+    // ========================================
+    // SERIES MOVIES — Debug & Content Management
+    // Single controller handles all slugs; detects filter from URL
+    // ========================================
+    $router->resource('series-movies', SeriesMovieController::class);
+    $router->resource('series-movies-pending', SeriesMovieController::class);
+    $router->resource('series-movies-success', SeriesMovieController::class);
+    $router->resource('series-movies-fail', SeriesMovieController::class);
+
+    // ========================================
+    // MOVIES — Debug & Content Management
+    // Single controller handles all slugs; detects filter from URL
+    // ========================================
+    $router->resource('movies', MovieController::class);
+    $router->resource('movies-pending', MovieController::class);
+    $router->resource('movies-success', MovieController::class);
+    $router->resource('movies-fail', MovieController::class);
 });

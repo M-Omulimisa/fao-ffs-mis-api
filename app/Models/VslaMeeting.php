@@ -10,6 +10,7 @@ class VslaMeeting extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'ip_id',
         'local_id',
         'cycle_id',
         'group_id',
@@ -81,6 +82,11 @@ class VslaMeeting extends Model
     public function group()
     {
         return $this->belongsTo(FfsGroup::class, 'group_id');
+    }
+
+    public function implementingPartner()
+    {
+        return $this->belongsTo(ImplementingPartner::class, 'ip_id');
     }
 
     public function creator()

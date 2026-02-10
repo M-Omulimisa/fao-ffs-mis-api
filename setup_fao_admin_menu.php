@@ -300,6 +300,27 @@ try {
         ['parent' => 140, 'order' => 142, 'title' => 'Video Tutorials', 'icon' => 'fa-video', 'uri' => '#', 'permission' => null],
         ['parent' => 140, 'order' => 143, 'title' => 'Submit Ticket', 'icon' => 'fa-plus-circle', 'uri' => '#', 'permission' => null],
         ['parent' => 140, 'order' => 144, 'title' => 'My Tickets', 'icon' => 'fa-ticket-alt', 'uri' => '#', 'permission' => null],
+
+        // ========================================
+        // CONTENT & DEBUG — Series Movies + Movies
+        // ========================================
+        ['parent' => 0,   'order' => 145, 'title' => 'Content & Debug',      'icon' => 'fa-bug',               'uri' => '#',                     'permission' => null],
+
+        // Series Movies
+        ['parent' => 145, 'order' => 146, 'title' => 'Series Movies',        'icon' => 'fa-film',              'uri' => '#',                     'permission' => null],
+        ['parent' => 146, 'order' => 147, 'title' => 'All Series Movies',    'icon' => 'fa-list',              'uri' => 'series-movies',         'permission' => null],
+        ['parent' => 146, 'order' => 148, 'title' => 'Pending Fix',          'icon' => 'fa-clock',             'uri' => 'series-movies-pending', 'permission' => null],
+        ['parent' => 146, 'order' => 149, 'title' => 'Fixed (Success)',      'icon' => 'fa-check-circle',      'uri' => 'series-movies-success', 'permission' => null],
+        ['parent' => 146, 'order' => 150, 'title' => 'Failed Fix',           'icon' => 'fa-exclamation-circle', 'uri' => 'series-movies-fail',   'permission' => null],
+        ['parent' => 146, 'order' => 151, 'title' => 'Add New Series',       'icon' => 'fa-plus-circle',       'uri' => 'series-movies/create',  'permission' => null],
+
+        // Movies
+        ['parent' => 145, 'order' => 152, 'title' => 'Movies',              'icon' => 'fa-video',             'uri' => '#',                     'permission' => null],
+        ['parent' => 152, 'order' => 153, 'title' => 'All Movies',          'icon' => 'fa-list',              'uri' => 'movies',                'permission' => null],
+        ['parent' => 152, 'order' => 154, 'title' => 'Pending Fix',         'icon' => 'fa-clock',             'uri' => 'movies-pending',        'permission' => null],
+        ['parent' => 152, 'order' => 155, 'title' => 'Fixed (Success)',     'icon' => 'fa-check-circle',      'uri' => 'movies-success',        'permission' => null],
+        ['parent' => 152, 'order' => 156, 'title' => 'Failed Fix',          'icon' => 'fa-exclamation-circle', 'uri' => 'movies-fail',          'permission' => null],
+        ['parent' => 152, 'order' => 157, 'title' => 'Add New Movie',       'icon' => 'fa-plus-circle',       'uri' => 'movies/create',         'permission' => null],
     ];
     
     foreach ($menuItems as $item) {
@@ -373,7 +394,7 @@ try {
     
     echo "Summary:\n";
     echo "  - 7 roles created\n";
-    echo "  - 144 menu items created\n";
+    echo "  - 157 menu items created\n";
     echo "  - User ID 1 assigned as Super Admin\n";
     echo "  - Super Admin has full system access\n\n";
     

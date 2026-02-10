@@ -706,6 +706,14 @@ class User extends Administrator implements JWTSubject
     }
     
     /**
+     * Get the Implementing Partner this user belongs to
+     */
+    public function implementingPartner()
+    {
+        return $this->belongsTo(\App\Models\ImplementingPartner::class, 'ip_id');
+    }
+
+    /**
      * Get the group this member belongs to
      */
     public function group()

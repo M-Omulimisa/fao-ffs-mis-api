@@ -91,6 +91,12 @@ class AdvisoryController extends Controller
             $perPage = $request->input('per_page', 20);
             $query = AdvisoryPost::published();
 
+            // IP scoping: only show posts from user's IP (or all if no auth)
+            $user = auth('api')->user();
+            if ($user && $user->ip_id) {
+                $query->where('ip_id', $user->ip_id);
+            }
+
             // Filter by category
             if ($request->filled('category_id')) {
                 $query->where('category_id', $request->category_id);

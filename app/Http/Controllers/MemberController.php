@@ -110,6 +110,11 @@ class MemberController extends Controller
             // Never trust group_id from request - use the registrar's group
             $member->group_id = $registrar->group_id;
             
+            // Inherit IP from registrar
+            if ($registrar->ip_id) {
+                $member->ip_id = $registrar->ip_id;
+            }
+            
             if ($request->filled('district_id')) {
                 $member->district_id = $request->district_id;
             }

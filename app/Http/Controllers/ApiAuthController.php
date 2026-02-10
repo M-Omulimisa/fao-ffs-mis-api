@@ -183,6 +183,13 @@ class ApiAuthController extends Controller
         $u->token = $token;
         $u->remember_token = $token;
 
+        // Include IP details for mobile app
+        if ($u->ip_id) {
+            $ip = \App\Models\ImplementingPartner::find($u->ip_id);
+            $u->ip_name = $ip ? $ip->name : null;
+            $u->ip_short_name = $ip ? $ip->short_name : null;
+        }
+
         return $this->success('Logged in successfully.', $u);
     }
 

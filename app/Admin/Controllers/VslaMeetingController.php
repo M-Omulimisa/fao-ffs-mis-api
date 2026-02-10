@@ -6,6 +6,8 @@ use App\Models\VslaMeeting;
 use App\Models\Project;
 use App\Models\FfsGroup;
 use App\Models\User;
+use App\Models\ImplementingPartner;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -13,6 +15,7 @@ use Encore\Admin\Show;
 
 class VslaMeetingController extends AdminController
 {
+    use IpScopeable;
     /**
      * Title for current resource.
      *
@@ -30,6 +33,7 @@ class VslaMeetingController extends AdminController
         $grid = new Grid(new VslaMeeting());
 
         $grid->model()->with(['cycle', 'group', 'creator'])->orderBy('id', 'desc');
+        $this->applyIpScope($grid);
 
         $grid->disableCreateButton(); // Meetings created from mobile app
         $grid->disableExport();
@@ -38,6 +42,7 @@ class VslaMeetingController extends AdminController
 
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
+            $this->addIpFilter($filter);
 
             $filter->equal('cycle_id', 'Cycle')
                 ->select(Project::where('is_vsla_cycle', 'Yes')->pluck('title', 'id'));

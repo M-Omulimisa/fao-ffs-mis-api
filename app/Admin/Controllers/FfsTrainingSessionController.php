@@ -5,6 +5,8 @@ namespace App\Admin\Controllers;
 use App\Models\FfsTrainingSession;
 use App\Models\FfsGroup;
 use App\Models\User;
+use App\Models\ImplementingPartner;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -12,6 +14,8 @@ use Encore\Admin\Show;
 
 class FfsTrainingSessionController extends AdminController
 {
+    use IpScopeable;
+
     protected $title = 'FFS Training Sessions';
 
     protected function grid()
@@ -19,11 +23,16 @@ class FfsTrainingSessionController extends AdminController
         $grid = new Grid(new FfsTrainingSession());
 
         $grid->model()->with(['group', 'facilitator'])->orderBy('session_date', 'desc');
+
+        // IP Scoping: IP admins see only their own sessions
+        $this->applyIpScope($grid);
+
         $grid->quickSearch('title', 'topic')->placeholder('Search by title or topic');
 
         // Filters
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
+            $this->addIpFilter($filter);
             $filter->equal('group_id', 'Group')->select(FfsGroup::pluck('name', 'id'));
             $filter->equal('facilitator_id', 'Facilitator')->select(
                 User::where('user_type', 'Admin')->orWhere('user_type', 'Employee')->pluck('name', 'id')

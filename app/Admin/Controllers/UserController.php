@@ -5,6 +5,8 @@ namespace App\Admin\Controllers;
 use App\Models\User;
 use App\Models\DtehmMembership;
 use App\Models\MembershipPayment;
+use App\Models\ImplementingPartner;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
@@ -13,6 +15,7 @@ use Encore\Admin\Show;
 
 class UserController extends AdminController
 {
+    use IpScopeable;
     /**
      * Title for current resource.
      *
@@ -29,6 +32,10 @@ class UserController extends AdminController
     {
         $grid = new Grid(new User());
         $grid->model()->orderBy('id', 'desc');
+
+        // IP Scoping: IP admins see only their own users
+        $this->applyIpScope($grid);
+
         $grid->disableBatchActions();
 
         // ID Column

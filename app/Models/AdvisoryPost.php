@@ -11,6 +11,7 @@ class AdvisoryPost extends Model
     use HasFactory;
 
     protected $fillable = [
+        'ip_id',
         'category_id',
         'title',
         'content',
@@ -55,6 +56,14 @@ class AdvisoryPost extends Model
                 }
             }
         });
+    }
+
+    /**
+     * Get the implementing partner
+     */
+    public function implementingPartner()
+    {
+        return $this->belongsTo(ImplementingPartner::class, 'ip_id');
     }
 
     /**

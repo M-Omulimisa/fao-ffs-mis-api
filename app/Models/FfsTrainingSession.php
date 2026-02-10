@@ -10,6 +10,7 @@ class FfsTrainingSession extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'ip_id',
         'group_id', // deprecated - keeping for backward compat
         'facilitator_id',
         'co_facilitator_id',
@@ -98,6 +99,11 @@ class FfsTrainingSession extends Model
     }
 
     // Relationships
+    public function implementingPartner()
+    {
+        return $this->belongsTo(ImplementingPartner::class, 'ip_id');
+    }
+
     public function group()
     {
         return $this->belongsTo(FfsGroup::class, 'group_id');

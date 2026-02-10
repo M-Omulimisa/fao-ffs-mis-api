@@ -58,6 +58,11 @@ class FfsTrainingSessionController extends Controller
      */
     private function applyAccessScope($query, $user)
     {
+        // IP scoping: admin users can only see their IP's sessions
+        if ($user && $user->ip_id) {
+            $query->where('ip_id', $user->ip_id);
+        }
+
         if (!$user || $user->isAdmin()) return;
 
         $query->where(function ($q) use ($user) {
@@ -337,11 +342,15 @@ class FfsTrainingSessionController extends Controller
             $session->session_type = $request->session_type;
             $session->status = $request->get('status', 'scheduled');
             $session->report_status = FfsTrainingSession::REPORT_STATUS_DRAFT;
-            $session->expected_participants = $request->expected_participants;
+            $session->expected_participants = $request->get('expected_participants', 0);
             $session->materials_used = $request->materials_used;
             $session->notes = $request->notes;
             $session->photo = $request->photo;
             $session->created_by_id = $user ? $user->id : null;
+            // Inherit IP from creating user
+            if ($user && $user->ip_id) {
+                $session->ip_id = $user->ip_id;
+            }
             $session->save();
 
             // Sync target groups pivot

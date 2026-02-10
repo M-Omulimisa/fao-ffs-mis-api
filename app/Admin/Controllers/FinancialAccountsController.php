@@ -4,6 +4,8 @@ namespace App\Admin\Controllers;
 
 use App\Models\User;
 use App\Models\AccountTransaction;
+use App\Models\ImplementingPartner;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class FinancialAccountsController extends AdminController
 {
+    use IpScopeable;
     /**
      * Title for current resource.
      *
@@ -29,7 +32,15 @@ class FinancialAccountsController extends AdminController
         
         // Only show users who are customers (members)
         $grid->model()
-            ->where('user_type', 'Customer')
+            ->where('user_type', 'Customer');
+        
+        // Apply IP scoping before the join (use prefixed column)
+        $ipId = $this->getAdminIpId();
+        if ($ipId) {
+            $grid->model()->where('users.ip_id', $ipId);
+        }
+        
+        $grid->model()
             ->select([
                 'users.id',
                 'users.name',
@@ -61,6 +72,7 @@ class FinancialAccountsController extends AdminController
         // Filters
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
+            $this->addIpFilter($filter);
             
             $filter->like('name', 'Member Name');
             $filter->like('phone_number', 'Phone Number');

@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\Project;
 use App\Models\AccountTransaction;
 use App\Models\VslaMeeting;
+use App\Models\ImplementingPartner;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -15,6 +17,7 @@ use Encore\Admin\Show;
 
 class FfsGroupController extends AdminController
 {
+    use IpScopeable;
     /**
      * Title for current resource.
      *
@@ -73,6 +76,9 @@ class FfsGroupController extends AdminController
             $grid->model()->where('type', $groupType);
         }
 
+        // ── IP Scoping: IP admins see only their own groups ──
+        $this->applyIpScope($grid);
+
         // Disable batch actions and deletion
         $grid->disableBatchActions();
         $grid->actions(function ($actions) {
@@ -85,7 +91,8 @@ class FfsGroupController extends AdminController
             
             $filter->equal('type', 'Group Type')->select(FfsGroup::getTypes());
             $filter->equal('status', 'Status')->select(FfsGroup::getStatuses());
-            $filter->equal('ip_name', 'Implementing Partner')->select(
+            $this->addIpFilter($filter);
+            $filter->equal('ip_name', 'IP (Legacy)')->select(
                 FfsGroup::whereNotNull('ip_name')->distinct()->pluck('ip_name', 'ip_name')
             );
             $filter->equal('district_id', 'District')->select(Location::where('type', 'District')->pluck('name', 'id'));
@@ -111,11 +118,17 @@ class FfsGroupController extends AdminController
             'Association' => 'info',
         ])->sortable();
         
-        // Implementing Partner - KEY FIELD
-        $grid->column('ip_name', 'IP')->display(function($ip) {
-            if (empty($ip)) return '<span style="color: #999;">-</span>';
-            $color = $ip === 'KADP' ? '#28a745' : ($ip === 'ECO' ? '#17a2b8' : '#6c757d');
-            return "<span class='badge' style='background: {$color};'>{$ip}</span>";
+        // Implementing Partner (relational)
+        $grid->column('ip_id', 'IP')->display(function () {
+            if ($this->ip_id && $this->implementingPartner) {
+                $name = $this->implementingPartner->short_name ?: $this->implementingPartner->name;
+                return \"<span class='label label-primary'>{$name}</span>\";
+            }
+            // Fallback to legacy ip_name text
+            if (!empty($this->ip_name)) {
+                return \"<span class='label label-default'>{$this->ip_name}</span>\";
+            }
+            return '<span style=\"color:#999;\">-</span>';
         })->sortable();
         
         // District - Show text if no ID linked
@@ -418,11 +431,9 @@ class FfsGroupController extends AdminController
         
         // Project/Partner Info
         $form->row(function ($row) {
-            $row->width(4)->select('ip_name', 'Implementing Partner')->options([
-                'KADP' => 'KADP',
-                'ECO' => 'ECO',
-                'GARD' => 'GARD',
-            ]);
+            $row->width(4)->select('ip_id', 'Implementing Partner')->options(
+                ImplementingPartner::getDropdownOptions()
+            );
             $row->width(4)->text('project_code', 'Project Code')->placeholder('e.g. UNJP/UGA/068/EC');
             $row->width(4)->date('establishment_date', 'Establishment Date');
         });

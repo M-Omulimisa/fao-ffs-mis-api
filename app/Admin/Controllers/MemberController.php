@@ -5,6 +5,8 @@ namespace App\Admin\Controllers;
 use App\Models\User;
 use App\Models\Location;
 use App\Models\FfsGroup;
+use App\Models\ImplementingPartner;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 
 class MemberController extends AdminController
 {
+    use IpScopeable;
     /**
      * Title for current resource.
      *
@@ -38,6 +41,7 @@ class MemberController extends AdminController
     {
         $grid = new Grid(new User());
         $grid->model()->orderBy('id', 'desc');
+        $this->applyIpScope($grid);
         
         
         $grid->quickSearch('name', 'phone_number', 'phone_number_2')->placeholder('Search member name, phone...');
@@ -50,6 +54,7 @@ class MemberController extends AdminController
         // Filters
         $grid->filter(function($filter){
             $filter->disableIdFilter();
+            $this->addIpFilter($filter);
             
             // Group filters
             $filter->equal('group_id', 'FFS Group')->select(function() {
@@ -452,6 +457,7 @@ class MemberController extends AdminController
     protected function form()
     {
         $form = new Form(new User());
+        $this->addIpFieldToForm($form);
         
         // Hidden fields
         $form->hidden('user_type')->default('Customer');
