@@ -203,17 +203,30 @@ class FfsGroup extends Model
         return $this->hasMany(VslaActionPlan::class, 'group_id');
     }
 
+    // Users (members) belonging to this group
+    public function users()
+    {
+        return $this->hasMany(User::class, 'group_id');
+    }
+
+    // Alias for users
+    public function members()
+    {
+        return $this->users();
+    }
+
+    // Training sessions targeting this group (many-to-many)
+    public function trainingSessions()
+    {
+        return $this->belongsToMany(
+            FfsTrainingSession::class,
+            'ffs_session_target_groups',
+            'group_id',
+            'session_id'
+        )->withTimestamps();
+    }
+
     // TODO: Uncomment when these models are created
-    // public function members()
-    // {
-    //     return $this->hasMany(GroupMember::class, 'group_id');
-    // }
-
-    // public function trainingSessions()
-    // {
-    //     return $this->hasMany(TrainingSession::class, 'group_id');
-    // }
-
     // public function vslaRecords()
     // {
     //     return $this->hasMany(VslaRecord::class, 'group_id');

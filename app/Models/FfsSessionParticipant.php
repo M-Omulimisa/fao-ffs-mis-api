@@ -13,6 +13,7 @@ class FfsSessionParticipant extends Model
         'remarks',
     ];
 
+    const STATUS_PENDING = 'pending';
     const STATUS_PRESENT = 'present';
     const STATUS_ABSENT = 'absent';
     const STATUS_EXCUSED = 'excused';
@@ -21,6 +22,7 @@ class FfsSessionParticipant extends Model
     public static function getAttendanceStatuses()
     {
         return [
+            self::STATUS_PENDING => 'Pending',
             self::STATUS_PRESENT => 'Present',
             self::STATUS_ABSENT => 'Absent',
             self::STATUS_EXCUSED => 'Excused',

@@ -10,8 +10,9 @@ class FfsTrainingSession extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'group_id',
+        'group_id', // deprecated - keeping for backward compat
         'facilitator_id',
+        'co_facilitator_id',
         'title',
         'description',
         'topic',
@@ -21,6 +22,9 @@ class FfsTrainingSession extends Model
         'venue',
         'session_type',
         'status',
+        'report_status',
+        'submitted_at',
+        'submitted_by_id',
         'expected_participants',
         'actual_participants',
         'materials_used',
@@ -33,6 +37,7 @@ class FfsTrainingSession extends Model
 
     protected $casts = [
         'session_date' => 'date',
+        'submitted_at' => 'datetime',
         'expected_participants' => 'integer',
         'actual_participants' => 'integer',
     ];
@@ -40,8 +45,12 @@ class FfsTrainingSession extends Model
     protected $appends = [
         'session_type_text',
         'status_text',
-        'group_name',
+        'report_status_text',
+        'group_name', // deprecated - for backward compat
+        'group_ids',
+        'group_names',
         'facilitator_name',
+        'co_facilitator_name',
         'participants_count',
         'resolutions_count',
     ];
@@ -56,6 +65,9 @@ class FfsTrainingSession extends Model
     const STATUS_ONGOING = 'ongoing';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
+
+    const REPORT_STATUS_DRAFT = 'draft';
+    const REPORT_STATUS_SUBMITTED = 'submitted';
 
     public static function getSessionTypes()
     {
@@ -77,15 +89,44 @@ class FfsTrainingSession extends Model
         ];
     }
 
+    public static function getReportStatuses()
+    {
+        return [
+            self::REPORT_STATUS_DRAFT => 'Draft',
+            self::REPORT_STATUS_SUBMITTED => 'Submitted',
+        ];
+    }
+
     // Relationships
     public function group()
     {
         return $this->belongsTo(FfsGroup::class, 'group_id');
     }
 
+    // Many-to-many relationship with groups via pivot table
+    public function targetGroups()
+    {
+        return $this->belongsToMany(
+            FfsGroup::class,
+            'ffs_session_target_groups',
+            'session_id',
+            'group_id'
+        )->withTimestamps();
+    }
+
     public function facilitator()
     {
         return $this->belongsTo(User::class, 'facilitator_id');
+    }
+
+    public function coFacilitator()
+    {
+        return $this->belongsTo(User::class, 'co_facilitator_id');
+    }
+
+    public function submittedBy()
+    {
+        return $this->belongsTo(User::class, 'submitted_by_id');
     }
 
     public function creator()
@@ -119,14 +160,34 @@ class FfsTrainingSession extends Model
         return self::getStatuses()[$this->status] ?? ucfirst($this->status);
     }
 
+    public function getReportStatusTextAttribute()
+    {
+        return self::getReportStatuses()[$this->report_status] ?? ucfirst($this->report_status);
+    }
+
     public function getGroupNameAttribute()
     {
         return $this->group ? $this->group->name : '-';
     }
 
+    public function getGroupIdsAttribute()
+    {
+        return$this->targetGroups->pluck('id')->toArray();
+    }
+
+    public function getGroupNamesAttribute()
+    {
+        return $this->targetGroups->pluck('name')->toArray();
+    }
+
     public function getFacilitatorNameAttribute()
     {
         return $this->facilitator ? $this->facilitator->name : '-';
+    }
+
+    public function getCoFacilitatorNameAttribute()
+    {
+        return $this->coFacilitator ? $this->coFacilitator->name : null;
     }
 
     public function getParticipantsCountAttribute()
