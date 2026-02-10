@@ -138,10 +138,13 @@ class FfsTrainingSessionController extends Controller
                 return $this->error('Training session not found', 404);
             }
 
-            // Permission check
+            // Permission check: same group, facilitator, or creator
             $user = Auth::user();
             if ($user && !$user->isAdmin()) {
-                if ($user->group_id && $session->group_id !== $user->group_id) {
+                $isGroupMember = $user->group_id && $session->group_id == $user->group_id;
+                $isFacilitator = $session->facilitator_id == $user->id;
+                $isCreator = $session->created_by_id == $user->id;
+                if (!$isGroupMember && !$isFacilitator && !$isCreator) {
                     return $this->error('You do not have permission to view this session', 403);
                 }
             }
@@ -291,6 +294,17 @@ class FfsTrainingSessionController extends Controller
                 return $this->error('Training session not found', 404);
             }
 
+            // Permission check: same group, facilitator, or creator
+            $user = Auth::user();
+            if ($user && !$user->isAdmin()) {
+                $isGroupMember = $user->group_id && $session->group_id == $user->group_id;
+                $isFacilitator = $session->facilitator_id == $user->id;
+                $isCreator = $session->created_by_id == $user->id;
+                if (!$isGroupMember && !$isFacilitator && !$isCreator) {
+                    return $this->error('You do not have permission to update this session', 403);
+                }
+            }
+
             $validator = Validator::make($request->all(), [
                 'group_id' => 'sometimes|exists:ffs_groups,id',
                 'title' => 'sometimes|string|max:255',
@@ -371,9 +385,15 @@ class FfsTrainingSessionController extends Controller
                 return $this->error('Training session not found', 404);
             }
 
+            // Permission check: same group, facilitator, or creator
             $user = Auth::user();
-            if ($user && !$user->isAdmin() && $session->facilitator_id !== $user->id) {
-                return $this->error('You do not have permission to delete this session', 403);
+            if ($user && !$user->isAdmin()) {
+                $isGroupMember = $user->group_id && $session->group_id == $user->group_id;
+                $isFacilitator = $session->facilitator_id == $user->id;
+                $isCreator = $session->created_by_id == $user->id;
+                if (!$isGroupMember && !$isFacilitator && !$isCreator) {
+                    return $this->error('You do not have permission to delete this session', 403);
+                }
             }
 
             // Only allow deleting scheduled/cancelled sessions
