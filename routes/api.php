@@ -206,6 +206,31 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
 use App\Http\Controllers\Api\VslaMeetingController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\VslaLoansController;
+use App\Http\Controllers\Api\FfsTrainingSessionController;
+
+// ========================================
+// FFS TRAINING SESSIONS - Schedule sessions, manage participants, track GAP resolutions
+// ========================================
+Route::prefix('ffs-training-sessions')->middleware(EnsureTokenIsValid::class)->group(function () {
+    // Sessions CRUD
+    Route::get('/stats', [FfsTrainingSessionController::class, 'stats']);
+    Route::get('/', [FfsTrainingSessionController::class, 'index']);
+    Route::post('/', [FfsTrainingSessionController::class, 'store']);
+    Route::get('/{id}', [FfsTrainingSessionController::class, 'show']);
+    Route::put('/{id}', [FfsTrainingSessionController::class, 'update']);
+    Route::delete('/{id}', [FfsTrainingSessionController::class, 'destroy']);
+
+    // Participants
+    Route::get('/{sessionId}/participants', [FfsTrainingSessionController::class, 'participants']);
+    Route::post('/{sessionId}/participants', [FfsTrainingSessionController::class, 'syncParticipants']);
+    Route::delete('/{sessionId}/participants/{participantId}', [FfsTrainingSessionController::class, 'removeParticipant']);
+
+    // Resolutions (GAP)
+    Route::get('/{sessionId}/resolutions', [FfsTrainingSessionController::class, 'resolutions']);
+    Route::post('/{sessionId}/resolutions', [FfsTrainingSessionController::class, 'storeResolution']);
+    Route::put('/{sessionId}/resolutions/{resolutionId}', [FfsTrainingSessionController::class, 'updateResolution']);
+    Route::delete('/{sessionId}/resolutions/{resolutionId}', [FfsTrainingSessionController::class, 'destroyResolution']);
+});
 
 Route::prefix('vsla-meetings')->middleware(EnsureTokenIsValid::class)->group(function () {
     Route::post('/submit', [VslaMeetingController::class, 'submit']); // Submit offline meeting from mobile app

@@ -167,6 +167,19 @@ Route::group([
     $router->resource('vsla-meeting-attendance', VslaMeetingAttendanceController::class);
 
     // ========================================
+    // FFS MODULE - Training Sessions, Participants & Resolutions
+    // ========================================
+    
+    // Training Sessions - Facilitator-scheduled sessions
+    $router->resource('ffs-training-sessions', FfsTrainingSessionController::class);
+    
+    // Session Participants - Attendance tracking
+    $router->resource('ffs-session-participants', FfsSessionParticipantController::class);
+    
+    // Session Resolutions (GAP) - Meeting outcomes & follow-ups
+    $router->resource('ffs-session-resolutions', FfsSessionResolutionController::class);
+
+    // ========================================
     // ENTERPRISE & PRODUCTION PROTOCOLS - Farming Venture Blueprints
     // ========================================
     
