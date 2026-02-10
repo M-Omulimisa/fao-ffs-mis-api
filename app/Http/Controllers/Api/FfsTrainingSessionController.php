@@ -32,14 +32,16 @@ class FfsTrainingSessionController extends Controller
             $user = Auth::user();
             $query = FfsTrainingSession::with(['group', 'facilitator', 'createdBy']);
 
-            // Role-based filtering: non-admin users see only their group's sessions
+            // Role-based filtering: non-admin users see their group's sessions,
+            // sessions they facilitate, or sessions they created
             if ($user && !$user->isAdmin()) {
-                if ($user->group_id) {
-                    $query->where('group_id', $user->group_id);
-                } else {
-                    // Facilitators see sessions they facilitate
-                    $query->where('facilitator_id', $user->id);
-                }
+                $query->where(function ($q) use ($user) {
+                    if ($user->group_id) {
+                        $q->where('group_id', $user->group_id);
+                    }
+                    $q->orWhere('facilitator_id', $user->id)
+                      ->orWhere('created_by_id', $user->id);
+                });
             }
 
             // Filters
@@ -406,11 +408,13 @@ class FfsTrainingSessionController extends Controller
             $query = FfsTrainingSession::query();
 
             if ($user && !$user->isAdmin()) {
-                if ($user->group_id) {
-                    $query->where('group_id', $user->group_id);
-                } else {
-                    $query->where('facilitator_id', $user->id);
-                }
+                $query->where(function ($q) use ($user) {
+                    if ($user->group_id) {
+                        $q->where('group_id', $user->group_id);
+                    }
+                    $q->orWhere('facilitator_id', $user->id)
+                      ->orWhere('created_by_id', $user->id);
+                });
             }
 
             if ($request->filled('group_id')) {
