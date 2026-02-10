@@ -172,7 +172,7 @@ class FfsTrainingSession extends Model
 
     public function getGroupIdsAttribute()
     {
-        return$this->targetGroups->pluck('id')->toArray();
+        return $this->targetGroups->pluck('id')->toArray();
     }
 
     public function getGroupNamesAttribute()

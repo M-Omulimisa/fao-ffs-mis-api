@@ -18,6 +18,142 @@ class FfsTrainingSessionController extends Controller
 {
     use ApiResponser;
 
+    // ─────────────────────────────────────────────────────────────
+    //  HELPER: Check if user has access to a session
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Determine whether the given user can access a session.
+     * Access is granted if:
+     *   1. User is admin
+     *   2. User's group_id is one of the session's target groups
+     *   3. User is the facilitator or co-facilitator
+     *   4. User is the session creator
+     */
+    private function userCanAccessSession($user, FfsTrainingSession $session): bool
+    {
+        if (!$user) return false;
+        if ($user->isAdmin()) return true;
+
+        // Check target groups (pivot)
+        if ($user->group_id) {
+            $sessionGroupIds = $session->targetGroups->pluck('id')->toArray();
+            // Also check legacy group_id column
+            if (in_array($user->group_id, $sessionGroupIds) || $session->group_id == $user->group_id) {
+                return true;
+            }
+        }
+
+        // Facilitator / co-facilitator / creator
+        if ($session->facilitator_id == $user->id) return true;
+        if ($session->co_facilitator_id == $user->id) return true;
+        if ($session->created_by_id == $user->id) return true;
+
+        return false;
+    }
+
+    /**
+     * Apply role-based scope to a query builder so non-admin users
+     * only see sessions they have access to.
+     */
+    private function applyAccessScope($query, $user)
+    {
+        if (!$user || $user->isAdmin()) return;
+
+        $query->where(function ($q) use ($user) {
+            // Sessions whose target groups include the user's group
+            if ($user->group_id) {
+                $q->whereHas('targetGroups', function ($gq) use ($user) {
+                    $gq->where('ffs_groups.id', $user->group_id);
+                });
+                // Also check legacy group_id column
+                $q->orWhere('group_id', $user->group_id);
+            }
+            $q->orWhere('facilitator_id', $user->id)
+              ->orWhere('co_facilitator_id', $user->id)
+              ->orWhere('created_by_id', $user->id);
+        });
+    }
+
+    /**
+     * Standard serialization for a session (used in index/show).
+     */
+    private function serializeSession(FfsTrainingSession $session, bool $includeNested = false): array
+    {
+        $data = [
+            'id' => $session->id,
+            'group_id' => $session->group_id, // backward compat
+            'group_ids' => $session->group_ids,
+            'group_names' => $session->group_names,
+            'group_name' => $session->group_name, // backward compat
+            'facilitator_id' => $session->facilitator_id,
+            'facilitator_name' => $session->facilitator_name,
+            'co_facilitator_id' => $session->co_facilitator_id,
+            'co_facilitator_name' => $session->co_facilitator_name,
+            'title' => $session->title,
+            'description' => $session->description,
+            'topic' => $session->topic,
+            'session_date' => $session->session_date,
+            'start_time' => $session->start_time,
+            'end_time' => $session->end_time,
+            'venue' => $session->venue,
+            'session_type' => $session->session_type,
+            'session_type_text' => $session->session_type_text,
+            'status' => $session->status,
+            'status_text' => $session->status_text,
+            'report_status' => $session->report_status ?? 'draft',
+            'report_status_text' => $session->report_status_text,
+            'expected_participants' => $session->expected_participants,
+            'actual_participants' => $session->actual_participants,
+            'materials_used' => $session->materials_used,
+            'notes' => $session->notes,
+            'photo' => $session->photo,
+            'participants_count' => $session->participants_count,
+            'resolutions_count' => $session->resolutions_count,
+            'created_by_id' => $session->created_by_id,
+            'created_at' => $session->created_at,
+            'updated_at' => $session->updated_at,
+        ];
+
+        if ($includeNested) {
+            $data['challenges'] = $session->challenges;
+            $data['recommendations'] = $session->recommendations;
+            $data['submitted_at'] = $session->submitted_at;
+            $data['submitted_by_id'] = $session->submitted_by_id;
+
+            $data['participants'] = $session->participants->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'user_id' => $p->user_id,
+                    'user_name' => $p->user ? $p->user->name : null,
+                    'attendance_status' => $p->attendance_status,
+                    'attendance_status_text' => $p->attendance_status_text,
+                    'remarks' => $p->remarks,
+                ];
+            });
+
+            $data['resolutions'] = $session->resolutions->map(function ($r) {
+                return [
+                    'id' => $r->id,
+                    'resolution' => $r->resolution,
+                    'description' => $r->description,
+                    'gap_category' => $r->gap_category,
+                    'gap_category_text' => $r->gap_category_text,
+                    'responsible_person_id' => $r->responsible_person_id,
+                    'responsible_person_name' => $r->responsible_person_name,
+                    'target_date' => $r->target_date,
+                    'status' => $r->status,
+                    'status_text' => $r->status_text,
+                    'follow_up_notes' => $r->follow_up_notes,
+                    'completed_at' => $r->completed_at,
+                    'is_overdue' => $r->is_overdue,
+                ];
+            });
+        }
+
+        return $data;
+    }
+
     // ─────────────────────────────────────────────
     //  TRAINING SESSIONS
     // ─────────────────────────────────────────────
@@ -30,29 +166,28 @@ class FfsTrainingSessionController extends Controller
     {
         try {
             $user = Auth::user();
-            $query = FfsTrainingSession::with(['group', 'facilitator', 'createdBy']);
+            $query = FfsTrainingSession::with(['group', 'facilitator', 'coFacilitator', 'createdBy', 'targetGroups']);
 
-            // Role-based filtering: non-admin users see their group's sessions,
-            // sessions they facilitate, or sessions they created
-            if ($user && !$user->isAdmin()) {
-                $query->where(function ($q) use ($user) {
-                    if ($user->group_id) {
-                        $q->where('group_id', $user->group_id);
-                    }
-                    $q->orWhere('facilitator_id', $user->id)
-                      ->orWhere('created_by_id', $user->id);
-                });
-            }
+            // Role-based filtering
+            $this->applyAccessScope($query, $user);
 
             // Filters
             if ($request->filled('group_id')) {
-                $query->where('group_id', $request->group_id);
+                $groupId = $request->group_id;
+                $query->where(function ($q) use ($groupId) {
+                    $q->whereHas('targetGroups', function ($gq) use ($groupId) {
+                        $gq->where('ffs_groups.id', $groupId);
+                    })->orWhere('group_id', $groupId);
+                });
             }
             if ($request->filled('facilitator_id')) {
                 $query->where('facilitator_id', $request->facilitator_id);
             }
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
+            }
+            if ($request->filled('report_status')) {
+                $query->where('report_status', $request->report_status);
             }
             if ($request->filled('session_type')) {
                 $query->where('session_type', $request->session_type);
@@ -81,32 +216,7 @@ class FfsTrainingSessionController extends Controller
             }
 
             $sessions = $query->get()->map(function ($session) {
-                return [
-                    'id' => $session->id,
-                    'group_id' => $session->group_id,
-                    'group_name' => $session->group ? $session->group->name : null,
-                    'facilitator_id' => $session->facilitator_id,
-                    'facilitator_name' => $session->facilitator ? $session->facilitator->name : null,
-                    'title' => $session->title,
-                    'description' => $session->description,
-                    'topic' => $session->topic,
-                    'session_date' => $session->session_date,
-                    'start_time' => $session->start_time,
-                    'end_time' => $session->end_time,
-                    'venue' => $session->venue,
-                    'session_type' => $session->session_type,
-                    'session_type_text' => $session->session_type_text,
-                    'status' => $session->status,
-                    'status_text' => $session->status_text,
-                    'expected_participants' => $session->expected_participants,
-                    'actual_participants' => $session->actual_participants,
-                    'materials_used' => $session->materials_used,
-                    'notes' => $session->notes,
-                    'photo' => $session->photo,
-                    'participants_count' => $session->participants()->count(),
-                    'resolutions_count' => $session->resolutions()->count(),
-                    'created_at' => $session->created_at,
-                ];
+                return $this->serializeSession($session);
             });
 
             return response()->json([
@@ -129,7 +239,10 @@ class FfsTrainingSessionController extends Controller
             $session = FfsTrainingSession::with([
                 'group',
                 'facilitator',
+                'coFacilitator',
                 'createdBy',
+                'submittedBy',
+                'targetGroups',
                 'participants.user',
                 'resolutions.responsiblePerson',
             ])->find($id);
@@ -138,77 +251,16 @@ class FfsTrainingSessionController extends Controller
                 return $this->error('Training session not found', 404);
             }
 
-            // Permission check: same group, facilitator, or creator
+            // Permission check
             $user = Auth::user();
-            if ($user && !$user->isAdmin()) {
-                $isGroupMember = $user->group_id && $session->group_id == $user->group_id;
-                $isFacilitator = $session->facilitator_id == $user->id;
-                $isCreator = $session->created_by_id == $user->id;
-                if (!$isGroupMember && !$isFacilitator && !$isCreator) {
-                    return $this->error('You do not have permission to view this session', 403);
-                }
+            if (!$this->userCanAccessSession($user, $session)) {
+                return $this->error('You do not have permission to view this session', 403);
             }
-
-            $data = [
-                'id' => $session->id,
-                'group_id' => $session->group_id,
-                'group_name' => $session->group ? $session->group->name : null,
-                'facilitator_id' => $session->facilitator_id,
-                'facilitator_name' => $session->facilitator ? $session->facilitator->name : null,
-                'title' => $session->title,
-                'description' => $session->description,
-                'topic' => $session->topic,
-                'session_date' => $session->session_date,
-                'start_time' => $session->start_time,
-                'end_time' => $session->end_time,
-                'venue' => $session->venue,
-                'session_type' => $session->session_type,
-                'session_type_text' => $session->session_type_text,
-                'status' => $session->status,
-                'status_text' => $session->status_text,
-                'expected_participants' => $session->expected_participants,
-                'actual_participants' => $session->actual_participants,
-                'materials_used' => $session->materials_used,
-                'notes' => $session->notes,
-                'challenges' => $session->challenges,
-                'recommendations' => $session->recommendations,
-                'photo' => $session->photo,
-                'created_by_id' => $session->created_by_id,
-                'created_at' => $session->created_at,
-                'updated_at' => $session->updated_at,
-                'participants' => $session->participants->map(function ($p) {
-                    return [
-                        'id' => $p->id,
-                        'user_id' => $p->user_id,
-                        'user_name' => $p->user ? $p->user->name : null,
-                        'attendance_status' => $p->attendance_status,
-                        'attendance_status_text' => $p->attendance_status_text,
-                        'remarks' => $p->remarks,
-                    ];
-                }),
-                'resolutions' => $session->resolutions->map(function ($r) {
-                    return [
-                        'id' => $r->id,
-                        'resolution' => $r->resolution,
-                        'description' => $r->description,
-                        'gap_category' => $r->gap_category,
-                        'gap_category_text' => $r->gap_category_text,
-                        'responsible_person_id' => $r->responsible_person_id,
-                        'responsible_person_name' => $r->responsible_person_name,
-                        'target_date' => $r->target_date,
-                        'status' => $r->status,
-                        'status_text' => $r->status_text,
-                        'follow_up_notes' => $r->follow_up_notes,
-                        'completed_at' => $r->completed_at,
-                        'is_overdue' => $r->is_overdue,
-                    ];
-                }),
-            ];
 
             return response()->json([
                 'code' => 1,
                 'message' => 'Training session retrieved successfully',
-                'data' => $data,
+                'data' => $this->serializeSession($session, true),
             ]);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve training session: ' . $e->getMessage(), 500);
@@ -218,12 +270,17 @@ class FfsTrainingSessionController extends Controller
     /**
      * Create a new training session
      * POST /api/ffs-training-sessions
+     *
+     * Accepts group_ids[] (array of target group IDs) OR group_id (single, backward compat).
+     * Auto-creates pending participant records for all members of target groups.
      */
     public function store(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'group_id' => 'required|exists:ffs_groups,id',
+            // Accept either group_ids array or single group_id
+            $hasGroupIds = $request->has('group_ids') && is_array($request->group_ids) && count($request->group_ids) > 0;
+
+            $rules = [
                 'title' => 'required|string|max:255',
                 'topic' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
@@ -231,12 +288,23 @@ class FfsTrainingSessionController extends Controller
                 'start_time' => 'nullable',
                 'end_time' => 'nullable|after:start_time',
                 'venue' => 'nullable|string|max:255',
-                'session_type' => 'required|in:classroom,field,demonstration,workshop',
+                'session_type' => 'required|in:classroom,field,demonstration,workshop,other',
                 'expected_participants' => 'nullable|integer|min:0',
                 'materials_used' => 'nullable|string',
                 'notes' => 'nullable|string',
                 'photo' => 'nullable|string',
-            ]);
+                'co_facilitator_id' => 'nullable|exists:users,id',
+                'facilitator_id' => 'nullable|exists:users,id',
+            ];
+
+            if ($hasGroupIds) {
+                $rules['group_ids'] = 'required|array|min:1';
+                $rules['group_ids.*'] = 'exists:ffs_groups,id';
+            } else {
+                $rules['group_id'] = 'required|exists:ffs_groups,id';
+            }
+
+            $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return response()->json([
@@ -250,9 +318,15 @@ class FfsTrainingSessionController extends Controller
 
             DB::beginTransaction();
 
+            // Determine the group_ids to use
+            $groupIds = $hasGroupIds
+                ? array_map('intval', $request->group_ids)
+                : [intval($request->group_id)];
+
             $session = new FfsTrainingSession();
-            $session->group_id = $request->group_id;
+            $session->group_id = $groupIds[0]; // backward compat: primary group
             $session->facilitator_id = $request->get('facilitator_id', $user ? $user->id : null);
+            $session->co_facilitator_id = $request->co_facilitator_id;
             $session->title = $request->title;
             $session->description = $request->description;
             $session->topic = $request->topic;
@@ -262,6 +336,7 @@ class FfsTrainingSessionController extends Controller
             $session->venue = $request->venue;
             $session->session_type = $request->session_type;
             $session->status = $request->get('status', 'scheduled');
+            $session->report_status = FfsTrainingSession::REPORT_STATUS_DRAFT;
             $session->expected_participants = $request->expected_participants;
             $session->materials_used = $request->materials_used;
             $session->notes = $request->notes;
@@ -269,12 +344,44 @@ class FfsTrainingSessionController extends Controller
             $session->created_by_id = $user ? $user->id : null;
             $session->save();
 
+            // Sync target groups pivot
+            $session->targetGroups()->sync($groupIds);
+
+            // Auto-create pending participant records for all members of target groups
+            $memberUserIds = User::whereIn('group_id', $groupIds)
+                ->pluck('id')
+                ->unique()
+                ->toArray();
+
+            if (!empty($memberUserIds)) {
+                $pendingRecords = [];
+                $now = now();
+                foreach ($memberUserIds as $userId) {
+                    $pendingRecords[] = [
+                        'session_id' => $session->id,
+                        'user_id' => $userId,
+                        'attendance_status' => FfsSessionParticipant::STATUS_PENDING,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+                FfsSessionParticipant::insert($pendingRecords);
+
+                // Set expected_participants from member count if not provided
+                if (!$request->expected_participants) {
+                    $session->expected_participants = count($memberUserIds);
+                    $session->save();
+                }
+            }
+
             DB::commit();
+
+            $session->load(['group', 'facilitator', 'coFacilitator', 'targetGroups']);
 
             return response()->json([
                 'code' => 1,
                 'message' => 'Training session created successfully',
-                'data' => $session->load(['group', 'facilitator']),
+                'data' => $this->serializeSession($session),
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -289,24 +396,28 @@ class FfsTrainingSessionController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $session = FfsTrainingSession::find($id);
+            $session = FfsTrainingSession::with('targetGroups')->find($id);
             if (!$session) {
                 return $this->error('Training session not found', 404);
             }
 
-            // Permission check: same group, facilitator, or creator
+            // Permission check
             $user = Auth::user();
-            if ($user && !$user->isAdmin()) {
-                $isGroupMember = $user->group_id && $session->group_id == $user->group_id;
-                $isFacilitator = $session->facilitator_id == $user->id;
-                $isCreator = $session->created_by_id == $user->id;
-                if (!$isGroupMember && !$isFacilitator && !$isCreator) {
-                    return $this->error('You do not have permission to update this session', 403);
+            if (!$this->userCanAccessSession($user, $session)) {
+                return $this->error('You do not have permission to update this session', 403);
+            }
+
+            // Cannot update a submitted report (unless unsubmitting)
+            if ($session->report_status === 'submitted' && !$request->has('report_status')) {
+                // Allow only status changes on submitted reports
+                $allowedFieldsWhenSubmitted = ['status'];
+                $otherFields = array_diff(array_keys($request->except(['_method', '_token'])), $allowedFieldsWhenSubmitted);
+                if (!empty($otherFields)) {
+                    return $this->error('Cannot modify a submitted report. Unsubmit first.', 422);
                 }
             }
 
-            $validator = Validator::make($request->all(), [
-                'group_id' => 'sometimes|exists:ffs_groups,id',
+            $rules = [
                 'title' => 'sometimes|string|max:255',
                 'topic' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
@@ -314,7 +425,7 @@ class FfsTrainingSessionController extends Controller
                 'start_time' => 'nullable',
                 'end_time' => 'nullable',
                 'venue' => 'nullable|string|max:255',
-                'session_type' => 'sometimes|in:classroom,field,demonstration,workshop',
+                'session_type' => 'sometimes|in:classroom,field,demonstration,workshop,other',
                 'status' => 'sometimes|in:scheduled,ongoing,completed,cancelled',
                 'expected_participants' => 'nullable|integer|min:0',
                 'actual_participants' => 'nullable|integer|min:0',
@@ -323,7 +434,14 @@ class FfsTrainingSessionController extends Controller
                 'challenges' => 'nullable|string',
                 'recommendations' => 'nullable|string',
                 'photo' => 'nullable|string',
-            ]);
+                'co_facilitator_id' => 'nullable|exists:users,id',
+                'facilitator_id' => 'sometimes|exists:users,id',
+                'group_ids' => 'sometimes|array|min:1',
+                'group_ids.*' => 'exists:ffs_groups,id',
+                'group_id' => 'sometimes|exists:ffs_groups,id',
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return response()->json([
@@ -346,7 +464,7 @@ class FfsTrainingSessionController extends Controller
             DB::beginTransaction();
 
             $fillable = [
-                'group_id', 'facilitator_id', 'title', 'description', 'topic',
+                'facilitator_id', 'co_facilitator_id', 'title', 'description', 'topic',
                 'session_date', 'start_time', 'end_time', 'venue', 'session_type',
                 'status', 'expected_participants', 'actual_participants',
                 'materials_used', 'notes', 'challenges', 'recommendations', 'photo',
@@ -358,14 +476,71 @@ class FfsTrainingSessionController extends Controller
                 }
             }
 
+            // Handle group_ids change (pivot sync + pending participants for new groups)
+            if ($request->has('group_ids') && is_array($request->group_ids)) {
+                $newGroupIds = array_map('intval', $request->group_ids);
+                $oldGroupIds = $session->targetGroups->pluck('id')->toArray();
+
+                // Update legacy group_id to first in list
+                $session->group_id = $newGroupIds[0];
+
+                // Sync pivot
+                $session->targetGroups()->sync($newGroupIds);
+
+                // Find newly added groups
+                $addedGroupIds = array_diff($newGroupIds, $oldGroupIds);
+                if (!empty($addedGroupIds)) {
+                    // Create pending participants for members of newly added groups
+                    // who don't already have a participant record
+                    $existingUserIds = $session->participants()->pluck('user_id')->toArray();
+                    $newMemberIds = User::whereIn('group_id', $addedGroupIds)
+                        ->whereNotIn('id', $existingUserIds)
+                        ->pluck('id')
+                        ->toArray();
+
+                    if (!empty($newMemberIds)) {
+                        $now = now();
+                        $pendingRecords = [];
+                        foreach ($newMemberIds as $userId) {
+                            $pendingRecords[] = [
+                                'session_id' => $session->id,
+                                'user_id' => $userId,
+                                'attendance_status' => FfsSessionParticipant::STATUS_PENDING,
+                                'created_at' => $now,
+                                'updated_at' => $now,
+                            ];
+                        }
+                        FfsSessionParticipant::insert($pendingRecords);
+                    }
+                }
+
+                // Optionally remove pending-only participants from removed groups
+                $removedGroupIds = array_diff($oldGroupIds, $newGroupIds);
+                if (!empty($removedGroupIds)) {
+                    $removedUserIds = User::whereIn('group_id', $removedGroupIds)->pluck('id')->toArray();
+                    if (!empty($removedUserIds)) {
+                        $session->participants()
+                            ->whereIn('user_id', $removedUserIds)
+                            ->where('attendance_status', FfsSessionParticipant::STATUS_PENDING)
+                            ->delete();
+                    }
+                }
+            } elseif ($request->has('group_id')) {
+                // Backward compat: single group_id update
+                $session->group_id = $request->group_id;
+                $session->targetGroups()->sync([$request->group_id]);
+            }
+
             $session->save();
 
             DB::commit();
 
+            $session->load(['group', 'facilitator', 'coFacilitator', 'targetGroups']);
+
             return response()->json([
                 'code' => 1,
                 'message' => 'Training session updated successfully',
-                'data' => $session->load(['group', 'facilitator']),
+                'data' => $this->serializeSession($session),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -380,20 +555,15 @@ class FfsTrainingSessionController extends Controller
     public function destroy($id)
     {
         try {
-            $session = FfsTrainingSession::find($id);
+            $session = FfsTrainingSession::with('targetGroups')->find($id);
             if (!$session) {
                 return $this->error('Training session not found', 404);
             }
 
-            // Permission check: same group, facilitator, or creator
+            // Permission check
             $user = Auth::user();
-            if ($user && !$user->isAdmin()) {
-                $isGroupMember = $user->group_id && $session->group_id == $user->group_id;
-                $isFacilitator = $session->facilitator_id == $user->id;
-                $isCreator = $session->created_by_id == $user->id;
-                if (!$isGroupMember && !$isFacilitator && !$isCreator) {
-                    return $this->error('You do not have permission to delete this session', 403);
-                }
+            if (!$this->userCanAccessSession($user, $session)) {
+                return $this->error('You do not have permission to delete this session', 403);
             }
 
             // Only allow deleting scheduled/cancelled sessions
@@ -404,6 +574,7 @@ class FfsTrainingSessionController extends Controller
             DB::beginTransaction();
             $session->participants()->delete();
             $session->resolutions()->delete();
+            $session->targetGroups()->detach();
             $session->delete();
             DB::commit();
 
@@ -427,18 +598,15 @@ class FfsTrainingSessionController extends Controller
             $user = Auth::user();
             $query = FfsTrainingSession::query();
 
-            if ($user && !$user->isAdmin()) {
-                $query->where(function ($q) use ($user) {
-                    if ($user->group_id) {
-                        $q->where('group_id', $user->group_id);
-                    }
-                    $q->orWhere('facilitator_id', $user->id)
-                      ->orWhere('created_by_id', $user->id);
-                });
-            }
+            $this->applyAccessScope($query, $user);
 
             if ($request->filled('group_id')) {
-                $query->where('group_id', $request->group_id);
+                $groupId = $request->group_id;
+                $query->where(function ($q) use ($groupId) {
+                    $q->whereHas('targetGroups', function ($gq) use ($groupId) {
+                        $gq->where('ffs_groups.id', $groupId);
+                    })->orWhere('group_id', $groupId);
+                });
             }
 
             $total = (clone $query)->count();
@@ -448,6 +616,8 @@ class FfsTrainingSessionController extends Controller
             $cancelled = (clone $query)->where('status', 'cancelled')->count();
             $totalParticipants = (clone $query)->sum('actual_participants');
             $avgParticipants = $completed > 0 ? round((clone $query)->where('status', 'completed')->avg('actual_participants'), 1) : 0;
+            $draftReports = (clone $query)->where('report_status', 'draft')->count();
+            $submittedReports = (clone $query)->where('report_status', 'submitted')->count();
 
             return response()->json([
                 'code' => 1,
@@ -460,10 +630,137 @@ class FfsTrainingSessionController extends Controller
                     'cancelled' => $cancelled,
                     'total_participants' => (int) $totalParticipants,
                     'avg_participants_per_session' => $avgParticipants,
+                    'draft_reports' => $draftReports,
+                    'submitted_reports' => $submittedReports,
                 ],
             ]);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve stats: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  EXPECTED MEMBERS & REPORT WORKFLOW
+    // ─────────────────────────────────────────────
+
+    /**
+     * Get expected members for a session based on its target groups.
+     * GET /api/ffs-training-sessions/{sessionId}/expected-members
+     */
+    public function expectedMembers($sessionId)
+    {
+        try {
+            $session = FfsTrainingSession::with('targetGroups')->find($sessionId);
+            if (!$session) {
+                return $this->error('Training session not found', 404);
+            }
+
+            $groupIds = $session->targetGroups->pluck('id')->toArray();
+            if (empty($groupIds) && $session->group_id) {
+                $groupIds = [$session->group_id];
+            }
+
+            $members = User::whereIn('group_id', $groupIds)
+                ->select('id', 'first_name', 'last_name', 'name', 'phone_number', 'group_id')
+                ->get()
+                ->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'name' => $u->name ?? trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
+                        'phone_number' => $u->phone_number,
+                        'group_id' => $u->group_id,
+                    ];
+                });
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Expected members retrieved',
+                'data' => $members,
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to retrieve expected members: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Submit the training session report.
+     * POST /api/ffs-training-sessions/{id}/submit-report
+     */
+    public function submitReport($id)
+    {
+        try {
+            $session = FfsTrainingSession::with('targetGroups')->find($id);
+            if (!$session) {
+                return $this->error('Training session not found', 404);
+            }
+
+            $user = Auth::user();
+            if (!$this->userCanAccessSession($user, $session)) {
+                return $this->error('You do not have permission to submit this report', 403);
+            }
+
+            if ($session->report_status === 'submitted') {
+                return $this->error('Report has already been submitted', 422);
+            }
+
+            // Ensure session is completed or ongoing before allowing report submission
+            if (!in_array($session->status, ['ongoing', 'completed'])) {
+                return $this->error('Session must be ongoing or completed to submit report', 422);
+            }
+
+            $session->report_status = FfsTrainingSession::REPORT_STATUS_SUBMITTED;
+            $session->submitted_at = now();
+            $session->submitted_by_id = $user ? $user->id : null;
+            $session->save();
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Report submitted successfully',
+                'data' => [
+                    'report_status' => $session->report_status,
+                    'submitted_at' => $session->submitted_at,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to submit report: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Un-submit (revert to draft) the training session report.
+     * POST /api/ffs-training-sessions/{id}/unsubmit-report
+     */
+    public function unsubmitReport($id)
+    {
+        try {
+            $session = FfsTrainingSession::with('targetGroups')->find($id);
+            if (!$session) {
+                return $this->error('Training session not found', 404);
+            }
+
+            $user = Auth::user();
+            if (!$this->userCanAccessSession($user, $session)) {
+                return $this->error('You do not have permission to unsubmit this report', 403);
+            }
+
+            if ($session->report_status !== 'submitted') {
+                return $this->error('Report is not submitted', 422);
+            }
+
+            $session->report_status = FfsTrainingSession::REPORT_STATUS_DRAFT;
+            $session->submitted_at = null;
+            $session->submitted_by_id = null;
+            $session->save();
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Report reverted to draft',
+                'data' => [
+                    'report_status' => $session->report_status,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to unsubmit report: ' . $e->getMessage(), 500);
         }
     }
 
@@ -531,7 +828,7 @@ class FfsTrainingSessionController extends Controller
             $validator = Validator::make($request->all(), [
                 'participants' => 'required|array|min:1',
                 'participants.*.user_id' => 'required|exists:users,id',
-                'participants.*.attendance_status' => 'required|in:present,absent,excused,late',
+                'participants.*.attendance_status' => 'required|in:pending,present,absent,excused,late',
                 'participants.*.remarks' => 'nullable|string|max:500',
             ]);
 

@@ -220,6 +220,11 @@ Route::prefix('ffs-training-sessions')->middleware(EnsureTokenIsValid::class)->g
     Route::put('/{id}', [FfsTrainingSessionController::class, 'update']);
     Route::delete('/{id}', [FfsTrainingSessionController::class, 'destroy']);
 
+    // Expected members & Report workflow
+    Route::get('/{sessionId}/expected-members', [FfsTrainingSessionController::class, 'expectedMembers']);
+    Route::post('/{id}/submit-report', [FfsTrainingSessionController::class, 'submitReport']);
+    Route::post('/{id}/unsubmit-report', [FfsTrainingSessionController::class, 'unsubmitReport']);
+
     // Participants
     Route::get('/{sessionId}/participants', [FfsTrainingSessionController::class, 'participants']);
     Route::post('/{sessionId}/participants', [FfsTrainingSessionController::class, 'syncParticipants']);
