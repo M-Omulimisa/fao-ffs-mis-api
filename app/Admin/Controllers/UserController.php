@@ -549,6 +549,18 @@ class UserController extends AdminController
                     ->default('Male');
             });
 
+            $form->divider('Organization');
+            
+            $form->row(function ($row) {
+                $ipOptions = ImplementingPartner::where('status', 'Active')
+                    ->orderBy('name')
+                    ->pluck('name', 'id')
+                    ->toArray();
+                $row->width(12)->select('ip_id', __('Implementing Partner'))
+                    ->options($ipOptions)
+                    ->help('Select the Implementing Partner this user belongs to');
+            });
+
             $form->divider('Membership Type');
             
             $form->row(function ($row) {
@@ -608,7 +620,19 @@ class UserController extends AdminController
                 ->help('Phone number');
         });
 
+        $form->divider('Organization');
+        
+        $form->row(function ($row) {
+            $ipOptions = ImplementingPartner::where('status', 'Active')
+                ->orderBy('name')
+                ->pluck('name', 'id')
+                ->toArray();
+            $row->width(12)->select('ip_id', __('Implementing Partner'))
+                ->options($ipOptions)
+                ->help('Select the Implementing Partner this user belongs to');
+        });
 
+        $form->divider('Membership Status');
 
         $form->row(function ($row) {
             $row->width(2)->radio('is_dtehm_member', __('DTEHM Member?'))
