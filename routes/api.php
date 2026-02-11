@@ -232,6 +232,7 @@ Route::prefix('ffs-training-sessions')->middleware(EnsureTokenIsValid::class)->g
     Route::get('/{sessionId}/expected-members', [FfsTrainingSessionController::class, 'expectedMembers']);
     Route::post('/{id}/submit-report', [FfsTrainingSessionController::class, 'submitReport']);
     Route::post('/{id}/unsubmit-report', [FfsTrainingSessionController::class, 'unsubmitReport']);
+    Route::post('/{id}/wizard-report', [FfsTrainingSessionController::class, 'submitWizardReport']);
 
     // Participants
     Route::get('/{sessionId}/participants', [FfsTrainingSessionController::class, 'participants']);

@@ -773,6 +773,178 @@ class FfsTrainingSessionController extends Controller
         }
     }
 
+    /**
+     * Submit comprehensive wizard report (attendance, resolutions, photos, GPS, etc.)
+     * POST /api/ffs-training-sessions/{id}/wizard-report
+     */
+    public function submitWizardReport(Request $request, $id)
+    {
+        try {
+            $session = FfsTrainingSession::with('targetGroups', 'participants', 'resolutions')->find($id);
+            if (!$session) {
+                return $this->error('Training session not found', 404);
+            }
+
+            $user = Auth::user();
+            if (!$this->userCanAccessSession($user, $session)) {
+                return $this->error('You do not have permission to submit this report', 403);
+            }
+
+            // Ensure session is completed or ongoing before allowing report submission
+            if (!in_array($session->status, ['ongoing', 'completed'])) {
+                return $this->error('Session must be ongoing or completed to submit report', 422);
+            }
+
+            $validator = Validator::make($request->all(), [
+                // Attendance
+                'participants' => 'sometimes|array',
+                'participants.*.user_id' => 'required_with:participants|exists:users,id',
+                'participants.*.attendance_status' => 'required_with:participants|in:pending,present,absent,excused,late',
+                'participants.*.remarks' => 'nullable|string|max:500',
+                
+                // Resolutions (GAP)
+                'resolutions' => 'sometimes|array',
+                'resolutions.*.resolution' => 'required_with:resolutions|string|max:500',
+                'resolutions.*.description' => 'nullable|string',
+                'resolutions.*.gap_category' => 'nullable|string|max:100',
+                'resolutions.*.responsible_person_id' => 'nullable|exists:users,id',
+                'resolutions.*.target_date' => 'nullable|date',
+                
+                // Photos (array of URLs or base64)
+                'photos' => 'sometimes|array',
+                'photos.*' => 'string',
+                
+                // GPS
+                'gps_latitude' => 'nullable|numeric|between:-90,90',
+                'gps_longitude' => 'nullable|numeric|between:-180,180',
+                
+                // Facilitators present
+                'attending_facilitator_ids' => 'sometimes|array',
+                'attending_facilitator_ids.*' => 'exists:users,id',
+                
+                // Report notes
+                'notes' => 'nullable|string',
+                'challenges' => 'nullable|string',
+                'recommendations' => 'nullable|string',
+                'materials_used' => 'nullable|string',
+                
+                // Submit or save as draft
+                'submit' => 'sometimes|boolean',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'code' => 0,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            // 1. Sync participants if provided
+            if ($request->has('participants') && is_array($request->participants)) {
+                foreach ($request->participants as $pData) {
+                    FfsSessionParticipant::updateOrCreate(
+                        [
+                            'session_id' => $id,
+                            'user_id' => $pData['user_id'],
+                        ],
+                        [
+                            'attendance_status' => $pData['attendance_status'],
+                            'remarks' => $pData['remarks'] ?? null,
+                        ]
+                    );
+                }
+                // Update actual_participants count
+                $session->refreshParticipantCount();
+            }
+
+            // 2. Add resolutions if provided
+            if ($request->has('resolutions') && is_array($request->resolutions)) {
+                foreach ($request->resolutions as $rData) {
+                    FfsSessionResolution::create([
+                        'session_id' => $id,
+                        'resolution' => $rData['resolution'],
+                        'description' => $rData['description'] ?? null,
+                        'gap_category' => $rData['gap_category'] ?? null,
+                        'responsible_person_id' => $rData['responsible_person_id'] ?? null,
+                        'target_date' => $rData['target_date'] ?? null,
+                        'status' => 'pending',
+                    ]);
+                }
+            }
+
+            // 3. Update session fields
+            $updateFields = [];
+            
+            if ($request->has('gps_latitude')) {
+                $updateFields['gps_latitude'] = $request->gps_latitude;
+            }
+            if ($request->has('gps_longitude')) {
+                $updateFields['gps_longitude'] = $request->gps_longitude;
+            }
+            if ($request->has('photos')) {
+                $updateFields['photos'] = $request->photos;
+            }
+            if ($request->has('attending_facilitator_ids')) {
+                $updateFields['attending_facilitator_ids'] = $request->attending_facilitator_ids;
+            }
+            if ($request->has('notes')) {
+                $updateFields['notes'] = $request->notes;
+            }
+            if ($request->has('challenges')) {
+                $updateFields['challenges'] = $request->challenges;
+            }
+            if ($request->has('recommendations')) {
+                $updateFields['recommendations'] = $request->recommendations;
+            }
+            if ($request->has('materials_used')) {
+                $updateFields['materials_used'] = $request->materials_used;
+            }
+
+            // 4. Submit report if requested
+            if ($request->get('submit', false)) {
+                $updateFields['report_status'] = FfsTrainingSession::REPORT_STATUS_SUBMITTED;
+                $updateFields['submitted_at'] = now();
+                $updateFields['submitted_by_id'] = $user ? $user->id : null;
+                $updateFields['report_submitted_at'] = now();
+            }
+
+            if (!empty($updateFields)) {
+                $session->update($updateFields);
+            }
+
+            DB::commit();
+
+            // Reload session with relationships
+            $session->load(['participants.user', 'resolutions']);
+
+            return response()->json([
+                'code' => 1,
+                'message' => $request->get('submit', false) 
+                    ? 'Report submitted successfully' 
+                    : 'Report draft saved successfully',
+                'data' => [
+                    'id' => $session->id,
+                    'report_status' => $session->report_status,
+                    'submitted_at' => $session->submitted_at,
+                    'participants_count' => $session->participants->count(),
+                    'actual_participants' => $session->actual_participants,
+                    'resolutions_count' => $session->resolutions->count(),
+                    'gps_latitude' => $session->gps_latitude,
+                    'gps_longitude' => $session->gps_longitude,
+                    'photos' => $session->photos,
+                    'attending_facilitator_ids' => $session->attending_facilitator_ids,
+                    'attending_facilitator_names' => $session->attending_facilitator_names,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->error('Failed to submit report: ' . $e->getMessage(), 500);
+        }
+    }
+
     // ─────────────────────────────────────────────
     //  PARTICIPANTS
     // ─────────────────────────────────────────────

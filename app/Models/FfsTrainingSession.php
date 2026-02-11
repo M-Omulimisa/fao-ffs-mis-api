@@ -33,14 +33,24 @@ class FfsTrainingSession extends Model
         'challenges',
         'recommendations',
         'photo',
+        'gps_latitude',
+        'gps_longitude',
+        'photos',
+        'attending_facilitator_ids',
+        'report_submitted_at',
         'created_by_id',
     ];
 
     protected $casts = [
         'session_date' => 'date',
         'submitted_at' => 'datetime',
+        'report_submitted_at' => 'datetime',
         'expected_participants' => 'integer',
         'actual_participants' => 'integer',
+        'gps_latitude' => 'float',
+        'gps_longitude' => 'float',
+        'photos' => 'array',
+        'attending_facilitator_ids' => 'array',
     ];
 
     protected $appends = [
@@ -54,6 +64,7 @@ class FfsTrainingSession extends Model
         'co_facilitator_name',
         'participants_count',
         'resolutions_count',
+        'attending_facilitator_names',
     ];
 
     // Constants
@@ -194,6 +205,16 @@ class FfsTrainingSession extends Model
     public function getCoFacilitatorNameAttribute()
     {
         return $this->coFacilitator ? $this->coFacilitator->name : null;
+    }
+
+    public function getAttendingFacilitatorNamesAttribute()
+    {
+        if (empty($this->attending_facilitator_ids)) {
+            return [];
+        }
+        return User::whereIn('id', $this->attending_facilitator_ids)
+            ->pluck('name')
+            ->toArray();
     }
 
     public function getParticipantsCountAttribute()
