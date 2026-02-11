@@ -36,6 +36,14 @@ Route::post("phone-verification/verify-otp", [PhoneVerificationController::class
 // USER REGISTRATION - Universal registration with role-based profiling
 Route::post("users/register", [UserRegistrationController::class, "register"]);
 
+// USER PROFILING - List, view, and manage users
+Route::prefix('profiling/users')->group(function () {
+    Route::get('/', [UserRegistrationController::class, 'index'])->middleware(EnsureTokenIsValid::class);
+    Route::get('/filter-options', [UserRegistrationController::class, 'getFilterOptions']);
+    Route::get('/{id}', [UserRegistrationController::class, 'show'])->middleware(EnsureTokenIsValid::class);
+    Route::post('/{id}/status', [UserRegistrationController::class, 'updateStatus'])->middleware(EnsureTokenIsValid::class);
+});
+
 // USER PROFILE ROUTES
 Route::post("users/update-profile", [ApiResurceController::class, 'users_update_profile'])->middleware(EnsureTokenIsValid::class);
 

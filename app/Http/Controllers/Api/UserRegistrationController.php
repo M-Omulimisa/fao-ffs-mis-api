@@ -431,4 +431,218 @@ class UserRegistrationController extends Controller
             ]);
         }
     }
+
+    /**
+     * List all registered users with filtering and search
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index(Request $request)
+    {
+        try {
+            $query = User::query();
+
+            // IP scoping: only show users from user's IP
+            $authUser = auth('api')->user() ?? auth()->user();
+            if ($authUser && $authUser->ip_id) {
+                $query->where('ip_id', $authUser->ip_id);
+            }
+
+            // Filter by role/user_type
+            if ($request->has('role') && !empty($request->role)) {
+                $query->where('user_type', $request->role);
+            }
+
+            // Filter by status
+            if ($request->has('status') && !empty($request->status)) {
+                $query->where('status', $request->status);
+            }
+
+            // Search by name, phone, or email
+            if ($request->has('search') && !empty($request->search)) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('phone_number', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('business_name', 'like', "%{$search}%");
+                });
+            }
+
+            // Filter by district
+            if ($request->has('district') && !empty($request->district)) {
+                $query->where('district_id', $request->district);
+            }
+
+            // Filter by verification status
+            if ($request->has('verified') && !empty($request->verified)) {
+                if ($request->verified === 'yes') {
+                    $query->whereNotNull('phone_number_verified_at');
+                } else {
+                    $query->whereNull('phone_number_verified_at');
+                }
+            }
+
+            // Order by
+            $orderBy = $request->input('order_by', 'created_at');
+            $orderDir = $request->input('order_dir', 'desc');
+            $query->orderBy($orderBy, $orderDir);
+
+            // Pagination
+            $perPage = $request->input('per_page', 50);
+            $users = $query->paginate($perPage);
+
+            // Get summary counts
+            $summary = [
+                'total' => User::count(),
+                'active' => User::where('status', 'Active')->count(),
+                'inactive' => User::where('status', '!=', 'Active')->count(),
+                'verified' => User::whereNotNull('phone_number_verified_at')->count(),
+                'by_role' => User::selectRaw('user_type, COUNT(*) as count')
+                    ->groupBy('user_type')
+                    ->pluck('count', 'user_type'),
+            ];
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Success',
+                'data' => $users->items(),
+                'pagination' => [
+                    'current_page' => $users->currentPage(),
+                    'per_page' => $users->perPage(),
+                    'total' => $users->total(),
+                    'last_page' => $users->lastPage(),
+                ],
+                'summary' => $summary,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 0,
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get single user details
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Success',
+                'data' => $user,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 0,
+                'message' => 'User not found',
+            ], 404);
+        }
+    }
+
+    /**
+     * Update user status (verify, activate, deactivate)
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'action' => 'required|in:verify,activate,deactivate',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'code' => 0,
+                    'message' => $validator->errors()->first(),
+                ], 422);
+            }
+
+            $user = User::findOrFail($id);
+            $action = $request->input('action');
+
+            switch ($action) {
+                case 'verify':
+                    $user->update([
+                        'phone_number_verified_at' => now(),
+                    ]);
+                    $message = 'User verified successfully';
+                    break;
+
+                case 'activate':
+                    $user->update([
+                        'status' => 'Active',
+                    ]);
+                    $message = 'User activated successfully';
+                    break;
+
+                case 'deactivate':
+                    $user->update([
+                        'status' => 'Inactive',
+                    ]);
+                    $message = 'User deactivated successfully';
+                    break;
+            }
+
+            return response()->json([
+                'code' => 1,
+                'message' => $message,
+                'data' => $user->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 0,
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get filter options for user list
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getFilterOptions()
+    {
+        try {
+            $roles = [
+                'Farmer',
+                'Service Provider',
+                'Input Dealer',
+                'Equipment Provider',
+                'Output Market',
+                'Aggregator',
+                'Bulking Agent',
+                'Extension Officer',
+                'Admin',
+            ];
+
+            $statuses = ['Active', 'Inactive', 'Pending', 'Suspended'];
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Success',
+                'data' => [
+                    'roles' => $roles,
+                    'statuses' => $statuses,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 0,
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

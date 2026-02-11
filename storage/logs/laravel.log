@@ -1,0 +1,79 @@
+[2026-02-11 10:46:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-11 10:46:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-11 10:46:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-11 10:46:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-11 10:46:37] local.INFO: ========== MANIFEST REQUEST STARTED ==========  
+[2026-02-11 10:46:37] local.INFO: Request Headers: {"content-type":["application/json"],"host":["10.0.2.2:8888"],"accept-encoding":["gzip"],"user-id":["211"],"accept":["application/json"],"user-agent":["Dart/3.8 (dart:io)"]} 
+[2026-02-11 10:46:37] local.INFO: Request Method: ["GET"] 
+[2026-02-11 10:46:37] local.INFO: Request URL: ["http://10.0.2.2:8888/fao-ffs-mis-api/api/manifest"] 
+[2026-02-11 10:46:37] local.INFO: Extracted User ID: {"user_id":"211"} 
+[2026-02-11 10:46:37] local.INFO: User Found: {"id":211,"name":"Zubeda Ali Mirembe Mubaraka Bentley","email":"cebofit@mailinator.com"} 
+[2026-02-11 10:46:37] local.INFO: Balance Calculated: {"balance":227000.0,"user_id":"211"} 
+[2026-02-11 10:46:37] local.INFO: Balance Breakdown: {"total_balance":227000.0,"formatted_balance":"UGX 227,000.00","available_balance":227000.0,"formatted_available":"UGX 227,000.00","pending_balance":0.0,"formatted_pending":"UGX 0.00"} 
+[2026-02-11 10:46:37] local.INFO: Manifest Compiled Successfully  
+[2026-02-11 10:46:37] local.INFO: Manifest Structure: {"user":"included","balance":227000.0,"transactions_count":10,"features":["vsla_enabled","farm_management_enabled","marketplace_enabled","advisory_enabled","profiling_enabled","ffs_activities_enabled"]} 
+[2026-02-11 10:46:37] local.INFO: ========== MANIFEST REQUEST COMPLETED ==========  
+[2026-02-11 10:46:37] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-11 10:46:41] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-11 10:46:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-11 10:46:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-11 10:46:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-11 10:46:41] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-11 10:46:49] local.INFO: 📦 Market Prices: Getting products {"category_id":null} 
+[2026-02-11 10:46:49] local.INFO: ✅ Market Prices: Found 10 products  
+[2026-02-11 10:46:50] local.INFO: 💰 Market Prices: Getting prices {"product_id":null,"district_id":null,"sub_county_id":null,"start_date":null,"end_date":null,"limit":null} 
+[2026-02-11 10:46:50] local.INFO: ✅ Market Prices: Found 100 price records  
+[2026-02-11 10:49:15] local.ERROR: PHP Parse error: Syntax error, unexpected T_STRING, expecting ',' or ']' or ')' on line 8 {"exception":"[object] (Psy\\Exception\\ParseErrorException(code: 0): PHP Parse error: Syntax error, unexpected T_STRING, expecting ',' or ']' or ')' on line 8 at /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/psy/psysh/src/Exception/ParseErrorException.php:44)
+[stacktrace]
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/psy/psysh/src/CodeCleaner.php(306): Psy\\Exception\\ParseErrorException::fromParseError(Object(PhpParser\\Error))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/psy/psysh/src/CodeCleaner.php(240): Psy\\CodeCleaner->parse('<?php \\n$posts =...', false)
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/psy/psysh/src/Shell.php(852): Psy\\CodeCleaner->clean(Array, false)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/psy/psysh/src/Shell.php(881): Psy\\Shell->addCode('\\n$posts = [\\n  [...', true)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/psy/psysh/src/Shell.php(1390): Psy\\Shell->setCode('\\n$posts = [\\n  [...', true)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/tinker/src/Console/TinkerCommand.php(76): Psy\\Shell->execute('\\n$posts = [\\n  [...')
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Laravel\\Tinker\\Console\\TinkerCommand->handle()
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Container/Util.php(40): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Container/Container.php(653): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Console/Command.php(136): Illuminate\\Container\\Container->call(Array)
+#12 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/symfony/console/Command/Command.php(298): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#13 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Console/Command.php(120): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/symfony/console/Application.php(1040): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#15 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/symfony/console/Application.php(301): Symfony\\Component\\Console\\Application->doRunCommand(Object(Laravel\\Tinker\\Console\\TinkerCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/symfony/console/Application.php(171): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Console/Application.php(94): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(129): Illuminate\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 /Applications/MAMP/htdocs/fao-ffs-mis-api/artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 {main}
+"} 
+[2026-02-11 10:49:22] local.ERROR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'summary' in 'field list' (SQL: insert into `advisory_posts` (`title`, `category_id`, `summary`, `content`, `language`, `status`, `featured`, `order`, `views_count`, `updated_at`, `created_at`) values (Introduction to AESA: Agro-Ecosystem Analysis, 10, Learn the fundamentals of AESA methodology used in Farmer Field Schools for weekly field observations and decision making., <p>Learn the fundamentals of AESA methodology used in Farmer Field Schools for weekly field observations and decision making. Learn the fundamentals of AESA methodology used in Farmer Field Schools for weekly field observations and decision making. Learn the fundamentals of AESA methodology used in Farmer Field Schools for weekly field observations and decision making. </p><p>This content provides detailed guidance for Farmer Field School facilitators and participants.</p>, English, Published, Yes, 1, 48, 2026-02-11 10:49:22, 2026-02-11 10:49:22)) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S22): SQLSTATE[42S22]: Column not found: 1054 Unknown column 'summary' in 'field list' (SQL: insert into `advisory_posts` (`title`, `category_id`, `summary`, `content`, `language`, `status`, `featured`, `order`, `views_count`, `updated_at`, `created_at`) values (Introduction to AESA: Agro-Ecosystem Analysis, 10, Learn the fundamentals of AESA methodology used in Farmer Field Schools for weekly field observations and decision making., <p>Learn the fundamentals of AESA methodology used in Farmer Field Schools for weekly field observations and decision making. Learn the fundamentals of AESA methodology used in Farmer Field Schools for weekly field observations and decision making. Learn the fundamentals of AESA methodology used in Farmer Field Schools for weekly field observations and decision making. </p><p>This content provides detailed guidance for Farmer Field School facilitators and participants.</p>, English, Published, Yes, 1, 48, 2026-02-11 10:49:22, 2026-02-11 10:49:22)) at /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:712)
+[stacktrace]
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('insert into `ad...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(490): Illuminate\\Database\\Connection->run('insert into `ad...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(454): Illuminate\\Database\\Connection->statement('insert into `ad...', Array)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Processors/Processor.php(32): Illuminate\\Database\\Connection->insert('insert into `ad...', Array)
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3028): Illuminate\\Database\\Query\\Processors\\Processor->processInsertGetId(Object(Illuminate\\Database\\Query\\Builder), 'insert into `ad...', Array, 'id')
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1657): Illuminate\\Database\\Query\\Builder->insertGetId(Array, 'id')
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1188): Illuminate\\Database\\Eloquent\\Builder->__call('insertGetId', Array)
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1153): Illuminate\\Database\\Eloquent\\Model->insertAndSetId(Object(Illuminate\\Database\\Eloquent\\Builder), Array)
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(994): Illuminate\\Database\\Eloquent\\Model->performInsert(Object(Illuminate\\Database\\Eloquent\\Builder))
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/seed_aesa_posts.php(70): Illuminate\\Database\\Eloquent\\Model->save()
+#10 {main}
+
+[previous exception] [object] (PDOException(code: 42S22): SQLSTATE[42S22]: Column not found: 1054 Unknown column 'summary' in 'field list' at /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:495)
+[stacktrace]
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(495): PDO->prepare('insert into `ad...')
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(705): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('insert into `ad...', Array)
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('insert into `ad...', Array, Object(Closure))
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(490): Illuminate\\Database\\Connection->run('insert into `ad...', Array, Object(Closure))
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(454): Illuminate\\Database\\Connection->statement('insert into `ad...', Array)
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Processors/Processor.php(32): Illuminate\\Database\\Connection->insert('insert into `ad...', Array)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3028): Illuminate\\Database\\Query\\Processors\\Processor->processInsertGetId(Object(Illuminate\\Database\\Query\\Builder), 'insert into `ad...', Array, 'id')
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1657): Illuminate\\Database\\Query\\Builder->insertGetId(Array, 'id')
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1188): Illuminate\\Database\\Eloquent\\Builder->__call('insertGetId', Array)
+#9 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1153): Illuminate\\Database\\Eloquent\\Model->insertAndSetId(Object(Illuminate\\Database\\Eloquent\\Builder), Array)
+#10 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(994): Illuminate\\Database\\Eloquent\\Model->performInsert(Object(Illuminate\\Database\\Eloquent\\Builder))
+#11 /Applications/MAMP/htdocs/fao-ffs-mis-api/seed_aesa_posts.php(70): Illuminate\\Database\\Eloquent\\Model->save()
+#12 {main}
+"} 
