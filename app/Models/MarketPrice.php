@@ -46,6 +46,22 @@ class MarketPrice extends Model
     }
 
     /**
+     * Get the district for this price
+     */
+    public function district()
+    {
+        return $this->belongsTo(Location::class, 'district_id');
+    }
+
+    /**
+     * Get the sub county for this price
+     */
+    public function sub_county()
+    {
+        return $this->belongsTo(Location::class, 'sub_county_id');
+    }
+
+    /**
      * Get the district name (accessor only, no relationship)
      */
     public function getDistrictNameAttribute()

@@ -122,13 +122,13 @@ class FfsGroupController extends AdminController
         $grid->column('ip_id', 'IP')->display(function () {
             if ($this->ip_id && $this->implementingPartner) {
                 $name = $this->implementingPartner->short_name ?: $this->implementingPartner->name;
-                return \"<span class='label label-primary'>{$name}</span>\";
+                return "<span class='label label-primary'>{$name}</span>";
             }
             // Fallback to legacy ip_name text
             if (!empty($this->ip_name)) {
-                return \"<span class='label label-default'>{$this->ip_name}</span>\";
+                return "<span class='label label-default'>{$this->ip_name}</span>";
             }
-            return '<span style=\"color:#999;\">-</span>';
+            return '<span style="color:#999;">-</span>';
         })->sortable();
         
         // District - Show text if no ID linked

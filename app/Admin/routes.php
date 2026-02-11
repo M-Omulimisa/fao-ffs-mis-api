@@ -66,11 +66,9 @@ Route::group([
     $router->resource('insurance-programs', InsuranceProgramController::class);
     $router->resource('insurance-subscriptions', InsuranceSubscriptionController::class);
 
-    // Admin only - Payment operations
-    $router->group(['middleware' => 'admin.only'], function ($router) {
-        $router->resource('insurance-subscription-payments', InsuranceSubscriptionPaymentController::class);
-        $router->resource('insurance-transactions', InsuranceTransactionController::class);
-    });
+    // Payment operations
+    $router->resource('insurance-subscription-payments', InsuranceSubscriptionPaymentController::class);
+    $router->resource('insurance-transactions', InsuranceTransactionController::class);
 
     // ========================================
     // MEDICAL SERVICES - Read access for managers, full access for admin
@@ -84,35 +82,19 @@ Route::group([
     $router->resource('orders', OrderController::class);
 
     // ========================================
-    // MEMBERSHIP MANAGEMENT - Admin Only
+    // MEMBERSHIP MANAGEMENT
     // ========================================
-    $router->group(['middleware' => 'admin.only'], function ($router) {
-        $router->resource('membership-payments', MembershipPaymentController::class);
-        $router->get('membership-payments/{id}/confirm', 'MembershipPaymentController@confirm')->name('membership-payments.confirm');
-    });
+    $router->resource('membership-payments', MembershipPaymentController::class);
+    $router->get('membership-payments/{id}/confirm', 'MembershipPaymentController@confirm')->name('membership-payments.confirm');
 
     // ========================================
-    // SYSTEM MANAGEMENT - Admin Only
+    // SYSTEM MANAGEMENT
     // ========================================
-    $router->group(['middleware' => 'admin.only'], function ($router) {
-        $router->resource('system-configurations', SystemConfigurationController::class);
-        $router->resource('pesapal-payments', UniversalPaymentController::class);
-    });
+    $router->resource('system-configurations', SystemConfigurationController::class);
+    $router->resource('pesapal-payments', UniversalPaymentController::class);
 
-    // Users - Managers can view, only Admins can create/edit/delete
-    // IMPORTANT: Specific routes (create, edit) MUST come BEFORE dynamic routes ({id})
-    $router->get('users', 'UserController@index')->name('users.index');
-
-    $router->group(['middleware' => 'admin.only'], function ($router) {
-        $router->get('users/create', 'UserController@create')->name('users.create');
-        $router->post('users', 'UserController@store')->name('users.store');
-        $router->get('users/{id}/edit', 'UserController@edit')->name('users.edit');
-        $router->put('users/{id}', 'UserController@update')->name('users.update');
-        $router->delete('users/{id}', 'UserController@destroy')->name('users.destroy');
-    });
-
-    // Dynamic route MUST come last to avoid matching 'create', 'edit', etc.
-    $router->get('users/{id}', 'UserController@show')->name('users.show');
+    // Users management
+    $router->resource('users', UserController::class);
 
     // User Hierarchy & Network - View only for all admin users
     $router->resource('user-hierarchy', UserHierarchyController::class);
