@@ -1,0 +1,272 @@
+<mxfile host="draw.io" modified="2026-02-16T12:00:00.000Z" agent="draw.io" version="24.0.0" type="device">
+  <diagram id="greenroots-diagram" name="GreenRoots Womens Farm Labs">
+    <mxGraphModel dx="2200" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- TITLE -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <mxCell id="title-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1B5E20;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="20" width="2340" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="title" value="&lt;font style=&quot;font-size:24px;color:#FFFFFF;&quot;&gt;&lt;b&gt;GreenRoots Women's Farm Labs&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:15px;color:#C8E6C9;&quot;&gt; — a territorial incubation initiative for women-led green microbusinesses as Pathway to Food Systems Transformation&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="200" y="30" width="2000" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- TOP ROW: DIGITAL ENABLERS (3 boxes across top) -->
+        <!-- ═══════════════════════════════════════════════ -->
+
+        <!-- Top Enabler 1: Digitize BDS Content -->
+        <mxCell id="top1" value="&lt;font style=&quot;font-size:14px;color:#333;&quot;&gt;Digitize BDS content on&lt;br&gt;&lt;b&gt;Green Enterprise&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;dashed=1;dashPattern=8 4;" vertex="1" parent="1">
+          <mxGeometry x="30" y="130" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Top Enabler 2: Digitization of Training -->
+        <mxCell id="top2" value="&lt;font style=&quot;font-size:14px;color:#333;&quot;&gt;Digitization of training content to be&lt;br&gt;uploaded on &lt;b&gt;Digital Advisory Hub&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="430" y="130" width="310" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Top Enabler 3: VSLA Digital Ledger -->
+        <mxCell id="top3" value="&lt;font style=&quot;font-size:14px;color:#333;&quot;&gt;Leverage &lt;b&gt;VSLA Digital Ledger&lt;/b&gt; system as&lt;br&gt;catalyst to provide alternative credit scores&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="880" y="130" width="340" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Top Enabler 4: E-Market Place -->
+        <mxCell id="top4" value="&lt;font style=&quot;font-size:15px;color:#fff;&quot;&gt;&lt;b&gt;Green Farm Labs E-Market Place&lt;/b&gt;&lt;br&gt;shall connect successful Enterprise&lt;br&gt;to output markets &amp;amp; better Prices&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=#0D47A1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1880" y="130" width="340" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Connector circles -->
+        <mxCell id="circle1" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="565" y="110" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="circle2" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="110" width="20" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Dashed arrows from top enablers down -->
+        <mxCell id="arr-top1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="top1" target="training-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-top2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="top2" target="training-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-top3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=2;dashed=1;dashPattern=8 4;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="top3" target="credit-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- COLUMN 1: ENTRY / PROFILING (Left) -->
+        <!-- ═══════════════════════════════════════════════ -->
+
+        <!-- Main Entry Box -->
+        <mxCell id="entry-box" value="&lt;font style=&quot;font-size:16px;color:#fff;&quot;&gt;&lt;b&gt;Women-led green&lt;br&gt;microbusinesses selection&lt;br&gt;anchored at FFS – VSLA&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=#0D47A1;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="30" y="340" width="250" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- 10,000 women label -->
+        <mxCell id="women-count" value="&lt;font style=&quot;font-size:15px;color:#1B5E20;&quot;&gt;&lt;b&gt;10,000 women&lt;br&gt;Profiled through&lt;br&gt;FFS – VSLA app&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="480" width="160" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Call for proposals box -->
+        <mxCell id="proposals-box" value="&lt;font style=&quot;font-size:13px;color:#333;&quot;&gt;&lt;b&gt;(1)&lt;/b&gt; Call for business proposals&lt;br&gt;from select FFS / VSLA&lt;br&gt;&lt;b&gt;(2)&lt;/b&gt; Select those to enter&lt;br&gt;specialized BDS training&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="570" width="250" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Orientation box -->
+        <mxCell id="orient-box" value="&lt;font style=&quot;font-size:13px;color:#333;&quot;&gt;Orientation of local&lt;br&gt;&lt;b&gt;BDS service providers&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="690" width="250" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow entry to training -->
+        <mxCell id="arr-entry-training" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=3;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="entry-box" target="training-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-proposals-training" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;strokeColor=#333;strokeWidth=2;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="proposals-box" target="training-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- COLUMN 2: BDS TRAINING (Center-Left) -->
+        <!-- ═══════════════════════════════════════════════ -->
+
+        <!-- 2 Weeks label -->
+        <mxCell id="weeks-label" value="&lt;font style=&quot;font-size:13px;color:#333;&quot;&gt;2 weeks Tailored&lt;br&gt;Cohort Trainings&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="230" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-weeks" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;strokeColor=#333;strokeWidth=2;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="weeks-label" target="training-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Training Box (main blue) -->
+        <mxCell id="training-box" value="&lt;font style=&quot;font-size:14px;color:#fff;&quot;&gt;&lt;b&gt;1.&lt;/b&gt; Specialised BDS training in Green&lt;br&gt;Enterprise based cohorts per region&lt;br&gt;&lt;br&gt;&lt;b&gt;2.&lt;/b&gt; Skills on access to extension, business&lt;br&gt;development services, climate-smart&lt;br&gt;training, and financial literacy&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=#0D47A1;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="350" y="310" width="360" height="170" as="geometry" />
+        </mxCell>
+
+        <!-- 10,000 Youths label -->
+        <mxCell id="youths-count" value="&lt;font style=&quot;font-size:15px;color:#E65100;&quot;&gt;&lt;b&gt;10,000&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:13px;color:#333;&quot;&gt;Youths, women,&lt;br&gt;refugee businesses&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="440" y="490" width="140" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Innovation Challenge Box -->
+        <mxCell id="innovation-box" value="&lt;font style=&quot;font-size:13px;color:#333;&quot;&gt;&lt;b&gt;Innovation challenge&lt;/b&gt; to select&lt;br&gt;best business proposals for&lt;br&gt;follow on coaching, access to&lt;br&gt;finance, Market linkages&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="580" width="270" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow training to middle column -->
+        <mxCell id="arr-training-credit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=3;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="training-box" target="credit-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-training-finance" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=3;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="training-box" target="finance-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-training-market" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=3;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="training-box" target="market-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- COLUMN 3: ASSESSMENT & ACCESS (Center) -->
+        <!-- ═══════════════════════════════════════════════ -->
+
+        <!-- Credit Assessment Box -->
+        <mxCell id="credit-box" value="&lt;font style=&quot;font-size:15px;color:#fff;&quot;&gt;&lt;b&gt;Assessment of credit&lt;br&gt;worthiness &amp;amp; eligibility&lt;br&gt;using alternative&lt;br&gt;credit scores&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=#0D47A1;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="830" y="250" width="280" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Access to Finance Box -->
+        <mxCell id="finance-box" value="&lt;font style=&quot;font-size:15px;color:#fff;&quot;&gt;&lt;b&gt;Access to finance for&lt;br&gt;women-led green&lt;br&gt;microbusinesses&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=#0D47A1;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="830" y="400" width="280" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Access to Market Box -->
+        <mxCell id="market-box" value="&lt;font style=&quot;font-size:15px;color:#fff;&quot;&gt;&lt;b&gt;Access to market for&lt;br&gt;women-led green&lt;br&gt;microbusinesses&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=#0D47A1;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="830" y="530" width="280" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- 5,000 Youths label -->
+        <mxCell id="youths-5k" value="&lt;font style=&quot;font-size:15px;color:#E65100;&quot;&gt;&lt;b&gt;5,000&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:13px;color:#333;&quot;&gt;Youths, women,&lt;br&gt;businesses&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="900" y="640" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows from assessment column to finance column -->
+        <mxCell id="arr-credit-grants" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=3;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="credit-box" target="grants-label">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-finance-blended" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=3;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="finance-box" target="blended-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-market-loans" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=3;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="market-box" target="loans-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- COLUMN 4: FINANCING (Right-Center) -->
+        <!-- ═══════════════════════════════════════════════ -->
+
+        <!-- $200 Grants Label -->
+        <mxCell id="grants-label" value="&lt;font style=&quot;font-size:14px;color:#333;&quot;&gt;&lt;b&gt;$200 grants&lt;/b&gt; to select&lt;br&gt;businesses&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="260" width="220" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 4,333 grantees label -->
+        <mxCell id="grantees-label" value="&lt;font style=&quot;font-size:14px;color:#E65100;&quot;&gt;&lt;b&gt;4,333 grantees @$300&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="340" width="200" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Blended Finance Box -->
+        <mxCell id="blended-box" value="&lt;font style=&quot;font-size:16px;color:#fff;&quot;&gt;&lt;b&gt;Blended Finance&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:14px;&quot;&gt;(Seed Grants &amp;amp;&lt;br&gt;Concessional Loans)&lt;/font&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=#0D47A1;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="385" width="260" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Loans from FSPs Box -->
+        <mxCell id="loans-box" value="&lt;font style=&quot;font-size:16px;color:#fff;&quot;&gt;&lt;b&gt;Loans from FSPs&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=#0D47A1;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="540" width="260" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow grants to blended -->
+        <mxCell id="arr-grants-blended" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333;strokeWidth=2;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="grants-label" target="blended-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- COLUMN 5: OUTCOMES (Far Right) -->
+        <!-- ═══════════════════════════════════════════════ -->
+
+        <!-- TA Support Box -->
+        <mxCell id="ta-box" value="&lt;font style=&quot;font-size:14px;color:#333;&quot;&gt;&lt;b&gt;TA&lt;/b&gt; to support creation of &lt;b&gt;gender-&lt;br&gt;responsive decent employment&lt;/b&gt;&lt;br&gt;among Graduated FFS - women-&lt;br&gt;led green microbusinesses&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1600" y="350" width="300" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Derisking Loans Box -->
+        <mxCell id="derisk-box" value="&lt;font style=&quot;font-size:14px;color:#333;&quot;&gt;Derisking loans using&lt;br&gt;&lt;b&gt;Agricultural VSLA&lt;br&gt;Financial History&lt;/b&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1600" y="520" width="300" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows to outcomes -->
+        <mxCell id="arr-blended-ta" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#333;strokeWidth=2;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="blended-box" target="ta-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-loans-derisk" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#333;strokeWidth=2;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="loans-box" target="derisk-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow market to e-market -->
+        <mxCell id="arr-market-emarket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=3;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="market-box" target="top4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1180" y="530" />
+              <mxPoint x="1180" y="170" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- BOTTOM ROW: POST-FINANCING SUPPORT -->
+        <!-- ═══════════════════════════════════════════════ -->
+
+        <!-- Tailored Support Box -->
+        <mxCell id="support-box" value="&lt;font style=&quot;font-size:15px;color:#333;&quot;&gt;&lt;b&gt;Access tailored support&lt;/b&gt; through&lt;br&gt;coaching, mentorship, and&lt;br&gt;training programs&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="350" y="730" width="310" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- 6 Months BDS Coaching Box -->
+        <mxCell id="coaching-box" value="&lt;font style=&quot;font-size:14px;color:#333;&quot;&gt;&lt;b&gt;6 months localised BDS coaching&lt;/b&gt; to&lt;br&gt;businesses that receive financing +&lt;br&gt;&lt;b&gt;Test and co-develop&lt;/b&gt; market-driven&lt;br&gt;technologies, products, or business&lt;br&gt;models requiring refinement&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="770" y="710" width="380" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- Enterprise Routine Checks -->
+        <mxCell id="routine-box" value="&lt;font style=&quot;font-size:12px;color:#666;&quot;&gt;&lt;i&gt;Enterprise routine checks / coaching on the businesses;&lt;br&gt;prioritised skills to be delivered digitally to enterprises&lt;/i&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="780" y="835" width="360" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows from innovation box -->
+        <mxCell id="arr-innov-support" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333;strokeWidth=2;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="innovation-box" target="support-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-innov-coaching" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;strokeColor=#333;strokeWidth=2;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="innovation-box" target="coaching-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Arrow from loans/blended down to coaching -->
+        <mxCell id="arr-blended-coaching" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.8;entryY=0;entryDx=0;entryDy=0;strokeColor=#1565C0;strokeWidth=2;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="loans-box" target="coaching-box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- FOOTER -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <mxCell id="footer-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#263238;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="910" width="2340" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="footer-text" value="&lt;font style=&quot;font-size:13px;color:#B0BEC5;&quot;&gt;GreenRoots Women's Farm Labs  •  FAO Farmer Field Schools MIS  •  Territorial Incubation for Women-Led Green Microbusinesses  •  Pathway to Food Systems Transformation&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="400" y="915" width="1600" height="35" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
