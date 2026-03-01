@@ -192,6 +192,7 @@ Route::prefix('vsla/transactions')->middleware(EnsureTokenIsValid::class)->group
     // Dashboard & Reporting Endpoints
     Route::get('/recent', [VslaTransactionController::class, 'getRecentTransactions']);
     Route::get('/dashboard-summary', [VslaTransactionController::class, 'getDashboardSummary']);
+    Route::get('/group-savings', [VslaTransactionController::class, 'getGroupSavings']);
 });
 
 // VSLA Group Management

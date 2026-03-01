@@ -283,7 +283,7 @@ class AdvisoryController extends Controller
             'id' => $post->id,
             'title' => $post->title,
             'content' => $includeFullContent ? $post->content : \Illuminate\Support\Str::limit($post->content, 200),
-            'image' => $post->image,
+            'image' => $post->image ? url('storage/' . $post->image) : null,
             'category_id' => $post->category_id,
             'category_name' => $post->category ? $post->category->name : null,
             'author_name' => $post->author_name,
@@ -294,13 +294,13 @@ class AdvisoryController extends Controller
             'tags' => $post->tags_array,
             'featured' => $post->featured === 'Yes',
             'has_video' => $post->has_video === 'Yes',
-            'video_url' => $post->has_video === 'Yes' ? $post->video_url : null,
+            'video_url' => $post->has_video === 'Yes' && $post->video_url ? url('storage/' . $post->video_url) : null,
             'has_audio' => $post->has_audio === 'Yes',
-            'audio_url' => $post->has_audio === 'Yes' ? $post->audio_url : null,
+            'audio_url' => $post->has_audio === 'Yes' && $post->audio_url ? url('storage/' . $post->audio_url) : null,
             'has_youtube_video' => $post->has_youtube_video === 'Yes',
             'youtube_video_url' => $post->has_youtube_video === 'Yes' ? $post->youtube_video_url : null,
             'has_pdf' => $post->has_pdf === 'Yes',
-            'pdf_url' => $post->has_pdf === 'Yes' ? $post->pdf_url : null,
+            'pdf_url' => $post->has_pdf === 'Yes' && $post->pdf_url ? url('storage/' . $post->pdf_url) : null,
         ];
 
         return $data;

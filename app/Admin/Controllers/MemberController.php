@@ -180,6 +180,21 @@ class MemberController extends AdminController
                 '<span class="label label-default">Inactive</span>';
         })->sortable();
         
+        $grid->column('onboarding_step', 'Onboarding')->display(function($step) {
+            $labels = [
+                'not_started'         => ['Not Started', 'default'],
+                'step_1_welcome'      => ['Welcome', 'default'],
+                'step_2_terms'        => ['Terms', 'info'],
+                'step_3_registration' => ['Registered', 'info'],
+                'step_4_group'        => ['Group', 'primary'],
+                'step_5_members'      => ['Members', 'primary'],
+                'step_6_cycle'        => ['Cycle', 'warning'],
+                'step_7_complete'     => ['Complete', 'success'],
+            ];
+            $info = $labels[$step] ?? ['Unknown', 'default'];
+            return '<span class="label label-' . $info[1] . '">' . $info[0] . '</span>';
+        })->sortable();
+
         $grid->column('created_at', 'Registered')->display(function($date) {
             return \Carbon\Carbon::parse($date)->format('d M Y');
         })->sortable();
@@ -307,12 +322,29 @@ class MemberController extends AdminController
         $show->field('disabilities', 'Special Needs/Disabilities');
         $show->field('remarks', 'Additional Notes');
         
+        // National ID
+        $show->divider('Identity & Household');
+        $show->field('national_id_number', 'National ID (NIN)');
+        $show->field('household_size', 'Household Size')->as(function($size) {
+            return $size ? $size . ' people' : 'N/A';
+        });
+
         // Account Information
-        $show->divider('Account Status');
+        $show->divider('Account Status & Onboarding');
         $show->field('username', 'Login Username');
         $show->field('status', 'Account Status')->using([
             '1' => '✓ Active',
             '0' => '✗ Inactive',
+        ]);
+        $show->field('onboarding_step', 'Onboarding Step')->using([
+            'not_started'         => '0 - Not Started',
+            'step_1_welcome'      => '1 - Welcome Seen',
+            'step_2_terms'        => '2 - Terms Accepted',
+            'step_3_registration' => '3 - Registered',
+            'step_4_group'        => '4 - Group Created',
+            'step_5_members'      => '5 - Members Registered',
+            'step_6_cycle'        => '6 - Cycle Configured',
+            'step_7_complete'     => '7 - Onboarding Complete',
         ]);
         $show->field('created_at', 'Registration Date')->as(function($date) {
             return \Carbon\Carbon::parse($date)->format('d M Y H:i');
@@ -496,14 +528,19 @@ class MemberController extends AdminController
             $row->width(4)->email('email', 'Email');
         });
         
-        // Group Assignment
+        // Group Assignment (IP-scoped for non-super-admins)
         $form->row(function ($row) {
-            $row->width(6)->select('group_id', 'Group')->options(function() {
-                return FfsGroup::orderBy('type')->orderBy('name')
-                    ->get()->mapWithKeys(function($group) {
-                        return [$group->id => "[{$group->type}] {$group->name}"];
-                    });
-            });
+            $ipId = $this->getAdminIpId();
+            $row->width(6)->select('group_id', 'Group')->options(function() use ($ipId) {
+                $query = FfsGroup::where('status', 'Active')
+                    ->orderBy('type')->orderBy('name');
+                if ($ipId !== null) {
+                    $query->where('ip_id', $ipId);
+                }
+                return $query->get()->mapWithKeys(function($group) {
+                    return [$group->id => "[{$group->type}] {$group->name}"];
+                });
+            })->help('Only active groups shown. Group determines the member\'s IP.');
             $row->width(6)->radio('status', 'Account Status')->options(['1' => 'Active', '0' => 'Inactive'])->default('1');
         });
         
@@ -515,24 +552,63 @@ class MemberController extends AdminController
         
         // Location
         $form->row(function ($row) {
-            $row->width(6)->select('district_id', 'District')->options(function() {
+            $row->width(3)->select('district_id', 'District')->options(function() {
                 return Location::where('parent', 0)->orderBy('name')->pluck('name', 'id');
             });
-            $row->width(6)->text('village', 'Village');
+            $row->width(3)->select('subcounty_id', 'Subcounty')->options(function() {
+                // Load all subcounties; JS dependency would require custom JS, so show all for now
+                return Location::where('parent', '>', 0)
+                    ->whereHas('parent_location', function($q) {
+                        $q->where('parent', 0);
+                    })
+                    ->orderBy('name')
+                    ->pluck('name', 'id');
+            })->help('Optional: Select subcounty');
+            $row->width(3)->select('parish_id', 'Parish')->options(function() {
+                return Location::whereHas('parent_location', function($q) {
+                    $q->where('parent', '>', 0);
+                })->orderBy('name')->pluck('name', 'id');
+            })->help('Optional: Select parish');
+            $row->width(3)->text('village', 'Village');
         });
-        
+
+        $form->text('address', 'Home Address')->placeholder('Physical address');
+
+        // Household & Family
+        $form->divider('Household & Family');
+        $form->row(function ($row) {
+            $row->width(4)->text('national_id_number', 'National ID (NIN)')->placeholder('e.g. CM20000680KBZN');
+            $row->width(4)->number('household_size', 'Household Size')->default(1)->min(1)->help('Number of people in household');
+            $row->width(4)->select('onboarding_step', 'Onboarding Step')->options([
+                'not_started'         => '0 - Not Started',
+                'step_1_welcome'      => '1 - Welcome Seen',
+                'step_2_terms'        => '2 - Terms Accepted',
+                'step_3_registration' => '3 - Registered',
+                'step_4_group'        => '4 - Group Created',
+                'step_5_members'      => '5 - Members Registered',
+                'step_6_cycle'        => '6 - Cycle Configured',
+                'step_7_complete'     => '7 - Onboarding Complete',
+            ])->default('not_started')->help('Controls where mobile app resumes onboarding');
+        });
+
+        // Parents' names (used in household section)
+        $form->row(function ($row) {
+            $row->width(6)->text('father_name', "Father's Name");
+            $row->width(6)->text('mother_name', "Mother's Name");
+        });
+
         // Emergency Contact
         $form->row(function ($row) {
             $row->width(6)->text('emergency_contact_name', 'Emergency Contact Name');
             $row->width(6)->mobile('emergency_contact_phone', 'Emergency Contact Phone');
         });
-        
+
         // Additional
         $form->row(function ($row) {
             $row->width(6)->textarea('skills', 'Skills')->rows(2);
             $row->width(6)->textarea('disabilities', 'Special Needs')->rows(2);
         });
-        
+
         $form->textarea('remarks', 'Remarks')->rows(2);
         
         // Account credentials (only on create)
@@ -567,6 +643,36 @@ class MemberController extends AdminController
                 
                 $form->created_by_id = \Encore\Admin\Facades\Admin::user()->id;
                 $form->registered_by_id = \Encore\Admin\Facades\Admin::user()->id;
+
+                // Smart onboarding: if admin creates member with group + full data,
+                // auto-advance onboarding so mobile app doesn't force them through steps
+                if ($form->onboarding_step === 'not_started' || empty($form->onboarding_step)) {
+                    if (!empty($form->group_id)) {
+                        // If member has a group assigned by admin, skip to at least step_5
+                        // Check if the group already has an active cycle
+                        $activeCycle = \App\Models\Project::where('group_id', $form->group_id)
+                            ->where('is_vsla_cycle', 'Yes')
+                            ->where('is_active_cycle', 'Yes')
+                            ->first();
+                        if ($activeCycle) {
+                            $form->onboarding_step = 'step_7_complete';
+                            $form->onboarding_completed_at = now();
+                        } else {
+                            $form->onboarding_step = 'step_5_members';
+                        }
+                    } elseif (!empty($form->first_name) && !empty($form->phone_number)) {
+                        // Has basic registration data but no group
+                        $form->onboarding_step = 'step_3_registration';
+                    }
+                }
+
+                // Inherit ip_id from group if not set
+                if (empty($form->ip_id) && !empty($form->group_id)) {
+                    $group = FfsGroup::find($form->group_id);
+                    if ($group && $group->ip_id) {
+                        $form->ip_id = $group->ip_id;
+                    }
+                }
             } else {
                 // Only hash password if provided
                 if (!empty($form->password)) {

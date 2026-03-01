@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\VslaTransactionService;
 use App\Models\ProjectTransaction;
+use App\Models\AccountTransaction;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
@@ -730,5 +731,214 @@ class VslaTransactionController extends Controller
                 'data' => null,
             ], 500);
         }
+    }
+
+    /**
+     * Get group savings overview — organized by cash inflow and outflow.
+     *
+     * Shows ONLY group-level double-entry transactions for the active cycle,
+     * categorized into inflow (money coming in) and outflow (money going out).
+     *
+     * Query params:
+     *   - group_id (required)
+     *   - project_id (cycle) — optional, filters to a specific cycle
+     *   - limit — max transactions per category (default 100)
+     */
+    public function getGroupSavings(Request $request)
+    {
+        try {
+            $groupId = $request->query('group_id');
+            $cycleId = $request->query('project_id'); // project_id = cycle_id in account_transactions
+            $limit = (int) $request->query('limit', 200);
+
+            if (!$groupId) {
+                return response()->json([
+                    'code' => 0,
+                    'message' => 'group_id is required',
+                    'data' => null,
+                ], 422);
+            }
+
+            // Query the account_transactions table (where meeting-based workflow writes)
+            $query = AccountTransaction::where('group_id', $groupId)
+                ->where('owner_type', 'group')
+                ->where(function ($q) {
+                    $q->where('is_contra_entry', false)
+                      ->orWhereNull('is_contra_entry');
+                })
+                ->orderBy('transaction_date', 'desc')
+                ->orderBy('created_at', 'desc');
+
+            if ($cycleId) {
+                $query->where('cycle_id', $cycleId);
+            }
+
+            $allTransactions = $query->limit($limit)->get();
+
+            // Categorize into inflow and outflow
+            $inflow = [];
+            $outflow = [];
+            $totalInflow = 0.0;
+            $totalOutflow = 0.0;
+            $inflowByCategory = [];
+            $outflowByCategory = [];
+
+            foreach ($allTransactions as $t) {
+                $amount = (float) $t->amount;
+
+                // Look up the related member from the contra entry
+                $memberName = null;
+                if ($t->contra_entry_id) {
+                    $contra = AccountTransaction::find($t->contra_entry_id);
+                    if ($contra && $contra->owner_type === 'member') {
+                        $member = User::find($contra->user_id);
+                        $memberName = $member ? $member->name : null;
+                    }
+                }
+
+                $entry = [
+                    'id'               => $t->id,
+                    'amount'           => abs($amount),
+                    'amount_signed'    => $amount,
+                    'formatted_amount' => $t->formatted_amount ?? ('UGX ' . number_format(abs($amount))),
+                    'description'      => $t->description ?? '',
+                    'account_type'     => strtolower($t->account_type ?? ''),
+                    'source'           => $t->source ?? '',
+                    'source_label'     => $t->source_label ?? ucfirst(str_replace('_', ' ', $t->source ?? '')),
+                    'type'             => $amount >= 0 ? 'credit' : 'debit',
+                    'type_label'       => $amount >= 0 ? 'Credit' : 'Debit',
+                    'transaction_date' => $t->transaction_date ? $t->transaction_date->format('Y-m-d') : null,
+                    'formatted_date'   => $t->transaction_date ? $t->transaction_date->format('M d, Y') : null,
+                    'owner_type'       => $t->owner_type,
+                    'owner_id'         => $t->user_id,
+                    'owner_name'       => $memberName ?? 'Group',
+                    'created_by'       => $t->creator ? $t->creator->name : null,
+                    'is_contra_entry'  => (bool) $t->is_contra_entry,
+                    'contra_entry_id'  => $t->contra_entry_id,
+                ];
+
+                $acctType = strtolower($t->account_type ?? '');
+                $source   = $t->source ?? '';
+
+                if ($amount > 0) {
+                    $inflow[] = $entry;
+                    $totalInflow += $amount;
+                    $cat = $this->_getCategoryLabel($source, $acctType, 'inflow');
+                    $inflowByCategory[$cat] = ($inflowByCategory[$cat] ?? 0.0) + $amount;
+                } elseif ($amount < 0) {
+                    $outflow[] = $entry;
+                    $totalOutflow += abs($amount);
+                    $cat = $this->_getCategoryLabel($source, $acctType, 'outflow');
+                    $outflowByCategory[$cat] = ($outflowByCategory[$cat] ?? 0.0) + abs($amount);
+                }
+            }
+
+            // Build category breakdowns
+            $inflowCategories = [];
+            foreach ($inflowByCategory as $label => $amt) {
+                $inflowCategories[] = [
+                    'label'      => $label,
+                    'amount'     => round($amt, 2),
+                    'percentage' => $totalInflow > 0 ? round(($amt / $totalInflow) * 100, 1) : 0,
+                ];
+            }
+            usort($inflowCategories, fn($a, $b) => $b['amount'] <=> $a['amount']);
+
+            $outflowCategories = [];
+            foreach ($outflowByCategory as $label => $amt) {
+                $outflowCategories[] = [
+                    'label'      => $label,
+                    'amount'     => round($amt, 2),
+                    'percentage' => $totalOutflow > 0 ? round(($amt / $totalOutflow) * 100, 1) : 0,
+                ];
+            }
+            usort($outflowCategories, fn($a, $b) => $b['amount'] <=> $a['amount']);
+
+            // Group balances from account_transactions
+            $balancesQuery = AccountTransaction::where('group_id', $groupId)
+                ->where('owner_type', 'group')
+                ->where(function ($q) {
+                    $q->where('is_contra_entry', false)
+                      ->orWhereNull('is_contra_entry');
+                });
+            if ($cycleId) {
+                $balancesQuery->where('cycle_id', $cycleId);
+            }
+
+            $cashBalance   = (float) (clone $balancesQuery)->sum('amount');
+            $sharesTotal   = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) = ?', ['share'])->sum('amount');
+            $savingsTotal  = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) IN (?, ?)', ['deposit', 'saving'])->sum('amount');
+            $loansOut      = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) = ?', ['loan'])->where('amount', '<', 0)->sum('amount');
+            $finesTotal    = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) = ?', ['fine'])->sum('amount');
+            $welfareTotal  = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) LIKE ?', ['welfare%'])->sum('amount');
+            $socialFund    = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) = ?', ['social_fund'])->sum('amount');
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Group savings retrieved successfully',
+                'data' => [
+                    'summary' => [
+                        'total_inflow'  => round($totalInflow, 2),
+                        'total_outflow' => round($totalOutflow, 2),
+                        'net_cash_flow' => round($totalInflow - $totalOutflow, 2),
+                        'inflow_count'  => count($inflow),
+                        'outflow_count' => count($outflow),
+                        'total_count'   => count($inflow) + count($outflow),
+                    ],
+                    'balances' => [
+                        'cash'              => round($cashBalance, 2),
+                        'total_savings'     => round($sharesTotal + $savingsTotal, 2),
+                        'loans_outstanding' => round(abs($loansOut), 2),
+                        'fines_collected'   => round($finesTotal, 2),
+                        'welfare'           => round($welfareTotal, 2),
+                        'social_fund'       => round($socialFund, 2),
+                    ],
+                    'inflow' => [
+                        'transactions' => $inflow,
+                        'categories'   => $inflowCategories,
+                    ],
+                    'outflow' => [
+                        'transactions' => $outflow,
+                        'categories'   => $outflowCategories,
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 0,
+                'message' => $e->getMessage(),
+                'data' => null,
+            ], 400);
+        }
+    }
+
+    /**
+     * Map source/account_type into user-friendly category labels.
+     * account_type values: share, savings, saving, deposit, loan, loan_repayment, fine, welfare, social_fund, etc.
+     */
+    private function _getCategoryLabel(string $source, string $accountType, string $flowDirection): string
+    {
+        $at = strtolower($accountType);
+
+        if ($flowDirection === 'inflow') {
+            return match (true) {
+                $at === 'share'                          => 'Share Purchases',
+                in_array($at, ['saving', 'savings', 'deposit']) => 'Savings Deposits',
+                $at === 'loan_repayment'                 => 'Loan Repayments',
+                $at === 'fine'                           => 'Fines & Penalties',
+                $at === 'interest'                       => 'Interest Income',
+                str_starts_with($at, 'welfare')          => 'Welfare Contributions',
+                $at === 'social_fund'                    => 'Social Fund',
+                default                                  => 'Other Income',
+            };
+        }
+
+        return match (true) {
+            $at === 'loan'                             => 'Loan Disbursements',
+            in_array($at, ['share_out', 'shareout'])   => 'Share-out Distributions',
+            str_starts_with($at, 'welfare')            => 'Welfare Payments',
+            $at === 'social_fund'                      => 'Social Fund Payouts',
+            default                                    => 'Other Expenses',
+        };
     }
 }

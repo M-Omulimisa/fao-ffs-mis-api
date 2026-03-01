@@ -516,3 +516,1105 @@
 [2026-02-11 12:22:17] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2026-02-11 12:22:17] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
 [2026-02-11 12:22:17] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:04:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:04:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:04:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:04:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:04:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:04:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:09:23] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:09:23] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:09:23] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:09:23] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:09:23] local.INFO: EnsureTokenIsValid - Response received: 201  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:09:27] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:09:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:09:29] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:09:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:09:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:09:29] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:09:29] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:11] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:12] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:12] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:12] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:19] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:19] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:19] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:20] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:33] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:35] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:52] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:52] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:52] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:10:55] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:10:55] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:10:55] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:10:55] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:10:55] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:11:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:11:18] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:11:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:11:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:11:18] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:11:18] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:11:27] local.INFO: ========== ENTERPRISES INDEX REQUEST ==========  
+[2026-02-23 12:11:27] local.INFO: Request Parameters: {"sort_by":"created_at","sort_order":"desc","is_active":"1"} 
+[2026-02-23 12:11:27] local.INFO: Filtering by active status: {"is_active":"1"} 
+[2026-02-23 12:11:27] local.INFO: Sorting: {"sort_by":"created_at","sort_order":"desc"} 
+[2026-02-23 12:11:27] local.INFO: Enterprises Retrieved: {"count":12} 
+[2026-02-23 12:11:27] local.INFO: First Enterprise Sample: {"id":1,"name":"Apiary (Beekeeping) Production","type":"livestock","protocols_count":5} 
+[2026-02-23 12:11:27] local.INFO: ========== ENTERPRISES INDEX COMPLETED ==========  
+[2026-02-23 12:11:44] local.INFO: ========== ENTERPRISE SHOW REQUEST ==========  
+[2026-02-23 12:11:44] local.INFO: Enterprise ID: {"id":"7"} 
+[2026-02-23 12:11:44] local.INFO: Enterprise Found: {"id":7,"name":"Poultry (Chicken) Production","type":"livestock","protocols_count":3} 
+[2026-02-23 12:11:44] local.INFO: ========== ENTERPRISE SHOW COMPLETED ==========  
+[2026-02-23 12:12:27] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:12:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:12:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:12:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:12:27] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:12:29] local.INFO: ========== ENTERPRISES INDEX REQUEST ==========  
+[2026-02-23 12:12:29] local.INFO: Request Parameters: {"sort_by":"created_at","sort_order":"desc"} 
+[2026-02-23 12:12:29] local.INFO: Using default filter: is_active = true  
+[2026-02-23 12:12:29] local.INFO: Sorting: {"sort_by":"created_at","sort_order":"desc"} 
+[2026-02-23 12:12:29] local.INFO: Enterprises Retrieved: {"count":12} 
+[2026-02-23 12:12:29] local.INFO: First Enterprise Sample: {"id":1,"name":"Apiary (Beekeeping) Production","type":"livestock","protocols_count":5} 
+[2026-02-23 12:12:29] local.INFO: ========== ENTERPRISES INDEX COMPLETED ==========  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - Response received: 201  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:13:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:13:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:13:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:13:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:13:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:13:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:14:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:14:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:14:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:14:00] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:14:00] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:14:48] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:15:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:15:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:15:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:15:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:15:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:15:05] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:15:05] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:15:05] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:15:05] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:15:05] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:15:08] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:15:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:15:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:15:08] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:15:08] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - Response received: 201  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:16:36] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:16:58] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-23 12:18:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:18:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:18:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:18:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:18:37] local.INFO: Profile update request received {"user_id":211,"data":{"id":"211","first_name":"Zubeda","last_name":"Ali Mirembe Mubaraka Bentley","name":"Zubeda Ali Mirembe Mubaraka Bentley","sex":"Male","dob":"2026-02-23 00:00:00.000","national_id":"CM02839223412","country":"Uganda","district":"Kasese","subcounty":null,"parish":null,"village":"Doloremque a facere","address":null,"occupation":"Eius molestias conse","marital_status":"Single","education_level":"Masters","household_size":null,"user":"211","User-Id":"211"}} 
+[2026-02-23 12:18:37] local.INFO: EnsureTokenIsValid - Response received: 400  
+[2026-02-23 12:18:52] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-23 12:18:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-23 12:18:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-23 12:18:52] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-23 12:18:52] local.INFO: Profile update request received {"user_id":211,"data":{"id":"211","first_name":"Zubeda","last_name":"Ali Mirembe Mubaraka Bentley","name":"Zubeda Ali Mirembe Mubaraka Bentley","sex":"Male","dob":"2004-02-23 00:00:00.000","national_id":"CM02839223412","country":"Uganda","district":"Kasese","subcounty":null,"parish":null,"village":"Doloremque a facere","address":null,"occupation":"Eius molestias conse","marital_status":"Single","education_level":"Masters","household_size":null,"user":"211","User-Id":"211"}} 
+[2026-02-23 12:18:52] local.INFO: Profile photo uploaded successfully {"user_id":211,"path":"images/1771849132-902068.jpg"} 
+[2026-02-23 12:18:52] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":211,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-02-23 12:18:52] local.INFO: Profile updated successfully {"user_id":211,"name":"Zubeda Ali Mirembe Mubaraka Bentley"} 
+[2026-02-23 12:18:52] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 19:53:53] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-02-28 19:53:53] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-02-28 19:53:53] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-02-28 19:53:53] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-02-28 19:53:59] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-02-28 19:53:59] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-02-28 19:54:00] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-02-28 19:54:00] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-02-28 20:03:39] local.INFO: EnsureTokenIsValid - User ID: 2  
+[2026-02-28 20:03:39] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:03:39] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:03:39] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:03:39] local.INFO: Profile update request received {"user_id":2,"data":{"id":"2","first_name":"Abel","last_name":"Knowles","name":"Abel Knowles","sex":"Male","dob":"2013-02-28 00:00:00.000","national_id":null,"country":"American Samoa","district":"Kampala","subcounty":"Kasese","parish":"Kisinga","village":"Bwera","address":"Officia et sunt ut","occupation":null,"marital_status":null,"education_level":null,"household_size":null,"user":"2","User-Id":"2"}} 
+[2026-02-28 20:03:39] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":2,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-02-28 20:03:39] local.INFO: Profile updated successfully {"user_id":2,"name":"Abel Knowles"} 
+[2026-02-28 20:03:39] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:04:04] local.INFO: EnsureTokenIsValid - User ID: 2  
+[2026-02-28 20:04:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:04:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:04:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:04:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:08:40] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-02-28 20:08:40] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-02-28 20:08:46] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-02-28 20:08:46] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-02-28 20:08:47] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-02-28 20:08:47] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:09:39] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:09:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:09:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:09:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:09:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:09:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Response received: 404  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:21] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:22] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:22] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:22] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:22] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:22] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-02-28 20:11:27] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:27] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:31] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:31] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:31] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:31] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:31] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:34] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:34] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:34] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:34] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:34] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:41] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:41] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:52] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:52] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:52] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:57] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:57] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:57] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:11:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:11:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:11:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:11:58] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:11:58] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:12:02] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:12:02] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:12:02] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:12:02] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:12:03] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:12:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:12:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:12:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:12:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:12:07] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:06] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:06] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:06] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:06] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:06] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Response received: 404  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:07] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:15] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:21] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:41] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:41] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:44] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:44] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:44] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:44] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:44] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:49] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:49] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:49] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:52] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:52] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:55] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:55] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:55] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:55] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:55] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:58] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:58] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:32:59] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:32:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:32:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:32:59] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:32:59] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:33:05] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:33:05] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:33:05] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:33:05] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:33:05] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:33:09] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:33:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:33:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:33:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:33:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:33:16] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:33:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:33:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:33:16] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:33:16] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:33:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:33:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:33:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:33:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:33:22] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:33:26] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:33:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:33:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:33:26] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:33:26] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:33:29] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:33:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:33:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:33:29] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:33:29] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 20:33:32] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 20:33:32] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 20:33:32] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 20:33:32] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 20:33:32] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:21] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:22] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:23] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:24] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:24] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:24] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:24] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:24] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Response received: 404  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:25] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:26] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:27] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:29] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:29] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:29] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 21:19:32] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 21:19:32] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 21:19:32] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 21:19:32] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 21:19:32] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 23:27:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 23:28:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 23:28:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 23:28:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 23:28:00] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 23:28:00] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-02-28 23:59:08] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-02-28 23:59:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-02-28 23:59:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-02-28 23:59:08] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-02-28 23:59:08] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:51] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:51] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:51] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:51] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:51] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:52] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:00:54] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:01:15] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:01:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:01:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:01:15] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:01:15] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:14:31] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:14:37] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:14:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:14:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:14:37] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:14:37] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:14:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:14:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:14:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:14:58] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:14:58] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:16:16] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:16:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:16:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:16:16] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:16:16] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:17:24] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:17:24] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:17:24] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:17:24] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:17:24] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:29:38] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:29:39] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:29:39] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:29:39] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:29:39] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:29:41] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:29:41] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:29:41] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:29:41] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:29:41] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:29:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:29:53] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:29:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:29:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:29:53] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:29:53] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:30:08] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:30:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:30:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:30:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:30:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 00:31:11] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 00:31:11] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 00:31:11] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 00:31:11] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 00:31:11] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 01:06:32] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 01:06:32] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 01:06:32] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 01:06:32] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 01:06:32] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 01:06:35] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 01:06:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 01:06:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 01:06:35] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 01:06:35] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Response received: 404  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:04] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:07] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:08] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:09] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:10] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:11] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:12] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:12] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:12] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:12] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:19] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:19] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:19] local.INFO: ========== MANIFEST REQUEST STARTED ==========  
+[2026-03-01 16:30:19] local.INFO: Request Headers: {"content-type":["application/json"],"host":["10.0.2.2:8888"],"accept-encoding":["gzip"],"user-id":["211"],"accept":["application/json"],"user-agent":["Dart/3.8 (dart:io)"]} 
+[2026-03-01 16:30:19] local.INFO: Request Method: ["GET"] 
+[2026-03-01 16:30:19] local.INFO: Request URL: ["http://10.0.2.2:8888/fao-ffs-mis-api/api/manifest"] 
+[2026-03-01 16:30:19] local.INFO: Extracted User ID: {"user_id":"211"} 
+[2026-03-01 16:30:19] local.INFO: User Found: {"id":211,"name":"Zubeda Ali Mirembe Mubaraka Bentley","email":"cebofit@mailinator.com"} 
+[2026-03-01 16:30:19] local.INFO: Balance Calculated: {"balance":227000.0,"user_id":"211"} 
+[2026-03-01 16:30:19] local.INFO: Balance Breakdown: {"total_balance":227000.0,"formatted_balance":"UGX 227,000.00","available_balance":227000.0,"formatted_available":"UGX 227,000.00","pending_balance":0.0,"formatted_pending":"UGX 0.00"} 
+[2026-03-01 16:30:19] local.INFO: Manifest Compiled Successfully  
+[2026-03-01 16:30:19] local.INFO: Manifest Structure: {"user":"included","balance":227000.0,"transactions_count":10,"features":["vsla_enabled","farm_management_enabled","marketplace_enabled","advisory_enabled","profiling_enabled","ffs_activities_enabled"]} 
+[2026-03-01 16:30:19] local.INFO: ========== MANIFEST REQUEST COMPLETED ==========  
+[2026-03-01 16:30:19] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:21] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:21] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:21] local.INFO: ========== MANIFEST REQUEST STARTED ==========  
+[2026-03-01 16:30:21] local.INFO: Request Headers: {"content-type":["application/json"],"host":["10.0.2.2:8888"],"accept-encoding":["gzip"],"user-id":["211"],"accept":["application/json"],"user-agent":["Dart/3.8 (dart:io)"]} 
+[2026-03-01 16:30:21] local.INFO: Request Method: ["GET"] 
+[2026-03-01 16:30:21] local.INFO: Request URL: ["http://10.0.2.2:8888/fao-ffs-mis-api/api/manifest"] 
+[2026-03-01 16:30:21] local.INFO: Extracted User ID: {"user_id":"211"} 
+[2026-03-01 16:30:21] local.INFO: User Found: {"id":211,"name":"Zubeda Ali Mirembe Mubaraka Bentley","email":"cebofit@mailinator.com"} 
+[2026-03-01 16:30:21] local.INFO: Balance Calculated: {"balance":227000.0,"user_id":"211"} 
+[2026-03-01 16:30:21] local.INFO: Balance Breakdown: {"total_balance":227000.0,"formatted_balance":"UGX 227,000.00","available_balance":227000.0,"formatted_available":"UGX 227,000.00","pending_balance":0.0,"formatted_pending":"UGX 0.00"} 
+[2026-03-01 16:30:21] local.INFO: Manifest Compiled Successfully  
+[2026-03-01 16:30:21] local.INFO: Manifest Structure: {"user":"included","balance":227000.0,"transactions_count":10,"features":["vsla_enabled","farm_management_enabled","marketplace_enabled","advisory_enabled","profiling_enabled","ffs_activities_enabled"]} 
+[2026-03-01 16:30:21] local.INFO: ========== MANIFEST REQUEST COMPLETED ==========  
+[2026-03-01 16:30:21] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 16:30:48] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 16:30:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 16:30:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 16:30:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 16:30:48] local.INFO: ========== MANIFEST REQUEST STARTED ==========  
+[2026-03-01 16:30:48] local.INFO: Request Headers: {"content-type":["application/json"],"host":["10.0.2.2:8888"],"accept-encoding":["gzip"],"user-id":["211"],"accept":["application/json"],"user-agent":["Dart/3.8 (dart:io)"]} 
+[2026-03-01 16:30:48] local.INFO: Request Method: ["GET"] 
+[2026-03-01 16:30:48] local.INFO: Request URL: ["http://10.0.2.2:8888/fao-ffs-mis-api/api/manifest"] 
+[2026-03-01 16:30:48] local.INFO: Extracted User ID: {"user_id":"211"} 
+[2026-03-01 16:30:48] local.INFO: User Found: {"id":211,"name":"Zubeda Ali Mirembe Mubaraka Bentley","email":"cebofit@mailinator.com"} 
+[2026-03-01 16:30:48] local.INFO: Balance Calculated: {"balance":227000.0,"user_id":"211"} 
+[2026-03-01 16:30:48] local.INFO: Balance Breakdown: {"total_balance":227000.0,"formatted_balance":"UGX 227,000.00","available_balance":227000.0,"formatted_available":"UGX 227,000.00","pending_balance":0.0,"formatted_pending":"UGX 0.00"} 
+[2026-03-01 16:30:48] local.INFO: Manifest Compiled Successfully  
+[2026-03-01 16:30:48] local.INFO: Manifest Structure: {"user":"included","balance":227000.0,"transactions_count":10,"features":["vsla_enabled","farm_management_enabled","marketplace_enabled","advisory_enabled","profiling_enabled","ffs_activities_enabled"]} 
+[2026-03-01 16:30:48] local.INFO: ========== MANIFEST REQUEST COMPLETED ==========  
+[2026-03-01 16:30:48] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 18:28:27] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 18:28:27] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 18:28:27] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 18:28:27] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 18:28:27] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Response received: 404  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 18:28:28] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:43] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:43] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:43] local.INFO: EnsureTokenIsValid - Response received: 500  
+[2026-03-01 19:48:44] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:44] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:44] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:44] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:44] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:45] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:46] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:47] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:48:48] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-01 19:48:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-01 19:48:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-01 19:48:48] local.INFO: EnsureTokenIsValid - Passing to next middleware/controller  
+[2026-03-01 19:48:48] local.INFO: EnsureTokenIsValid - Response received: 200  
+[2026-03-01 19:50:09] local.INFO: 📦 Market Prices: Getting products {"category_id":null} 
+[2026-03-01 19:50:09] local.INFO: ✅ Market Prices: Found 10 products  
+[2026-03-01 19:50:10] local.INFO: 💰 Market Prices: Getting prices {"product_id":null,"district_id":null,"sub_county_id":null,"start_date":null,"end_date":null,"limit":null} 
+[2026-03-01 19:50:10] local.INFO: ✅ Market Prices: Found 100 price records  

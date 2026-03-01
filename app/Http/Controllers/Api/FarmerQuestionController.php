@@ -376,9 +376,9 @@ class FarmerQuestionController extends Controller
             'likes_count' => $question->likes_count,
             'answers_count' => $question->answers_count,
             'has_image' => $question->has_image === 'Yes',
-            'image_url' => $question->has_image === 'Yes' ? 'images/' . $question->image_url : null,
+            'image_url' => $question->has_image === 'Yes' && $question->image_url ? url('storage/images/' . $question->image_url) : null,
             'has_audio' => $question->has_audio === 'Yes',
-            'audio_url' => $question->has_audio === 'Yes' ? 'images/' . $question->audio_url : null,
+            'audio_url' => $question->has_audio === 'Yes' && $question->audio_url ? url('storage/images/' . $question->audio_url) : null,
             'created_at' => $question->created_at->format('Y-m-d H:i:s'),
         ];
     }
@@ -390,7 +390,7 @@ class FarmerQuestionController extends Controller
     {
         // Get author avatar from users table
         $author = \App\Models\User::find($answer->author_id);
-        $authorAvatar = $author && $author->avatar ? 'images/' . $author->avatar : null;
+        $authorAvatar = $author && $author->avatar ? url('storage/images/' . $author->avatar) : null;
 
         return [
             'id' => $answer->id,
@@ -401,15 +401,15 @@ class FarmerQuestionController extends Controller
             'likes_count' => $answer->likes_count,
             'is_accepted' => $answer->is_accepted === 'Yes',
             'has_image' => $answer->has_image === 'Yes',
-            'image_url' => $answer->has_image === 'Yes' ? 'images/' . $answer->image_url : null,
+            'image_url' => $answer->has_image === 'Yes' && $answer->image_url ? url('storage/images/' . $answer->image_url) : null,
             'has_audio' => $answer->has_audio === 'Yes',
-            'audio_url' => $answer->has_audio === 'Yes' ? 'images/' . $answer->audio_url : null,
+            'audio_url' => $answer->has_audio === 'Yes' && $answer->audio_url ? url('storage/images/' . $answer->audio_url) : null,
             'has_video' => $answer->has_video === 'Yes',
-            'video_url' => $answer->has_video === 'Yes' ? 'images/' . $answer->video_url : null,
+            'video_url' => $answer->has_video === 'Yes' && $answer->video_url ? url('storage/images/' . $answer->video_url) : null,
             'has_youtube_video' => $answer->has_youtube_video === 'Yes',
             'youtube_video_url' => $answer->has_youtube_video === 'Yes' ? $answer->youtube_video_url : null,
             'has_pdf' => $answer->has_pdf === 'Yes',
-            'pdf_url' => $answer->has_pdf === 'Yes' ? 'images/' . $answer->pdf_url : null,
+            'pdf_url' => $answer->has_pdf === 'Yes' && $answer->pdf_url ? url('storage/images/' . $answer->pdf_url) : null,
             'created_at' => $answer->created_at->format('Y-m-d H:i:s'),
         ];
     }

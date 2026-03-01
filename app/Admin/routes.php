@@ -44,7 +44,13 @@ Route::group([
     // ========================================
 
     $router->resource('projects', ProjectController::class);
-    $router->resource('cycles', ProjectController::class);
+
+    // ── VSLA Savings Cycles — dedicated controller with activate/deactivate ──
+    // NOTE: Custom action routes MUST come before the resource route
+    $router->get('cycles/{id}/activate', 'CycleController@activate')->name('cycles.activate');
+    $router->get('cycles/{id}/deactivate', 'CycleController@deactivate')->name('cycles.deactivate');
+    $router->resource('cycles', CycleController::class);
+
     $router->resource('project-shares', ProjectShareController::class);
     $router->resource('project-transactions', ProjectTransactionController::class);
     $router->resource('disbursements', DisbursementController::class);
