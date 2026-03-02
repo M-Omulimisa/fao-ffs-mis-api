@@ -222,7 +222,7 @@ class VslaGroupManifestController extends Controller
         
         return [
             'id' => $cycle->id,
-            'name' => $cycle->name ?? $cycle->title ?? 'Cycle ' . ($cycle->cycle_number ?? 1),
+            'name' => $cycle->cycle_name ?? $cycle->title ?? 'Cycle ' . ($cycle->cycle_number ?? 1),
             'cycle_number' => $cycle->cycle_number ?? 1,
             'start_date' => $cycle->start_date,
             'end_date' => $cycle->end_date,
@@ -245,8 +245,8 @@ class VslaGroupManifestController extends Controller
         // Get all transactions for this cycle
         $transactions = AccountTransaction::where('cycle_id', $cycle->id)->get();
         
-        // Share-related calculations
-        $sharePrice = $cycle->share_price ?? 5000;
+        // Share-related calculations — column is share_value in the projects table
+        $sharePrice = ($cycle->share_value > 0) ? (float) $cycle->share_value : 5000;
         $maxSharesPerMember = $cycle->max_shares_per_member ?? 10;
         $totalSharesSold = $transactions->where('account_type', 'SHARE')->sum('amount') / $sharePrice;
         $totalShareValue = $totalSharesSold * $sharePrice;
@@ -391,8 +391,8 @@ class VslaGroupManifestController extends Controller
             ];
         }
         
-        $sharePrice = $cycle->share_price ?? 5000;
-        
+        $sharePrice = ($cycle->share_value > 0) ? (float) $cycle->share_value : 5000;
+
         // Get transactions
         $transactions = AccountTransaction::where('user_id', $member->id)
             ->where('cycle_id', $cycle->id)

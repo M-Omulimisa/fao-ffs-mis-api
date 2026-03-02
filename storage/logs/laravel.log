@@ -1871,3 +1871,42 @@
 [2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 211)  
 [2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 400 for GET api/users/me  
+[2026-03-02 14:51:39] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:51:39] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:51:39] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:51:39] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:51:45] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:51:45] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:51:45] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:51:45] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:56:45] local.WARNING: enrichUserWithGroup: user 188 (Aminah Katushabe) has NO group. group_id=null  
+[2026-03-02 14:57:23] local.INFO: === UPDATE METHOD CALLED === {"id":"212","input":{"first_name":"Bwambale","last_name":"Muhidin","sex":"Male","dob":null,"marital_status":"Single","education_level":"Primary","occupation":"Farmer","phone_number":"+256772111111","phone_number_2":null,"email":"mbale@gmail.com","group_id":"13","is_group_admin":"Yes","is_group_secretary":"No","is_group_treasurer":"No","district_id":null,"subcounty_id":null,"parish_id":null,"village":null,"national_id_number":"CM2837NCAHS2","household_size":"1","onboarding_step":"step_7_complete","father_name":null,"mother_name":null,"emergency_contact_name":null,"emergency_contact_phone":null,"skills":null,"disabilities":null,"roles":[null],"password":"$2y$10$XAnZbRcRUm/fX3dM5SKVQOCkrFZGS2l1pgJ3todAw/OeAXIYTtaRq","_token":"3D3sOtly7FYAMgGTKuCtDhznlz35elyFu8cj0WGt","after-save":"2","_method":"PUT","_previous_":"http://localhost:8888/fao-ffs-mis-api/ffs-members"}} 
+[2026-03-02 14:57:23] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":212,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-02 14:57:35] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:57:35] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:57:40] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:57:40] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:57:41] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:57:41] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:57:53] local.WARNING: enrichUserWithGroup: user 188 (Aminah Katushabe) has NO group. group_id=null  
+[2026-03-02 14:58:45] local.INFO: === UPDATE METHOD CALLED === {"id":"212","input":{"first_name":"Bwambale","last_name":"Muhidin","sex":"Male","dob":null,"marital_status":"Single","education_level":"Primary","occupation":"Farmer","phone_number":"+256772111111","phone_number_2":null,"email":"mbale@gmail.com","group_id":"13","is_group_admin":"Yes","is_group_secretary":"No","is_group_treasurer":"No","district_id":null,"subcounty_id":null,"parish_id":null,"village":null,"national_id_number":"CM2837NCAHS2","household_size":"1","onboarding_step":"step_7_complete","father_name":null,"mother_name":null,"emergency_contact_name":null,"emergency_contact_phone":null,"skills":null,"disabilities":null,"roles":["4",null],"password":"$2y$10$io6iBf2G7a7Caxdk3rED9OFxOQ1fmOUyex0.BpdPSj7aedlTrNtha","_token":"3D3sOtly7FYAMgGTKuCtDhznlz35elyFu8cj0WGt","after-save":"2","_method":"PUT","_previous_":"http://localhost:8888/fao-ffs-mis-api/ffs-members"}} 
+[2026-03-02 14:58:45] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":212,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-02 14:59:17] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:59:17] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:59:22] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:59:22] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:59:22] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 14:59:22] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 14:59:55] local.WARNING: enrichUserWithGroup: user 188 (Aminah Katushabe) has NO group. group_id=null  
+[2026-03-02 15:01:42] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 15:01:42] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 15:01:47] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 15:01:47] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 15:01:48] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-02 15:01:48] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-02 15:01:59] local.INFO: enrichUserWithGroup: user 211 resolved via group_id=134  
+[2026-03-02 15:02:18] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 15:02:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 15:02:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 15:02:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/134/manifest (User: 211)  
+[2026-03-02 15:02:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/134/manifest  
