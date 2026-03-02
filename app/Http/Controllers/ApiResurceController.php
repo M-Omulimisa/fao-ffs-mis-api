@@ -1448,14 +1448,44 @@ class ApiResurceController extends Controller
         $u = auth('api')->user();
         if ($u == null) {
             $administrator_id = Utils::get_user_id($r);
-            $u = Administrator::find($administrator_id);
+            $u = \App\Models\User::find($administrator_id);
         }
 
         if ($u == null) {
             return $this->error('User not found.');
         }
-        $data[] = $u;
-        return $this->success($data, $message = "Success!", 200);
+
+        // Enrich with IP details
+        if ($u->ip_id) {
+            $ip = \App\Models\ImplementingPartner::find($u->ip_id);
+            $u->ip_name = $ip ? $ip->name : null;
+            $u->ip_short_name = $ip ? $ip->short_name : null;
+        }
+
+        // Enrich with group details (resolve via role if group_id is missing)
+        $group = null;
+        if (!empty($u->group_id)) {
+            $group = \App\Models\FfsGroup::find($u->group_id);
+        }
+        if (!$group) {
+            $group = \App\Models\FfsGroup::where('admin_id', $u->id)
+                ->orWhere('secretary_id', $u->id)
+                ->orWhere('treasurer_id', $u->id)
+                ->first();
+            if ($group) {
+                \App\Models\User::where('id', $u->id)->update(['group_id' => $group->id]);
+                $u->group_id = $group->id;
+            }
+        }
+        if ($group) {
+            $u->group_name = $group->name;
+            $u->group_code = $group->code ?? '';
+        } else {
+            $u->group_name = '';
+            $u->group_code = '';
+        }
+
+        return $this->success('Success!', $u, 200);
     }
 
     /**

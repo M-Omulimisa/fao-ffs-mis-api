@@ -190,6 +190,9 @@ class ApiAuthController extends Controller
             $u->ip_short_name = $ip ? $ip->short_name : null;
         }
 
+        // Enrich with group details for mobile app
+        static::enrichUserWithGroup($u);
+
         return $this->success('Logged in successfully.', $u);
     }
 
@@ -316,7 +319,51 @@ class ApiAuthController extends Controller
 
         $new_user->token = $token;
         $new_user->remember_token = $token;
-        
+
+        // Enrich with group details for mobile app
+        static::enrichUserWithGroup($new_user);
+
         return $this->success('Account created successfully.', $new_user);
+    }
+
+    /**
+     * Resolve and attach group details to a user object for mobile app consumption.
+     *
+     * Strategy:
+     *  1. If the user already has a group_id, load that group.
+     *  2. Otherwise try to find a group via the user's assigned role
+     *     (admin_id → secretary_id → treasurer_id).
+     *  3. If a group is found and group_id was missing, persist it to the DB.
+     *  4. Always append group_name and group_code to the user object.
+     */
+    protected static function enrichUserWithGroup($user): void
+    {
+        $group = null;
+
+        if (!empty($user->group_id)) {
+            $group = \App\Models\FfsGroup::find($user->group_id);
+        }
+
+        // Fallback: find group by the user's role assignment
+        if (!$group) {
+            $group = \App\Models\FfsGroup::where('admin_id', $user->id)
+                ->orWhere('secretary_id', $user->id)
+                ->orWhere('treasurer_id', $user->id)
+                ->first();
+
+            // Auto-fix: persist the resolved group_id so future logins don't need the fallback
+            if ($group) {
+                \App\Models\User::where('id', $user->id)->update(['group_id' => $group->id]);
+                $user->group_id = $group->id;
+            }
+        }
+
+        if ($group) {
+            $user->group_name = $group->name;
+            $user->group_code = $group->code ?? '';
+        } else {
+            $user->group_name = '';
+            $user->group_code = '';
+        }
     }
 }

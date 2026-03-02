@@ -1091,8 +1091,12 @@ class VslaGroupManifestController extends Controller
      */
     private function canAccessGroup($user, $group)
     {
-        // User must be member of the group or an admin
-        return $user->group_id == $group->id || $user->user_type === 'admin';
+        // User must be a member of the group (via group_id or role assignment) or a system admin
+        return $user->group_id == $group->id
+            || $group->admin_id == $user->id
+            || $group->secretary_id == $user->id
+            || $group->treasurer_id == $user->id
+            || $user->user_type === 'admin';
     }
 
     /**
@@ -1100,10 +1104,23 @@ class VslaGroupManifestController extends Controller
      */
     private function getActiveCycle($group)
     {
-        return Project::where('group_id', $group->id)
-            ->where('status', 'active')
+        // Prefer the explicitly flagged active VSLA cycle
+        $cycle = Project::where('group_id', $group->id)
+            ->where('is_vsla_cycle', 'Yes')
+            ->where('is_active_cycle', 'Yes')
             ->orderBy('created_at', 'desc')
             ->first();
+
+        // Fallback: any cycle for the group with an active-like status
+        if (!$cycle) {
+            $cycle = Project::where('group_id', $group->id)
+                ->where('is_vsla_cycle', 'Yes')
+                ->whereIn('status', ['active', 'Active', 'ongoing', 'Ongoing'])
+                ->orderBy('created_at', 'desc')
+                ->first();
+        }
+
+        return $cycle;
     }
 
     /**

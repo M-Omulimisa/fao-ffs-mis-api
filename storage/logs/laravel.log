@@ -1618,3 +1618,256 @@
 [2026-03-01 19:50:09] local.INFO: ✅ Market Prices: Found 10 products  
 [2026-03-01 19:50:10] local.INFO: 💰 Market Prices: Getting prices {"product_id":null,"district_id":null,"sub_county_id":null,"start_date":null,"end_date":null,"limit":null} 
 [2026-03-01 19:50:10] local.INFO: ✅ Market Prices: Found 100 price records  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/134/manifest (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/134/manifest  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/cycles (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/cycles  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 500 for GET api/vsla/dashboard  
+[2026-03-02 09:48:58] local.ERROR: EnsureTokenIsValid - 500 ERROR on GET api/vsla/dashboard | User: 211 | Body: {"success":false,"code":0,"status":0,"message":"Failed to fetch dashboard data: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' (SQL: select count(*) as aggregate from `vsla_meeting_attendance` where `user_id` = 211)","data":""}  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/dashboard-summary (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/dashboard-summary  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/211 (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-balance/211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/recent (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/recent  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla-meetings (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla-meetings  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla-meetings/stats (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla-meetings/stats  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/social-fund/balance (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/social-fund/balance  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/social-fund/transactions (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/social-fund/transactions  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/134 (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/134  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/shareouts/history (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/shareouts/history  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-savings (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-savings  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/attendance (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/attendance  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/attendance/stats (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/attendance/stats  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/advisory/questions/my/list (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/advisory/questions/my/list  
+[2026-03-02 09:48:58] local.INFO: 📊 Market Prices: Getting categories  
+[2026-03-02 09:48:58] local.INFO: ✅ Market Prices: Found 5 categories  
+[2026-03-02 09:48:58] local.INFO: 📦 Market Prices: Getting products {"category_id":null} 
+[2026-03-02 09:48:58] local.INFO: ✅ Market Prices: Found 10 products  
+[2026-03-02 09:48:58] local.INFO: 📈 Market Prices: Getting latest prices  
+[2026-03-02 09:48:58] local.INFO: ✅ Market Prices: Found 10 latest prices  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/cycles (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/cycles  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla-groups/stats (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 422 for GET api/vsla-groups/stats  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/group-members (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 422 for GET api/vsla/group-members  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/members (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/members  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 211)  
+[2026-03-02 09:48:58] local.INFO: EnsureTokenIsValid - Response: 400 for GET api/users/me  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/134/manifest (User: 211)  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/134/manifest  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/cycles (User: 211)  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/cycles  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 211)  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/dashboard-summary (User: 211)  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/dashboard-summary  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 211)  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/211 (User: 211)  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-balance/211  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/recent (User: 211)  
+[2026-03-02 09:50:00] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/recent  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla-meetings (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla-meetings  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla-meetings/stats (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla-meetings/stats  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/social-fund/balance (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/social-fund/balance  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/social-fund/transactions (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/social-fund/transactions  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/134 (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/134  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/shareouts/history (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/shareouts/history  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-savings (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-savings  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/attendance (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/attendance  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/attendance/stats (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/attendance/stats  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/advisory/questions/my/list (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/advisory/questions/my/list  
+[2026-03-02 09:50:01] local.INFO: 📊 Market Prices: Getting categories  
+[2026-03-02 09:50:01] local.INFO: ✅ Market Prices: Found 5 categories  
+[2026-03-02 09:50:01] local.INFO: 📦 Market Prices: Getting products {"category_id":null} 
+[2026-03-02 09:50:01] local.INFO: ✅ Market Prices: Found 10 products  
+[2026-03-02 09:50:01] local.INFO: 📈 Market Prices: Getting latest prices  
+[2026-03-02 09:50:01] local.INFO: ✅ Market Prices: Found 10 latest prices  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/cycles (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/cycles  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla-groups/stats (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 422 for GET api/vsla-groups/stats  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/group-members (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 422 for GET api/vsla/group-members  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/members (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/members  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User ID: 211  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 211)  
+[2026-03-02 09:50:01] local.INFO: EnsureTokenIsValid - Response: 400 for GET api/users/me  

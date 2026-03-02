@@ -450,13 +450,13 @@ class VslaDashboardController extends Controller
         $mySocialFund = abs((clone $query)->where('account_type', 'social_fund')->sum('amount'));
 
         // My attendance rate
-        $attendanceQuery = VslaMeetingAttendance::where('user_id', $userId);
+        $attendanceQuery = VslaMeetingAttendance::where('member_id', $userId);
         if ($cycleId) {
             $meetingIds = VslaMeeting::where('cycle_id', $cycleId)->pluck('id');
             $attendanceQuery->whereIn('meeting_id', $meetingIds);
         }
         $totalAttendance = $attendanceQuery->count();
-        $presentCount = (clone $attendanceQuery)->where('status', 'present')->count();
+        $presentCount = (clone $attendanceQuery)->where('is_present', true)->count();
         $attendanceRate = $totalAttendance > 0 ? round(($presentCount / $totalAttendance) * 100, 1) : 0;
 
         return [
