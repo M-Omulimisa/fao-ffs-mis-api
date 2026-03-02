@@ -334,7 +334,7 @@ class VslaMeetingController extends Controller
                     'cycle_id' => $meeting->cycle_id,
                     'cycle_name' => $meeting->cycle->name ?? null,
                     'meeting_number' => $meeting->meeting_number,
-                    'meeting_date' => $meeting->meeting_date->format('Y-m-d'),
+                    'meeting_date' => $meeting->meeting_date?->format('Y-m-d'),
                     'location' => $meeting->notes ?? 'N/A', // Using notes as location for now
                     'status' => $meeting->has_errors ? 'cancelled' : 'completed',
                     'chairperson_id' => null, // Not stored in current schema
@@ -415,7 +415,7 @@ class VslaMeetingController extends Controller
                 'cycle_id' => $meeting->cycle_id,
                 'cycle_name' => $meeting->cycle->name ?? null,
                 'meeting_number' => $meeting->meeting_number,
-                'meeting_date' => $meeting->meeting_date->format('Y-m-d'),
+                'meeting_date' => $meeting->meeting_date?->format('Y-m-d'),
                 'location' => $meeting->notes ?? 'N/A',
                 'status' => $meeting->has_errors ? 'cancelled' : 'completed',
                 'chairperson_id' => null,

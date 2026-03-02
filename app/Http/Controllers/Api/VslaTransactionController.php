@@ -464,7 +464,7 @@ class VslaTransactionController extends Controller
                     'account_type' => $transaction->account_type,
                     'owner_type' => $transaction->owner_type,
                     'owner_name' => $user ? $user->name : 'Group',
-                    'transaction_date' => $transaction->transaction_date->format('M d, Y'),
+                    'transaction_date' => $transaction->transaction_date?->format('M d, Y'),
                     'type' => $transaction->type,
                     'is_contra_entry' => $transaction->is_contra_entry,
                 ];

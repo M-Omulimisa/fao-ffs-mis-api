@@ -72,8 +72,8 @@ class VslaShareoutController extends Controller
                         'cycle_name' => $cycle->cycle_name,
                         'group_id' => $cycle->group_id,
                         'group_name' => $cycle->group->name ?? 'N/A',
-                        'start_date' => $cycle->start_date->format('Y-m-d'),
-                        'end_date' => $cycle->end_date->format('Y-m-d'),
+                        'start_date' => is_string($cycle->start_date) ? $cycle->start_date : ($cycle->start_date?->format('Y-m-d')),
+                        'end_date' => is_string($cycle->end_date) ? $cycle->end_date : ($cycle->end_date?->format('Y-m-d')),
                         'share_value' => (float) $cycle->share_value,
                         'has_existing_shareout' => $existingShareout ? true : false,
                         'existing_shareout_id' => $existingShareout ? $existingShareout->id : null,
@@ -274,9 +274,11 @@ class VslaShareoutController extends Controller
             // Add additional statistics
             $summary['cycle_info'] = [
                 'cycle_name' => $shareout->cycle->cycle_name,
-                'start_date' => $shareout->cycle->start_date->format('Y-m-d'),
-                'end_date' => $shareout->cycle->end_date->format('Y-m-d'),
-                'duration_months' => $shareout->cycle->start_date->diffInMonths($shareout->cycle->end_date),
+                'start_date' => is_string($shareout->cycle->start_date) ? $shareout->cycle->start_date : ($shareout->cycle->start_date?->format('Y-m-d')),
+                'end_date' => is_string($shareout->cycle->end_date) ? $shareout->cycle->end_date : ($shareout->cycle->end_date?->format('Y-m-d')),
+                'duration_months' => ($shareout->cycle->start_date && $shareout->cycle->end_date)
+                    ? \Carbon\Carbon::parse($shareout->cycle->start_date)->diffInMonths(\Carbon\Carbon::parse($shareout->cycle->end_date))
+                    : 0,
             ];
             
             $summary['group_info'] = [
