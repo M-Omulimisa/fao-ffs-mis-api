@@ -61,6 +61,18 @@ trait ApiResponser
      */
     protected function error($message = "", $code = 400, $data = null)
     {
+        // Log server errors with stack trace for debugging
+        if ($code >= 500) {
+            \Log::error("API Error [{$code}]: {$message}", [
+                'url' => request()->fullUrl(),
+                'method' => request()->method(),
+                'user_id' => auth()->id(),
+                'trace' => collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5))
+                    ->map(fn($t) => ($t['file'] ?? '?') . ':' . ($t['line'] ?? '?') . ' ' . ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? ''))
+                    ->implode("\n"),
+            ]);
+        }
+
         $response = [
             'success' => false,
             'code' => 0,
