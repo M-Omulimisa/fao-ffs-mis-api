@@ -270,6 +270,7 @@ class CycleController extends AdminController
 
         // Always a VSLA cycle
         $form->hidden('is_vsla_cycle')->default('Yes');
+        $form->hidden('title')->default('Savings Cycle');
 
         // ── Group / SACCO Selection ──────────────────────────────────────────
         $ipId = $this->getAdminIpId();
@@ -295,8 +296,10 @@ class CycleController extends AdminController
         $form->divider('Basic Information');
 
         $form->row(function ($row) {
+            $year = date('Y');
             $row->width(6)->text('cycle_name', 'Cycle Name')
                 ->rules('required|max:200')
+                ->default("Cycle 1 – {$year}")
                 ->placeholder('e.g. Cycle 1 – January to December 2025')
                 ->help('Descriptive name for this savings cycle');
             $row->width(6)->select('status', 'Status')
@@ -321,8 +324,8 @@ class CycleController extends AdminController
         $form->divider('Cycle Period');
 
         $form->row(function ($row) {
-            $row->width(6)->date('start_date', 'Start Date')->rules('required');
-            $row->width(6)->date('end_date', 'End Date')->rules('required');
+            $row->width(6)->date('start_date', 'Start Date')->default(date('Y-01-01'))->rules('required');
+            $row->width(6)->date('end_date', 'End Date')->default(date('Y-12-31'))->rules('required');
         });
 
         // ── VSLA Savings Settings ─────────────────────────────────────────────
@@ -390,6 +393,18 @@ class CycleController extends AdminController
 
         // ── Saving callback: enforce single active cycle ───────────────────────
         $form->saving(function (Form $form) {
+            // Auto-populate 'title' from cycle_name (DB column is NOT NULL)
+            $cycleName = request()->input('cycle_name', 'Savings Cycle');
+            $titleValue = $cycleName ?: 'Savings Cycle';
+            // Use $form->input() to inject into form data — most reliable in laravel-admin
+            $form->input('title', $titleValue);
+            // Belt-and-suspenders: also set directly on model
+            $form->model()->title = $titleValue;
+
+            // Ensure is_vsla_cycle is always set
+            $form->input('is_vsla_cycle', 'Yes');
+            $form->model()->is_vsla_cycle = 'Yes';
+
             if ($form->is_active_cycle === 'Yes' && !empty($form->group_id)) {
                 // Deactivate all other cycles for this group
                 Project::where('group_id', $form->group_id)
@@ -410,6 +425,11 @@ class CycleController extends AdminController
                 if (empty($form->weekly_loan_interest_rate)) {
                     $form->weekly_loan_interest_rate = $form->interest_frequency === 'Weekly' ? $rate : round($rate / 4.33, 2);
                 }
+            }
+
+            // Set admin who created this cycle
+            if ($form->isCreating()) {
+                $form->created_by_id = \Encore\Admin\Facades\Admin::user()->id ?? null;
             }
         });
 

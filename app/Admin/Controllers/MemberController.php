@@ -502,7 +502,7 @@ class MemberController extends AdminController
         });
         
         $form->row(function ($row) {
-            $row->width(4)->date('dob', 'Date of Birth');
+            $row->width(4)->date('dob', 'Date of Birth')->help('Optional but helps for age reporting');
             $row->width(4)->select('marital_status', 'Marital Status')->options([
                 'Single' => 'Single', 'Married' => 'Married', 'Divorced' => 'Divorced', 
                 'Widowed' => 'Widowed', 'Separated' => 'Separated'
@@ -511,21 +511,23 @@ class MemberController extends AdminController
                 'None' => 'No Formal Education', 'Primary' => 'Primary', 'O-Level' => 'O-Level', 
                 'A-Level' => 'A-Level', 'Certificate' => 'Certificate', 'Diploma' => 'Diploma', 
                 'Degree' => 'Degree', 'Masters' => 'Masters', 'PhD' => 'PhD'
-            ]);
+            ])->default('Primary');
         });
         
         $form->row(function ($row) {
-            $row->width(6)->text('occupation', 'Occupation');
+            $row->width(6)->text('occupation', 'Occupation')->default('Farmer')->placeholder('e.g. Farmer, Trader, Teacher');
             $row->width(6)->image('avatar', 'Photo')->removable();
         });
         
         // Contact Information
         $form->row(function ($row) {
             $row->width(4)->text('phone_number', 'Primary Phone')
+                ->placeholder('e.g. 0771234567')
                 ->creationRules(['required', 'unique:users,phone_number'])
-                ->updateRules(['required', 'unique:users,phone_number,{{id}}']);
-            $row->width(4)->text('phone_number_2', 'Alternative Phone');
-            $row->width(4)->email('email', 'Email');
+                ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
+                ->help('Used as login username & password');
+            $row->width(4)->text('phone_number_2', 'Alternative Phone')->placeholder('Optional second number');
+            $row->width(4)->email('email', 'Email')->placeholder('Optional email address');
         });
         
         // Group Assignment (IP-scoped for non-super-admins)
