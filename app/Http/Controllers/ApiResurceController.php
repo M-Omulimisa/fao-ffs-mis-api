@@ -1445,13 +1445,18 @@ class ApiResurceController extends Controller
 
     public function my_profile(Request $r)
     {
+        // Try JWT guard first, then default guard (set by EnsureTokenIsValid middleware), then header fallback
         $u = auth('api')->user();
+        if ($u == null) {
+            $u = auth()->user();
+        }
         if ($u == null) {
             $administrator_id = Utils::get_user_id($r);
             $u = \App\Models\User::find($administrator_id);
         }
 
         if ($u == null) {
+            \Log::warning('my_profile: Could not resolve user. JWT=' . (auth('api')->check() ? 'yes' : 'no') . ', default_guard=' . (auth()->check() ? 'yes' : 'no') . ', header_user_id=' . ($r->header('User-Id') ?? 'none'));
             return $this->error('User not found.');
         }
 
@@ -1462,28 +1467,8 @@ class ApiResurceController extends Controller
             $u->ip_short_name = $ip ? $ip->short_name : null;
         }
 
-        // Enrich with group details (resolve via role if group_id is missing)
-        $group = null;
-        if (!empty($u->group_id)) {
-            $group = \App\Models\FfsGroup::find($u->group_id);
-        }
-        if (!$group) {
-            $group = \App\Models\FfsGroup::where('admin_id', $u->id)
-                ->orWhere('secretary_id', $u->id)
-                ->orWhere('treasurer_id', $u->id)
-                ->first();
-            if ($group) {
-                \App\Models\User::where('id', $u->id)->update(['group_id' => $group->id]);
-                $u->group_id = $group->id;
-            }
-        }
-        if ($group) {
-            $u->group_name = $group->name;
-            $u->group_code = $group->code ?? '';
-        } else {
-            $u->group_name = '';
-            $u->group_code = '';
-        }
+        // Enrich with group details – reuse the shared method from ApiAuthController
+        \App\Http\Controllers\ApiAuthController::enrichUserWithGroup($u);
 
         return $this->success('Success!', $u, 200);
     }

@@ -336,25 +336,48 @@ class ApiAuthController extends Controller
      *  3. If a group is found and group_id was missing, persist it to the DB.
      *  4. Always append group_name and group_code to the user object.
      */
-    protected static function enrichUserWithGroup($user): void
+    public static function enrichUserWithGroup($user): void
     {
         $group = null;
 
+        // 1) Direct group_id on the user record
         if (!empty($user->group_id)) {
             $group = \App\Models\FfsGroup::find($user->group_id);
+            if ($group) {
+                \Log::info('enrichUserWithGroup: user ' . $user->id . ' resolved via group_id=' . $user->group_id);
+            }
         }
 
-        // Fallback: find group by the user's role assignment
+        // 2) Fallback: find group by leader role assignment
         if (!$group) {
             $group = \App\Models\FfsGroup::where('admin_id', $user->id)
                 ->orWhere('secretary_id', $user->id)
                 ->orWhere('treasurer_id', $user->id)
                 ->first();
 
-            // Auto-fix: persist the resolved group_id so future logins don't need the fallback
             if ($group) {
+                \Log::info('enrichUserWithGroup: user ' . $user->id . ' resolved via leader role on group ' . $group->id);
                 \App\Models\User::where('id', $user->id)->update(['group_id' => $group->id]);
                 $user->group_id = $group->id;
+            }
+        }
+
+        // 3) Fallback: check training session participation to find the user's group
+        if (!$group) {
+            $sessionGroupId = \DB::table('ffs_session_participants')
+                ->join('ffs_training_sessions', 'ffs_session_participants.session_id', '=', 'ffs_training_sessions.id')
+                ->where('ffs_session_participants.user_id', $user->id)
+                ->whereNotNull('ffs_training_sessions.group_id')
+                ->orderBy('ffs_training_sessions.session_date', 'desc')
+                ->value('ffs_training_sessions.group_id');
+
+            if ($sessionGroupId) {
+                $group = \App\Models\FfsGroup::find($sessionGroupId);
+                if ($group) {
+                    \Log::info('enrichUserWithGroup: user ' . $user->id . ' resolved via training session participation, group ' . $group->id);
+                    \App\Models\User::where('id', $user->id)->update(['group_id' => $group->id]);
+                    $user->group_id = $group->id;
+                }
             }
         }
 
@@ -362,6 +385,7 @@ class ApiAuthController extends Controller
             $user->group_name = $group->name;
             $user->group_code = $group->code ?? '';
         } else {
+            \Log::warning('enrichUserWithGroup: user ' . $user->id . ' (' . ($user->first_name ?? '') . ' ' . ($user->last_name ?? '') . ') has NO group. group_id=' . ($user->group_id ?? 'null'));
             $user->group_name = '';
             $user->group_code = '';
         }
