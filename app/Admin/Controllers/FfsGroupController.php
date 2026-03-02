@@ -435,13 +435,12 @@ class FfsGroupController extends AdminController
             $form->hidden('type')->default($groupType);
         }
         
-        // Project/Partner Info
+        // Project Info (ip_id is already handled by addIpFieldToForm above)
         $form->row(function ($row) {
-            $row->width(4)->select('ip_id', 'Implementing Partner')->options(
-                ImplementingPartner::getDropdownOptions()
-            );
+            $row->width(4)->text('ip_name', 'Partner Name')->placeholder('Auto-set from IP')
+                ->help('Optional display name; IP is assigned above');
             $row->width(4)->text('project_code', 'Project Code')->placeholder('e.g. UNJP/UGA/068/EC');
-            $row->width(4)->date('establishment_date', 'Establishment Date');
+            $row->width(4)->date('establishment_date', 'Establishment Date')->default(date('Y-m-d'));
         });
         
         $form->divider('Location');
@@ -488,9 +487,9 @@ class FfsGroupController extends AdminController
         });
         
         $form->row(function ($row) {
-            $row->width(4)->number('total_members', 'Total Members')->default(0);
-            $row->width(4)->number('youth_members', 'Youth (18-35)');
-            $row->width(4)->number('pwd_members', 'Total PWD');
+            $row->width(4)->number('total_members', 'Total Members')->default(0)->help('Auto-calculated from Male + Female');
+            $row->width(4)->number('youth_members', 'Youth (18-35)')->default(0);
+            $row->width(4)->number('pwd_members', 'Total PWD')->default(0)->help('Auto-calculated from PWD Males + Females');
         });
         
         $form->divider('Facilitation & Contact');
@@ -517,7 +516,7 @@ class FfsGroupController extends AdminController
             $row->width(6)->select('meeting_day', 'Meeting Day')->options([
                 'Monday' => 'Monday', 'Tuesday' => 'Tuesday', 'Wednesday' => 'Wednesday',
                 'Thursday' => 'Thursday', 'Friday' => 'Friday', 'Saturday' => 'Saturday', 'Sunday' => 'Sunday'
-            ]);
+            ])->default('Monday');
             $row->width(6)->select('meeting_frequency', 'Frequency')->options(FfsGroup::getMeetingFrequencies())->default('Weekly');
         });
 
