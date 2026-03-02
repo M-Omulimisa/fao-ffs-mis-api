@@ -23,7 +23,6 @@ Route::group([
     $router->resource('implementing-partners', ImplementingPartnerController::class);
 
     $router->resource('deliveries', DeliveryController::class);
-    $router->resource('dtehm-memberships', DtehmMembershipController::class);
     $router->resource('product-categories', ProductCategoryController::class);
     $router->resource('ordered-items', OrderedItemController::class);
 
@@ -101,9 +100,6 @@ Route::group([
 
     // Users management
     $router->resource('users', UserController::class);
-
-    // User Hierarchy & Network - View only for all admin users
-    $router->resource('user-hierarchy', UserHierarchyController::class);
 
     // ========================================
     // GROUPS MANAGEMENT - All group types handled by one controller
