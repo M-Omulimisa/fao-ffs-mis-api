@@ -81,13 +81,13 @@ class ManifestController extends Controller
                         'id' => $transaction->id,
                         'amount' => $transaction->amount,
                         'formatted_amount' => $transaction->formatted_amount,
-                        'transaction_date' => $transaction->transaction_date->format('Y-m-d'),
+                        'transaction_date' => $transaction->transaction_date?->format('Y-m-d'),
                         'formatted_date' => $transaction->formatted_date,
                         'description' => $transaction->description,
                         'source' => $transaction->source,
                         'source_label' => $transaction->source_label,
                         'type' => $transaction->type,
-                        'created_at' => $transaction->created_at->format('Y-m-d H:i:s'),
+                        'created_at' => $transaction->created_at?->format('Y-m-d H:i:s'),
                     ];
                 });
 

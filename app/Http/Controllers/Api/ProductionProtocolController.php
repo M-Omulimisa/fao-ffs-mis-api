@@ -184,12 +184,14 @@ class ProductionProtocolController extends Controller
 
             // Validate against enterprise duration
             $enterprise = Enterprise::find($request->enterprise_id);
-            $maxWeeks = $enterprise->duration * 4;
-            if ($request->end_time > $maxWeeks) {
-                return response()->json([
-                    'code' => 0,
-                    'message' => "End time cannot exceed enterprise duration of {$maxWeeks} weeks",
-                ], 422);
+            if ($enterprise && $enterprise->duration > 0) {
+                $maxWeeks = $enterprise->duration * 4;
+                if ($request->end_time > $maxWeeks) {
+                    return response()->json([
+                        'code' => 0,
+                        'message' => "End time cannot exceed enterprise duration of {$maxWeeks} weeks",
+                    ], 422);
+                }
             }
 
             $data = $validator->validated();
@@ -262,12 +264,14 @@ class ProductionProtocolController extends Controller
 
             // Validate against enterprise duration
             $enterprise = Enterprise::find($request->enterprise_id);
-            $maxWeeks = $enterprise->duration * 4;
-            if ($request->end_time > $maxWeeks) {
-                return response()->json([
-                    'code' => 0,
-                    'message' => "End time cannot exceed enterprise duration of {$maxWeeks} weeks",
-                ], 422);
+            if ($enterprise && $enterprise->duration > 0) {
+                $maxWeeks = $enterprise->duration * 4;
+                if ($request->end_time > $maxWeeks) {
+                    return response()->json([
+                        'code' => 0,
+                        'message' => "End time cannot exceed enterprise duration of {$maxWeeks} weeks",
+                    ], 422);
+                }
             }
 
             $protocol->update($validator->validated());

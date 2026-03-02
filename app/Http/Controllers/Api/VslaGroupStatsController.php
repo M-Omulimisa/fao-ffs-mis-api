@@ -315,7 +315,7 @@ class VslaGroupStatsController extends Controller
             $member = DB::table('users')->find($loan->borrower_id);
             $activities[] = [
                 'type' => 'loan',
-                'title' => 'Loan to ' . ($member->name ?? 'Unknown'),
+                'title' => 'Loan to ' . ($member?->name ?? 'Unknown'),
                 'amount' => floatval($loan->loan_amount),
                 'date' => date('Y-m-d', strtotime($loan->created_at)),
             ];

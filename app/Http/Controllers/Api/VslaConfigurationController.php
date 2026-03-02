@@ -247,15 +247,21 @@ class VslaConfigurationController extends Controller
                 ->get()
                 ->map(function ($cycle) {
                     // Calculate progress
-                    $startDate = \Carbon\Carbon::parse($cycle->start_date);
-                    $endDate = \Carbon\Carbon::parse($cycle->end_date);
                     $now = \Carbon\Carbon::now();
-                    
-                    $totalDays = $startDate->diffInDays($endDate);
-                    $elapsedDays = $startDate->diffInDays($now);
-                    $progressPercentage = $totalDays > 0 
-                        ? min(100, ($elapsedDays / $totalDays) * 100) 
-                        : 0;
+                    $progressPercentage = 0;
+
+                    if ($cycle->start_date && $cycle->end_date) {
+                        $startDate = \Carbon\Carbon::parse($cycle->start_date);
+                        $endDate = \Carbon\Carbon::parse($cycle->end_date);
+                        $totalDays = $startDate->diffInDays($endDate);
+                        $elapsedDays = $startDate->diffInDays($now);
+                        $progressPercentage = $totalDays > 0
+                            ? min(100, ($elapsedDays / $totalDays) * 100)
+                            : 0;
+                    } else {
+                        $startDate = $now;
+                        $endDate = $now;
+                    }
                     
                     // Use stored status value, don't override it
                     // If cycle is manually closed, respect that

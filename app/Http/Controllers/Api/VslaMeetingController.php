@@ -352,7 +352,7 @@ class VslaMeetingController extends Controller
                     'total_loans_repaid' => 0.0, // Not stored in current schema
                     'cash_at_hand' => (float) $meeting->net_cash_flow,
                     'notes' => $meeting->notes,
-                    'submitted_by' => $meeting->creator->name ?? null,
+                    'submitted_by' => $meeting->creator?->name ?? null,
                     'submitted_at' => $meeting->created_at?->format('Y-m-d H:i:s'),
                     'created_at' => $meeting->created_at?->format('Y-m-d H:i:s'),
                     'updated_at' => $meeting->updated_at?->format('Y-m-d H:i:s'),
