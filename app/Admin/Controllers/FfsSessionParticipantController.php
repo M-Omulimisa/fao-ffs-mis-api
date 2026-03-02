@@ -5,6 +5,7 @@ namespace App\Admin\Controllers;
 use App\Models\FfsSessionParticipant;
 use App\Models\FfsTrainingSession;
 use App\Models\User;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -12,13 +13,24 @@ use Encore\Admin\Show;
 
 class FfsSessionParticipantController extends AdminController
 {
-    protected $title = 'Session Participants';
+    use IpScopeable;
+
+    protected $title = 'Session Attendance';
 
     protected function grid()
     {
         $grid = new Grid(new FfsSessionParticipant());
 
         $grid->model()->with(['session', 'user'])->orderBy('id', 'desc');
+
+        // IP Scoping via session
+        $ipId = $this->getAdminIpId();
+        if ($ipId) {
+            $grid->model()->whereHas('session', function ($q) use ($ipId) {
+                $q->where('ip_id', $ipId);
+            });
+        }
+
         $grid->quickSearch(function ($model, $query) {
             $model->whereHas('user', function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%");
@@ -26,13 +38,15 @@ class FfsSessionParticipantController extends AdminController
         })->placeholder('Search by participant name');
 
         // Filters
-        $grid->filter(function ($filter) {
+        $grid->filter(function ($filter) use ($ipId) {
             $filter->disableIdFilter();
+
+            $sessionQuery = FfsTrainingSession::orderBy('session_date', 'desc');
+            if ($ipId) $sessionQuery->where('ip_id', $ipId);
+
             $filter->equal('session_id', 'Training Session')->select(
-                FfsTrainingSession::orderBy('session_date', 'desc')
-                    ->limit(100)
-                    ->get()
-                    ->pluck('title', 'id')
+                $sessionQuery->limit(200)->get()
+                    ->mapWithKeys(fn($s) => [$s->id => $s->title . ' (' . optional($s->session_date)->format('M d, Y') . ')'])
             );
             $filter->equal('attendance_status', 'Status')->select(
                 FfsSessionParticipant::getAttendanceStatuses()
@@ -57,6 +71,7 @@ class FfsSessionParticipantController extends AdminController
             'absent' => 'danger',
             'excused' => 'warning',
             'late' => 'info',
+            'pending' => 'default',
         ])->sortable();
 
         $grid->column('remarks', 'Remarks')->display(function ($val) {
@@ -74,8 +89,10 @@ class FfsSessionParticipantController extends AdminController
     {
         $show = new Show(FfsSessionParticipant::findOrFail($id));
 
+        $show->panel()->style('primary')->title('Attendance Record');
         $show->field('id', 'ID');
         $show->field('session.title', 'Session');
+        $show->field('session.session_date', 'Session Date');
         $show->field('user.name', 'Participant');
         $show->field('attendance_status', 'Attendance Status');
         $show->field('remarks', 'Remarks');
@@ -88,24 +105,43 @@ class FfsSessionParticipantController extends AdminController
     {
         $form = new Form(new FfsSessionParticipant());
 
-        $form->select('session_id', 'Training Session')->options(
-            FfsTrainingSession::orderBy('session_date', 'desc')
-                ->limit(100)
-                ->get()
-                ->mapWithKeys(function ($s) {
-                    return [$s->id => $s->title . ' (' . ($s->session_date ? $s->session_date->format('M d, Y') : '') . ')'];
-                })
-        )->required();
+        $ipId = $this->getAdminIpId();
 
-        $form->select('user_id', 'Participant')->options(
-            User::where('user_type', 'Customer')->orderBy('name')->pluck('name', 'id')
-        )->required();
+        // ── Session & Member ─────────────────────────────────────────────
+        $form->row(function ($row) use ($ipId) {
+            $sessionQuery = FfsTrainingSession::orderBy('session_date', 'desc');
+            if ($ipId) $sessionQuery->where('ip_id', $ipId);
 
-        $form->select('attendance_status', 'Attendance Status')
-            ->options(FfsSessionParticipant::getAttendanceStatuses())
-            ->default('present');
+            $row->width(6)->select('session_id', 'Training Session')->options(
+                $sessionQuery->limit(200)->get()
+                    ->mapWithKeys(fn($s) => [$s->id => $s->title . ' (' . optional($s->session_date)->format('M d, Y') . ')'])
+            )->required();
 
-        $form->textarea('remarks', 'Remarks')->rows(2);
+            // Show all members (Customer type) — regardless of group since sessions can span groups
+            $memberQuery = User::where('user_type', 'Customer')->orderBy('name');
+            if ($ipId) $memberQuery->where('ip_id', $ipId);
+
+            $row->width(6)->select('user_id', 'Participant')->options(
+                $memberQuery->pluck('name', 'id')
+            )->required();
+        });
+
+        // ── Attendance Status ────────────────────────────────────────────
+        $form->row(function ($row) {
+            $row->width(6)->select('attendance_status', 'Attendance Status')
+                ->options(FfsSessionParticipant::getAttendanceStatuses())
+                ->default('present')
+                ->required();
+            $row->width(6)->textarea('remarks', 'Remarks')
+                ->rows(2)
+                ->placeholder('Optional notes on attendance');
+        });
+
+        $form->disableViewCheck();
+        $form->disableEditingCheck();
+        $form->tools(function (Form\Tools $tools) {
+            $tools->disableView();
+        });
 
         return $form;
     }

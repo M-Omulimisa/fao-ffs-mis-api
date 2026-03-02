@@ -22,9 +22,9 @@ class FfsTrainingSessionController extends AdminController
     {
         $grid = new Grid(new FfsTrainingSession());
 
-        $grid->model()->with(['group', 'facilitator'])->orderBy('session_date', 'desc');
+        $grid->model()->with(['group', 'facilitator', 'coFacilitator'])->orderBy('session_date', 'desc');
 
-        // IP Scoping: IP admins see only their own sessions
+        // IP Scoping
         $this->applyIpScope($grid);
 
         $grid->quickSearch('title', 'topic')->placeholder('Search by title or topic');
@@ -33,12 +33,21 @@ class FfsTrainingSessionController extends AdminController
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
             $this->addIpFilter($filter);
-            $filter->equal('group_id', 'Group')->select(FfsGroup::pluck('name', 'id'));
+
+            $ipId = $this->getAdminIpId();
+            $groupQuery = FfsGroup::orderBy('name');
+            if ($ipId) $groupQuery->where('ip_id', $ipId);
+            $filter->equal('group_id', 'Group')->select($groupQuery->pluck('name', 'id'));
+
             $filter->equal('facilitator_id', 'Facilitator')->select(
-                User::where('user_type', 'Admin')->orWhere('user_type', 'Employee')->pluck('name', 'id')
+                User::where(function ($q) {
+                    $q->where('user_type', 'Admin')
+                      ->orWhere('user_type', 'Employee');
+                })->orderBy('name')->pluck('name', 'id')
             );
             $filter->equal('session_type', 'Type')->select(FfsTrainingSession::getSessionTypes());
             $filter->equal('status', 'Status')->select(FfsTrainingSession::getStatuses());
+            $filter->equal('report_status', 'Report Status')->select(FfsTrainingSession::getReportStatuses());
             $filter->between('session_date', 'Session Date')->date();
         });
 
@@ -98,9 +107,10 @@ class FfsTrainingSessionController extends AdminController
             'cancelled' => 'danger',
         ])->sortable();
 
-        $grid->actions(function ($actions) {
-            $actions->disableView();
-        });
+        $grid->column('report_status', 'Report')->label([
+            'draft' => 'warning',
+            'submitted' => 'success',
+        ])->sortable();
 
         return $grid;
     }
@@ -109,25 +119,80 @@ class FfsTrainingSessionController extends AdminController
     {
         $show = new Show(FfsTrainingSession::findOrFail($id));
 
+        $show->panel()->style('primary')->title('Training Session Details');
+
         $show->field('id', 'ID');
         $show->field('title', 'Title');
+        $show->field('topic', 'Topic');
+        $show->divider();
+
         $show->field('group_name', 'Group');
         $show->field('facilitator_name', 'Facilitator');
-        $show->field('topic', 'Topic');
-        $show->field('description', 'Description');
+        $show->field('co_facilitator_id', 'Co-Facilitator')->as(function ($id) {
+            $user = $id ? User::find($id) : null;
+            return $user ? $user->name : '-';
+        });
+        $show->divider();
+
         $show->field('session_date', 'Date');
         $show->field('start_time', 'Start Time');
         $show->field('end_time', 'End Time');
         $show->field('venue', 'Venue');
         $show->field('session_type_text', 'Session Type');
+        $show->divider();
+
         $show->field('status_text', 'Status');
+        $show->field('report_status_text', 'Report Status');
         $show->field('expected_participants', 'Expected Participants');
         $show->field('actual_participants', 'Actual Participants');
-        $show->field('materials_used', 'Materials Used');
-        $show->field('notes', 'Notes');
-        $show->field('challenges', 'Challenges');
-        $show->field('recommendations', 'Recommendations');
+        $show->divider();
+
+        $show->field('description', 'Description')->unescape();
+        $show->field('materials_used', 'Materials Used')->unescape();
+        $show->field('notes', 'Session Notes')->unescape();
+        $show->field('challenges', 'Challenges Encountered')->unescape();
+        $show->field('recommendations', 'Recommendations')->unescape();
+        $show->divider();
+
+        $show->field('photo', 'Photo')->image();
+        $show->field('photos', 'Additional Photos')->as(function ($photos) {
+            if (!$photos || !is_array($photos)) return '-';
+            return implode(' ', array_map(function ($p) {
+                $url = url('storage/' . $p);
+                return "<img src='{$url}' style='max-width:120px;margin:4px' />";
+            }, $photos));
+        })->unescape();
+
+        $show->field('gps_latitude', 'GPS Latitude');
+        $show->field('gps_longitude', 'GPS Longitude');
         $show->field('created_at', 'Created');
+
+        // Show participants inline
+        $show->participants('Session Participants', function ($participants) {
+            $participants->disableCreateButton();
+            $participants->disableExport();
+            $participants->disableBatchActions();
+            $participants->column('user.name', 'Participant');
+            $participants->column('attendance_status', 'Status')->label([
+                'present' => 'success', 'absent' => 'danger',
+                'excused' => 'warning', 'late' => 'info',
+            ]);
+            $participants->column('remarks', 'Remarks');
+        });
+
+        // Show resolutions inline
+        $show->resolutions('Resolutions / GAP', function ($resolutions) {
+            $resolutions->disableCreateButton();
+            $resolutions->disableExport();
+            $resolutions->disableBatchActions();
+            $resolutions->column('resolution', 'Resolution');
+            $resolutions->column('gap_category', 'Category')->label('info');
+            $resolutions->column('status', 'Status')->label([
+                'pending' => 'default', 'in_progress' => 'warning',
+                'completed' => 'success', 'cancelled' => 'danger',
+            ]);
+            $resolutions->column('target_date', 'Target Date');
+        });
 
         return $show;
     }
@@ -136,37 +201,153 @@ class FfsTrainingSessionController extends AdminController
     {
         $form = new Form(new FfsTrainingSession());
 
-        $form->text('title', 'Title')->required();
-        $form->select('group_id', 'Group')->options(FfsGroup::pluck('name', 'id'))->required();
-        $form->select('facilitator_id', 'Facilitator')->options(
-            User::where('user_type', 'Admin')
-                ->orWhere('user_type', 'Employee')
-                ->pluck('name', 'id')
-        );
-        $form->text('topic', 'Topic');
-        $form->textarea('description', 'Description')->rows(3);
-        $form->date('session_date', 'Session Date')->required();
-        $form->time('start_time', 'Start Time');
-        $form->time('end_time', 'End Time');
-        $form->text('venue', 'Venue');
-        $form->select('session_type', 'Session Type')
-            ->options(FfsTrainingSession::getSessionTypes())
-            ->default('classroom');
-        $form->select('status', 'Status')
-            ->options(FfsTrainingSession::getStatuses())
-            ->default('scheduled');
-        $form->number('expected_participants', 'Expected Participants')->default(0);
-        $form->textarea('materials_used', 'Materials Used')->rows(2);
-        $form->textarea('notes', 'Notes')->rows(2);
-        $form->textarea('challenges', 'Challenges')->rows(2);
-        $form->textarea('recommendations', 'Recommendations')->rows(2);
-        $form->image('photo', 'Photo')->removable();
+        $ipId = $this->getAdminIpId();
 
+        // Auto-assign IP
+        $this->addIpFieldToForm($form);
+
+        // ── Session Identity ─────────────────────────────────────────────
+        $form->row(function ($row) {
+            $row->width(8)->text('title', 'Session Title')
+                ->required()
+                ->placeholder('e.g. Soil Preparation for Cassava Growing');
+            $row->width(4)->text('topic', 'Topic')
+                ->placeholder('e.g. Soil Management, Pest Control');
+        });
+
+        // ── Group & Facilitators ─────────────────────────────────────────
+        $form->row(function ($row) use ($ipId) {
+            $groupQuery = FfsGroup::where('status', 'Active')->orderBy('name');
+            if ($ipId) $groupQuery->where('ip_id', $ipId);
+
+            $row->width(4)->select('group_id', 'Primary Group')
+                ->options($groupQuery->pluck('name', 'id'))
+                ->required()
+                ->help('Main group hosting this session');
+
+            $facilitatorQuery = User::where(function ($q) {
+                $q->where('user_type', 'Admin')
+                  ->orWhere('user_type', 'Employee');
+            })->orderBy('name');
+            if ($ipId) $facilitatorQuery->where('ip_id', $ipId);
+
+            $row->width(4)->select('facilitator_id', 'Lead Facilitator')
+                ->options($facilitatorQuery->pluck('name', 'id'));
+            $row->width(4)->select('co_facilitator_id', 'Co-Facilitator')
+                ->options($facilitatorQuery->pluck('name', 'id'));
+        });
+
+        // ── Multi-group targeting ────────────────────────────────────────
+        $form->row(function ($row) use ($ipId) {
+            $allGroups = FfsGroup::where('status', 'Active')->orderBy('name');
+            if ($ipId) $allGroups->where('ip_id', $ipId);
+
+            $row->width(12)->multipleSelect('targetGroups', 'Additional Target Groups')
+                ->options($allGroups->pluck('name', 'id'))
+                ->help('Select extra groups that should attend. Primary group above is always included.');
+        });
+
+        // ── Schedule ─────────────────────────────────────────────────────
+        $form->row(function ($row) {
+            $row->width(4)->date('session_date', 'Session Date')
+                ->default(date('Y-m-d'))
+                ->required();
+            $row->width(4)->time('start_time', 'Start Time')->default('09:00:00');
+            $row->width(4)->time('end_time', 'End Time')->default('12:00:00');
+        });
+
+        $form->row(function ($row) {
+            $row->width(6)->text('venue', 'Venue/Location')
+                ->placeholder('e.g. Community Hall, Under the mango tree');
+            $row->width(3)->select('session_type', 'Session Type')
+                ->options(FfsTrainingSession::getSessionTypes())
+                ->default('classroom');
+            $row->width(3)->number('expected_participants', 'Expected Participants')->default(0);
+        });
+
+        // ── Status & Reporting ───────────────────────────────────────────
+        $form->row(function ($row) {
+            $row->width(4)->select('status', 'Session Status')
+                ->options(FfsTrainingSession::getStatuses())
+                ->default('scheduled');
+            $row->width(4)->select('report_status', 'Report Status')
+                ->options(FfsTrainingSession::getReportStatuses())
+                ->default('draft');
+            $row->width(4)->number('actual_participants', 'Actual Participants')->default(0)
+                ->help('Fill after session is completed');
+        });
+
+        // ── Rich content fields (Quill editors) ──────────────────────────
+        $form->divider('Session Content & Report');
+
+        $form->quill('description', 'Session Description / Agenda')
+            ->placeholder('Describe the session agenda, objectives, and outline...');
+
+        $form->quill('materials_used', 'Materials Used')
+            ->placeholder('List training materials, handouts, tools used...');
+
+        $form->quill('notes', 'Session Notes & Observations')
+            ->placeholder('Key observations, outcomes, farmer reactions...');
+
+        $form->quill('challenges', 'Challenges Encountered')
+            ->placeholder('What difficulties were faced during this session?');
+
+        $form->quill('recommendations', 'Recommendations & Follow-up')
+            ->placeholder('Next steps, recommendations, action items...');
+
+        // ── Media ────────────────────────────────────────────────────────
+        $form->divider('Media & Location');
+
+        $form->row(function ($row) {
+            $row->width(6)->image('photo', 'Main Photo')->removable()->uniqueName();
+            $row->width(6)->multipleImage('photos', 'Additional Photos')->removable()->uniqueName()
+                ->help('Upload multiple session photos');
+        });
+
+        $form->row(function ($row) {
+            $row->width(6)->decimal('gps_latitude', 'GPS Latitude')
+                ->placeholder('e.g. 0.347596');
+            $row->width(6)->decimal('gps_longitude', 'GPS Longitude')
+                ->placeholder('e.g. 32.582520');
+        });
+
+        // ── Save logic ──────────────────────────────────────────────────
         $form->hidden('created_by_id');
         $form->saving(function (Form $form) {
-            if (!$form->model()->id) {
-                $form->created_by_id = \Encore\Admin\Facades\Admin::user()->id;
+            if ($form->isCreating()) {
+                $form->input('created_by_id', \Encore\Admin\Facades\Admin::user()->id);
+
+                // Auto-assign IP from group if not set
+                $ipId = $this->getAdminIpId();
+                if ($ipId) {
+                    $form->input('ip_id', $ipId);
+                } elseif ($form->group_id) {
+                    $group = FfsGroup::find($form->group_id);
+                    if ($group && $group->ip_id) {
+                        $form->input('ip_id', $group->ip_id);
+                    }
+                }
             }
+
+            // Auto-set actual_participants from participants count when completing
+            if ($form->status === 'completed' && empty($form->actual_participants)) {
+                $count = $form->model()->participants()->count();
+                if ($count > 0) {
+                    $form->input('actual_participants', $count);
+                }
+            }
+
+            // Track report submission
+            if ($form->report_status === 'submitted' && !$form->model()->report_submitted_at) {
+                $form->input('report_submitted_at', now());
+                $form->input('submitted_by_id', \Encore\Admin\Facades\Admin::user()->id);
+            }
+        });
+
+        $form->disableViewCheck();
+        $form->disableEditingCheck();
+        $form->tools(function (Form\Tools $tools) {
+            $tools->disableView();
         });
 
         return $form;

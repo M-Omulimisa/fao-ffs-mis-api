@@ -183,6 +183,12 @@ Route::group([
     // Production Protocols - Activity blueprints for enterprises
     $router->resource('production-protocols', ProductionProtocolController::class);
 
+    // Farms - Individual farmer plots/farms linked to enterprises
+    $router->resource('farms', FarmController::class);
+
+    // Farm Activities - Tracked activities on each farm
+    $router->resource('farm-activities', FarmActivityController::class);
+
     // ========================================
     // MARKET PRICES - Agricultural Product Pricing Information
     // ========================================
