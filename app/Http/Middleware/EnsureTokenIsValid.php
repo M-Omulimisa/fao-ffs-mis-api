@@ -94,9 +94,17 @@ class EnsureTokenIsValid
         // This allows Auth::id() and Auth::user() to work in controllers
         auth()->setUser($u);
 
-        \Log::info('EnsureTokenIsValid - Passing to next middleware/controller');
+        $requestPath = $request->method() . ' ' . $request->path();
+        \Log::info('EnsureTokenIsValid - Processing: ' . $requestPath . ' (User: ' . $user_id . ')');
         $response = $next($request);
-        \Log::info('EnsureTokenIsValid - Response received: ' . $response->getStatusCode());
+        $statusCode = $response->getStatusCode();
+        \Log::info('EnsureTokenIsValid - Response: ' . $statusCode . ' for ' . $requestPath);
+        
+        // Log error details for 500 responses so we can debug
+        if ($statusCode >= 500) {
+            $body = method_exists($response, 'getContent') ? $response->getContent() : '';
+            \Log::error('EnsureTokenIsValid - 500 ERROR on ' . $requestPath . ' | User: ' . $user_id . ' | Body: ' . substr($body, 0, 2000));
+        }
         
         return $response;
     }
