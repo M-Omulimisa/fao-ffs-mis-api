@@ -273,8 +273,8 @@ class FfsGroupController extends AdminController
             return date('d M Y', strtotime($date));
         })->sortable()->hide();
         
-        // Set default sort - by name for better usability
-        $grid->model()->orderBy('name', 'asc');
+        // Set default sort - latest first
+        $grid->model()->orderBy('id', 'desc');
 
         return $grid;
     }

@@ -25,6 +25,7 @@ class ParticipantController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new Participant());
+        $grid->model()->orderBy('id', 'desc');
 
         $grid->column('id', __('#'));
         $grid->column('created_at', __('Created at')); 

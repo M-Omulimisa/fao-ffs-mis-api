@@ -31,7 +31,7 @@ class AdvisoryCategoryController extends AdminController
         $grid->quickSearch('name', 'description')->placeholder('Search category name or description...');
 
         // Default ordering
-        $grid->model()->orderBy('order', 'asc');
+        $grid->model()->orderBy('id', 'desc');
 
         // Disable batch deletion
         $grid->actions(function ($actions) {

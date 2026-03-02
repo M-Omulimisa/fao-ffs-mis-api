@@ -18,7 +18,7 @@ class ProductionProtocolController extends AdminController
     {
         $grid = new Grid(new ProductionProtocol());
 
-        $grid->model()->with('enterprise')->orderBy('enterprise_id', 'asc')->orderBy('start_time', 'asc');
+        $grid->model()->with('enterprise')->orderBy('id', 'desc');
         $grid->quickSearch('activity_name')->placeholder('Search by activity name...');
 
         // Columns

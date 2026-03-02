@@ -25,7 +25,7 @@ class DeliveryAddressController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new DeliveryAddress());
-        $grid->model()->orderBy('address', 'asc');
+        $grid->model()->orderBy('id', 'desc');
         $grid->quickSearch('address');
         $grid->disableBatchActions();
         $grid->column('address', __('Address'))->sortable()

@@ -25,6 +25,7 @@ class ProductCategoryController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new ProductCategory());
+        $grid->model()->orderBy('id', 'desc');
         $grid->disableBatchActions();
 
         $grid->column('id', __('#ID'))->sortable();

@@ -68,7 +68,7 @@ class ImplementingPartnerController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new ImplementingPartner());
-        $grid->model()->orderBy('name');
+        $grid->model()->orderBy('id', 'desc');
         $grid->quickSearch('name', 'short_name', 'slug')->placeholder('Search IPs…');
 
         $grid->filter(function ($filter) {

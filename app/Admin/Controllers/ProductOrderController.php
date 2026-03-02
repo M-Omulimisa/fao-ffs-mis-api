@@ -25,6 +25,7 @@ class ProductOrderController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new ProductOrder());
+        $grid->model()->orderBy('id', 'desc');
 
         $grid->column('id', __('Id'));
         $grid->column('created_at', __('Created at'));
