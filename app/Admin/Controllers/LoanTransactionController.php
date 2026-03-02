@@ -9,9 +9,12 @@ use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use App\Admin\Traits\IpScopeable;
 
 class LoanTransactionController extends AdminController
 {
+    use IpScopeable;
+
     /**
      * Title for current resource.
      *
@@ -27,6 +30,14 @@ class LoanTransactionController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new LoanTransaction());
+
+        // IP scoping - filter by loan's meeting's IP
+        $ipId = $this->getAdminIpId();
+        if ($ipId !== null) {
+            $grid->model()->whereHas('loan.meeting', function ($q) use ($ipId) {
+                $q->where('ip_id', $ipId);
+            });
+        }
 
         // Order by most recent first
         $grid->model()->orderBy('transaction_date', 'desc')->orderBy('id', 'desc');

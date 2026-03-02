@@ -5,6 +5,7 @@ namespace App\Admin\Controllers;
 use App\Models\Project;
 use App\Models\ProjectTransaction;
 use App\Admin\Helpers\RoleBasedDashboard;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -14,6 +15,7 @@ use Encore\Admin\Facades\Admin;
 class ProjectController extends AdminController
 {
     use RoleBasedDashboard;
+    use IpScopeable;
 
     /**
      * Title for current resource.
@@ -30,6 +32,14 @@ class ProjectController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new Project());
+
+        // IP scoping - filter by group's IP
+        $ipId = $this->getAdminIpId();
+        if ($ipId !== null) {
+            $grid->model()->whereHas('group', function ($q) use ($ipId) {
+                $q->where('ip_id', $ipId);
+            });
+        }
 
         $grid->model()->orderBy('id', 'desc');
         $grid->disableExport();

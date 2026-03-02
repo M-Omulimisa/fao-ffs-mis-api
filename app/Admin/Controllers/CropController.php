@@ -26,6 +26,8 @@ class CropController extends AdminController
     {
         $grid = new Grid(new Crop());
 
+        $grid->model()->orderBy('id', 'desc');
+
         $grid->column('id', __('Id'));
         $grid->column('created_at', __('Created at'));
         $grid->column('updated_at', __('Updated at'));

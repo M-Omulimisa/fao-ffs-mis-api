@@ -10,6 +10,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends AdminController
 {
@@ -294,9 +295,28 @@ class UserController extends AdminController
                     ->orderBy('name')
                     ->pluck('name', 'id')
                     ->toArray();
-                $row->width(12)->select('ip_id', __('Implementing Partner'))
+                $row->width(6)->select('ip_id', __('Implementing Partner'))
                     ->options($ipOptions)
                     ->help('Select the Implementing Partner this user belongs to');
+
+                // Role assignment - IP admins can only assign IP-level and below roles
+                $roleModel = config('admin.database.roles_model');
+                $rolesQuery = $roleModel::query();
+                if (!$this->isSuperAdmin()) {
+                    $rolesQuery->where('slug', '!=', 'super_admin');
+                }
+                $row->width(6)->multipleSelect('roles', trans('admin.roles'))
+                    ->options($rolesQuery->pluck('name', 'id'))
+                    ->help('Assign roles to this user (optional)');
+            });
+
+            $form->divider('Security');
+
+            $form->row(function ($row) {
+                $row->width(6)->password('password', __('Password'))
+                    ->help('Optional. If blank, phone number will be used as default password.');
+                $row->width(6)->password('password_confirmation', __('Confirm Password'))
+                    ->help('Re-enter password for confirmation');
             });
 
             $form->html('<div class="alert alert-info">
@@ -304,7 +324,7 @@ class UserController extends AdminController
                 <ul>
                     <li>Username will be automatically set to the phone number</li>
                     <li>User will be registered under your admin account</li>
-                    <li>Default password will be set to the phone number (user can change later)</li>
+                    <li>If no password is set, it defaults to the phone number (user can change later)</li>
                 </ul>
             </div>');
             
@@ -344,9 +364,15 @@ class UserController extends AdminController
                 ->uniqueName()
                 ->move('images/users');
 
+            // Role assignment - IP admins can only assign IP-level and below roles (not Super Admin)
             $roleModel = config('admin.database.roles_model');
+            $rolesQuery = $roleModel::query();
+            if (!$this->isSuperAdmin()) {
+                // IP admins cannot assign Super Admin role (slug: super_admin)
+                $rolesQuery->where('slug', '!=', 'super_admin');
+            }
             $row->width(3)->multipleSelect('roles', trans('admin.roles'))
-                ->options($roleModel::all()->pluck('name', 'id'));
+                ->options($rolesQuery->pluck('name', 'id'));
         });
 
         $form->row(function ($row) {
@@ -457,7 +483,7 @@ class UserController extends AdminController
         $form->divider('Account Status & Security');
 
         $form->row(function ($row) {
-            $row->width(6)->radio('status', __('Account Status'))
+            $row->width(4)->radio('status', __('Account Status'))
                 ->options([
                     'Active' => 'Active',
                     'Pending' => 'Pending',
@@ -465,19 +491,13 @@ class UserController extends AdminController
                     'Banned' => 'Banned',
                 ])
                 ->default('Active');
-        });
 
-        // Password fields - show for all admin users creating/editing users
-        /*  $form->row(function ($row) {
-            $row->width(6)->password('password', __('Password'))
-                ->rules('nullable|confirmed|min:6')
-                ->help('Leave blank to keep current password (when editing). Minimum 6 characters.')
-                ->creationRules('required|min:6');
+            $row->width(4)->password('password', __('Password'))
+                ->help('Leave blank to keep current password. Minimum 6 characters.');
 
-            $row->width(6)->password('password_confirmation', __('Confirm Password'))
-                ->rules('nullable|min:6') 
+            $row->width(4)->password('password_confirmation', __('Confirm Password'))
                 ->help('Re-enter password for confirmation');
-        }); */
+        });
 
         // Auto-generate name field from first_name and last_name
         $form->saving(function (Form $form) {
@@ -493,9 +513,11 @@ class UserController extends AdminController
                     $form->username = $form->phone_number;
                 }
 
-                // Set default password to phone_number
-                if ($form->phone_number && !$form->password) {
-                    $form->password = bcrypt($form->phone_number);
+                // Set default password to phone_number if no password provided
+                if (!$form->password) {
+                    $form->password = Hash::make($form->phone_number);
+                } else {
+                    $form->password = Hash::make($form->password);
                 }
 
                 // Set registered_by_id to current admin
@@ -518,13 +540,8 @@ class UserController extends AdminController
 
             // Hash password if provided (for updates)
             if ($form->password && !$form->isCreating()) {
-                $originalPassword = $form->model()->getOriginal('password');
-                if ($originalPassword != $form->password) {
-                    $form->password = bcrypt($form->password);
-                }
-            } else {
-                if (!$form->isCreating()) {
-                    unset($form->password);
+                if ($form->model()->password != $form->password) {
+                    $form->password = Hash::make($form->password);
                 }
             }
         });

@@ -8,9 +8,12 @@ use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use App\Admin\Traits\IpScopeable;
 
 class AccountTransactionController extends AdminController
 {
+    use IpScopeable;
+
     /**
      * Title for current resource.
      *
@@ -42,7 +45,15 @@ class AccountTransactionController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new AccountTransaction());
-        
+
+        // IP scoping - filter by group's IP
+        $ipId = $this->getAdminIpId();
+        if ($ipId !== null) {
+            $grid->model()->whereHas('group', function ($q) use ($ipId) {
+                $q->where('ip_id', $ipId);
+            });
+        }
+
         // Load relationships for better display
         $grid->model()->with(['user', 'group', 'contraEntry', 'meeting', 'cycle', 'creator']);
         

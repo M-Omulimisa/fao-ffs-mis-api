@@ -8,9 +8,12 @@ use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use App\Admin\Traits\IpScopeable;
 
 class ProjectTransactionController extends AdminController
 {
+    use IpScopeable;
+
     /**
      * Title for current resource.
      *
@@ -26,6 +29,14 @@ class ProjectTransactionController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new ProjectTransaction());
+
+        // IP scoping - filter by project's group's IP
+        $ipId = $this->getAdminIpId();
+        if ($ipId !== null) {
+            $grid->model()->whereHas('project.group', function ($q) use ($ipId) {
+                $q->where('ip_id', $ipId);
+            });
+        }
         
         $grid->model()->orderBy('transaction_date', 'desc');
         $grid->disableExport();

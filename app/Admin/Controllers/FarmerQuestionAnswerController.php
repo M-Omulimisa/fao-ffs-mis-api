@@ -10,9 +10,12 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use Encore\Admin\Facades\Admin;
+use App\Admin\Traits\IpScopeable;
 
 class FarmerQuestionAnswerController extends AdminController
 {
+    use IpScopeable;
+
     /**
      * Title for current resource.
      *
@@ -28,6 +31,14 @@ class FarmerQuestionAnswerController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new FarmerQuestionAnswer());
+
+        // IP scoping - filter by question author's IP
+        $ipId = $this->getAdminIpId();
+        if ($ipId !== null) {
+            $grid->model()->whereHas('question.author', function ($q) use ($ipId) {
+                $q->where('ip_id', $ipId);
+            });
+        }
 
         $grid->quickSearch('content', 'author_name')->placeholder('Search answers...');
 

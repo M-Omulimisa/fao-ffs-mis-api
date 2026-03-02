@@ -10,9 +10,12 @@ use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use App\Admin\Traits\IpScopeable;
 
 class VslaActionPlanController extends AdminController
 {
+    use IpScopeable;
+
     /**
      * Title for current resource.
      *
@@ -28,6 +31,14 @@ class VslaActionPlanController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new VslaActionPlan());
+
+        // IP scoping - filter by meeting's IP
+        $ipId = $this->getAdminIpId();
+        if ($ipId !== null) {
+            $grid->model()->whereHas('meeting', function ($q) use ($ipId) {
+                $q->where('ip_id', $ipId);
+            });
+        }
 
         $grid->model()->with(['cycle', 'meeting', 'assignedTo', 'creator'])->orderBy('id', 'desc');
         

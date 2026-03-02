@@ -10,10 +10,13 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use Illuminate\Support\Str;
+use App\Admin\Traits\IpScopeable;
 
 
 class MembersController extends AdminController
 {
+    use IpScopeable;
+
     /**
      * Title for current resource.
      *
@@ -32,10 +35,14 @@ class MembersController extends AdminController
         Utils::checkEventRegustration();
 
         $grid = new Grid(new User());
+
+        // IP scoping - direct ip_id filter
+        $this->applyIpScope($grid);
+
         $grid->disableExport();
         $grid->disableCreateButton();
 
-        $grid->quickSearch('name')->placeholder('Search by name');
+        $grid->quickSearch('name', 'phone_number', 'email')->placeholder('Search by name, phone, or email');
 
         $grid->disableBatchActions();
         $grid->disableActions();

@@ -109,7 +109,13 @@ class HomeController extends Controller
                 $this->addKPICards($row);
             })
             ->row(function (Row $row) {
-                $this->addContentDebugOverview($row);
+                $this->addIPSummaryOverview($row);
+            })
+            ->row(function (Row $row) {
+                // Content debug overview only shown to super admins
+                if ($this->isSuperAdmin()) {
+                    $this->addContentDebugOverview($row);
+                }
             })
             ->row(function (Row $row) {
                 $this->addVSLAFinancialOverview($row);
@@ -123,6 +129,137 @@ class HomeController extends Controller
             ->row(function (Row $row) {
                 $this->addRecentActivitiesTimeline($row);
             });
+    }
+
+    /**
+     * IP-specific Summary Overview with Training Sessions, Farms & Member stats
+     */
+    private function addIPSummaryOverview(Row $row)
+    {
+        $ipId = $this->getAdminIpId();
+
+        // Training Sessions stats
+        $row->column(4, function (Column $column) use ($ipId) {
+            $totalSessions = \App\Models\FfsTrainingSession::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $thisMonthSessions = \App\Models\FfsTrainingSession::whereMonth('session_date', now()->month)
+                ->whereYear('session_date', now()->year)
+                ->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $totalParticipants = \App\Models\FfsSessionParticipant::when($ipId, fn($q) => $q->whereHas('session', fn($s) => $s->where('ip_id', $ipId)))->count();
+            $avgAttendance = $totalSessions > 0 ? round($totalParticipants / $totalSessions) : 0;
+
+            $content = "
+                <div style='padding: 15px;'>
+                    <div style='background: #2196f3; color: white; padding: 15px; text-align: center; margin-bottom: 15px;'>
+                        <i class='fa fa-chalkboard-teacher' style='font-size: 24px;'></i>
+                        <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 28px;'>{$totalSessions}</h3>
+                        <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Training Sessions</p>
+                    </div>
+                    <table class='table' style='margin-bottom: 0;'>
+                        <tbody>
+                            <tr>
+                                <td style='padding: 8px; border-top: none;'><i class='fa fa-calendar' style='color: #2196f3;'></i> This Month</td>
+                                <td class='text-right' style='padding: 8px; border-top: none;'><strong>{$thisMonthSessions}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-users' style='color: #2196f3;'></i> Total Participants</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$totalParticipants}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-chart-bar' style='color: #2196f3;'></i> Avg. per Session</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$avgAttendance}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            ";
+
+            $box = new Box('📚 Training Sessions', $content);
+            $column->append($box);
+        });
+
+        // Farms & Agriculture stats
+        $row->column(4, function (Column $column) use ($ipId) {
+            $totalFarms = \App\Models\Farm::when($ipId, fn($q) => $q->whereHas('user', fn($u) => $u->where('ip_id', $ipId)))->count();
+            $activeFarms = \App\Models\Farm::where('status', 'active')
+                ->when($ipId, fn($q) => $q->whereHas('user', fn($u) => $u->where('ip_id', $ipId)))->count();
+            $totalActivities = \App\Models\FarmActivity::when($ipId, fn($q) => $q->whereHas('farm.user', fn($u) => $u->where('ip_id', $ipId)))->count();
+            $completedActivities = \App\Models\FarmActivity::where('status', 'completed')
+                ->when($ipId, fn($q) => $q->whereHas('farm.user', fn($u) => $u->where('ip_id', $ipId)))->count();
+            $completionRate = $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100, 1) : 0;
+
+            $content = "
+                <div style='padding: 15px;'>
+                    <div style='background: #4caf50; color: white; padding: 15px; text-align: center; margin-bottom: 15px;'>
+                        <i class='fa fa-seedling' style='font-size: 24px;'></i>
+                        <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 28px;'>{$totalFarms}</h3>
+                        <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Farms / Plots</p>
+                    </div>
+                    <table class='table' style='margin-bottom: 0;'>
+                        <tbody>
+                            <tr>
+                                <td style='padding: 8px; border-top: none;'><i class='fa fa-check-circle' style='color: #4caf50;'></i> Active Farms</td>
+                                <td class='text-right' style='padding: 8px; border-top: none;'><strong>{$activeFarms}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-tasks' style='color: #4caf50;'></i> Farm Activities</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$totalActivities}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-percentage' style='color: #4caf50;'></i> Completion Rate</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$completionRate}%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            ";
+
+            $box = new Box('🌱 Farm Activities', $content);
+            $column->append($box);
+        });
+
+        // Members Breakdown by Gender & Status
+        $row->column(4, function (Column $column) use ($ipId) {
+            $totalMembers = User::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $femaleMembers = User::where('sex', 'Female')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $maleMembers = User::where('sex', 'Male')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $activeMembers = User::where('status', 'Active')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $newThisMonth = User::whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+
+            $content = "
+                <div style='padding: 15px;'>
+                    <div style='background: #ff9800; color: white; padding: 15px; text-align: center; margin-bottom: 15px;'>
+                        <i class='fa fa-user-friends' style='font-size: 24px;'></i>
+                        <h3 style='margin: 8px 0 4px 0; color: white; font-weight: 700; font-size: 28px;'>{$totalMembers}</h3>
+                        <p style='margin: 0; font-size: 11px; text-transform: uppercase;'>Total Members</p>
+                    </div>
+                    <table class='table' style='margin-bottom: 0;'>
+                        <tbody>
+                            <tr>
+                                <td style='padding: 8px; border-top: none;'><i class='fa fa-venus' style='color: #e91e63;'></i> Female</td>
+                                <td class='text-right' style='padding: 8px; border-top: none;'><strong>{$femaleMembers}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-mars' style='color: #2196f3;'></i> Male</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$maleMembers}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-user-check' style='color: #4caf50;'></i> Active</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$activeMembers}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px;'><i class='fa fa-user-plus' style='color: #ff9800;'></i> New This Month</td>
+                                <td class='text-right' style='padding: 8px;'><strong>{$newThisMonth}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            ";
+
+            $box = new Box('👥 Members Breakdown', $content);
+            $column->append($box);
+        });
     }
 
     /**
@@ -141,7 +278,7 @@ class HomeController extends Controller
                 'fa-users',
                 $totalGroups,
                 'FFS Groups',
-                'Active in 9 districts'
+                "{$activeGroups} active | {$lastMonthGroups} new last month"
             );
             $box = new Box('', $content);
             $column->append($box->style('solid'));
@@ -170,7 +307,9 @@ class HomeController extends Controller
         $row->column(3, function (Column $column) {
             $ipId = $this->getAdminIpId();
             $vslaGroups = FfsGroup::where('type', 'VSLA')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
-            $totalSavings = AccountTransaction::where('account_type', 'share')->sum('amount');
+            $totalSavings = AccountTransaction::where('account_type', 'share')
+                ->when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
+                ->sum('amount');
             
             $content = $this->renderModernKPICard(
                 'fa-piggy-bank',
@@ -320,13 +459,20 @@ class HomeController extends Controller
     private function addVSLAFinancialOverview(Row $row)
     {
         $row->column(12, function (Column $column) {
-            $totalSavings = AccountTransaction::where('account_type', 'share')->sum('amount');
-            $activeLoans = VslaLoan::where('status', 'active')->sum('loan_amount');
-            $socialFund = SocialFundTransaction::sum('amount');
-            $totalDisbursed = VslaLoan::sum('loan_amount');
-            $totalRepaid = VslaLoan::sum('amount_paid');
+            $ipId = $this->getAdminIpId();
+            $totalSavings = AccountTransaction::where('account_type', 'share')
+                ->when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
+                ->sum('amount');
+            $activeLoans = VslaLoan::where('status', 'active')
+                ->when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))
+                ->sum('loan_amount');
+            $socialFund = SocialFundTransaction::when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))->sum('amount');
+            $totalDisbursed = VslaLoan::when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))->sum('loan_amount');
+            $totalRepaid = VslaLoan::when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))->sum('amount_paid');
             $repaymentRate = $totalDisbursed > 0 ? round(($totalRepaid / $totalDisbursed) * 100, 1) : 0;
-            $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->count();
+            $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')
+                ->when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
+                ->count();
             
             $content = "
                 <div style='background: #05179F; padding: 20px; color: white;'>
@@ -395,6 +541,7 @@ class HomeController extends Controller
                     ->count();
                 $loansData[] = VslaLoan::whereYear('created_at', $date->year)
                     ->whereMonth('created_at', $date->month)
+                    ->when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))
                     ->count();
             }
             
@@ -533,7 +680,9 @@ class HomeController extends Controller
             $totalMeetings = VslaMeeting::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             $thisMonthMeetings = VslaMeeting::whereMonth('meeting_date', now()->month)->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             $thisWeekMeetings = VslaMeeting::whereBetween('meeting_date', [now()->startOfWeek(), now()->endOfWeek()])->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
-            $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->count();
+            $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')
+                ->when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
+                ->count();
             
             $content = "
                 <div style='padding: 15px;'>
@@ -568,10 +717,15 @@ class HomeController extends Controller
 
         // Loan Portfolio
         $row->column(4, function (Column $column) {
-            $activeLoansCount = VslaLoan::where('status', 'active')->count();
-            $totalDisbursed = VslaLoan::sum('loan_amount');
-            $totalRepaid = VslaLoan::sum('amount_paid');
-            $activeLoansAmount = VslaLoan::where('status', 'active')->sum('loan_amount');
+            $ipId = $this->getAdminIpId();
+            $activeLoansCount = VslaLoan::where('status', 'active')
+                ->when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))
+                ->count();
+            $totalDisbursed = VslaLoan::when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))->sum('loan_amount');
+            $totalRepaid = VslaLoan::when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))->sum('amount_paid');
+            $activeLoansAmount = VslaLoan::where('status', 'active')
+                ->when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))
+                ->sum('loan_amount');
             $repaymentRate = $totalDisbursed > 0 ? round(($totalRepaid / $totalDisbursed) * 100, 1) : 0;
             
             $content = "
@@ -611,7 +765,9 @@ class HomeController extends Controller
             $totalGroups = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             $totalMembers = User::whereNotNull('group_id')->where('group_id', '!=', '')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
             $totalPosts = AdvisoryPost::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
-            $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->count();
+            $activeCycles = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')
+                ->when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
+                ->count();
             
             $content = "
                 <div style='padding: 15px;'>
@@ -654,7 +810,9 @@ class HomeController extends Controller
             $ipId = $this->getAdminIpId();
             // Get recent activities from different sources
             $recentMeetings = VslaMeeting::with('group')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->orderBy('created_at', 'desc')->limit(3)->get();
-            $recentLoans = VslaLoan::with('borrower')->orderBy('created_at', 'desc')->limit(3)->get();
+            $recentLoans = VslaLoan::with('borrower')
+                ->when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))
+                ->orderBy('created_at', 'desc')->limit(3)->get();
             $recentPosts = AdvisoryPost::when($ipId, fn($q) => $q->where('ip_id', $ipId))->orderBy('created_at', 'desc')->limit(3)->get();
             
             $activities = [];

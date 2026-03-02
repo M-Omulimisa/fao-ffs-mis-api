@@ -9,17 +9,28 @@ use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use App\Admin\Traits\IpScopeable;
 
 class FarmActivityController extends AdminController
 {
+    use IpScopeable;
+
     protected $title = 'Farm Activities';
 
     protected function grid()
     {
         $grid = new Grid(new FarmActivity());
 
+        // IP scoping - filter by farm owner's IP
+        $ipId = $this->getAdminIpId();
+        if ($ipId !== null) {
+            $grid->model()->whereHas('farm.user', function ($q) use ($ipId) {
+                $q->where('ip_id', $ipId);
+            });
+        }
+
         $grid->model()->with(['farm', 'farm.user', 'farm.enterprise', 'protocol'])
-            ->orderBy('scheduled_date', 'asc');
+            ->orderBy('scheduled_date', 'desc');
         $grid->quickSearch('activity_name')->placeholder('Search by activity name...');
 
         // Columns
