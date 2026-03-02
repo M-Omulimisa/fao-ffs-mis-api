@@ -612,13 +612,32 @@ class MemberController extends AdminController
         });
 
         $form->textarea('remarks', 'Remarks')->rows(2);
-        
-        // Account credentials (only on create)
+
+        // Account & Security
+        $form->divider('Account & Security');
+
+        // Role assignment - IP admins can only assign IP-level and below roles
+        $form->row(function ($row) use ($form) {
+            $roleModel = config('admin.database.roles_model');
+            $rolesQuery = $roleModel::query();
+            if (!$this->isSuperAdmin()) {
+                $rolesQuery->where('slug', '!=', 'super_admin');
+            }
+            $row->width(6)->multipleSelect('roles', 'Roles')
+                ->options($rolesQuery->pluck('name', 'id'))
+                ->help('Assign system roles to this member (optional)');
+
+            if ($form->isCreating()) {
+                $row->width(6)->password('password', 'Password')
+                    ->help('Optional. If blank, phone number will be used as default password.');
+            } else {
+                $row->width(6)->password('password', 'Change Password')
+                    ->help('Leave blank to keep current password');
+            }
+        });
+
         if ($form->isCreating()) {
             $form->text('username', 'Username (optional)');
-            $form->password('password', 'Password (optional)');
-        } else {
-            $form->password('password', 'Change Password (leave blank to keep current)');
         }
         
         // Saving logic
