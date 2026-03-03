@@ -76,6 +76,10 @@ class AccountTransactionController extends AdminController
         
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
+            $this->addIpFilter($filter);
+
+            $ipId = $this->getAdminIpId();
+            $ipGroupIds = $ipId ? \App\Models\FfsGroup::where('ip_id', $ipId)->pluck('id') : null;
             
             // Filter by owner type (Member vs Group)
             $filter->scope('member', 'Member Transactions')->where('owner_type', 'member');
@@ -84,16 +88,21 @@ class AccountTransactionController extends AdminController
             
             // VSLA Group filter
             $filter->equal('group_id', 'VSLA Group')
-                ->select(\App\Models\FfsGroup::where('type', 'VSLA')->pluck('name', 'id'));
+                ->select(\App\Models\FfsGroup::where('type', 'VSLA')
+                    ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                    ->pluck('name', 'id'));
             
             // Individual Member filter
             $filter->equal('user_id', 'Individual Member')
-                ->select(User::where('user_type', 'Customer')->pluck('name', 'id'));
+                ->select(User::where('user_type', 'Customer')
+                    ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                    ->pluck('name', 'id'));
             
             // Meeting filter
             $filter->equal('meeting_id', 'Meeting')
-                ->select(function () {
+                ->select(function () use ($ipId) {
                     return \App\Models\VslaMeeting::orderBy('meeting_date', 'desc')
+                        ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
                         ->limit(100)
                         ->get()
                         ->mapWithKeys(function ($meeting) {
@@ -103,7 +112,9 @@ class AccountTransactionController extends AdminController
             
             // Cycle filter
             $filter->equal('cycle_id', 'Cycle')
-                ->select(\App\Models\Project::where('is_active_cycle', 'Yes')->pluck('title', 'id'));
+                ->select(\App\Models\Project::where('is_active_cycle', 'Yes')
+                    ->when($ipGroupIds, fn($q) => $q->whereIn('group_id', $ipGroupIds))
+                    ->pluck('title', 'id'));
             
             // Account Type filter
             $filter->equal('account_type', 'Account Type')
@@ -409,7 +420,8 @@ class AccountTransactionController extends AdminController
         $form = new Form(new AccountTransaction());
 
         $form->select('user_id', __('User'))
-            ->options(User::pluck('name', 'id'))
+            ->options(User::when($this->getAdminIpId(), fn($q) => $q->where('ip_id', $this->getAdminIpId()))
+                ->pluck('name', 'id'))
             ->rules('required');
         
         $form->decimal('amount', __('Amount (UGX)'))

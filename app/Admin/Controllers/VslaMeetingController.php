@@ -44,11 +44,18 @@ class VslaMeetingController extends AdminController
             $filter->disableIdFilter();
             $this->addIpFilter($filter);
 
+            $ipId = $this->getAdminIpId();
+            $ipGroupIds = $ipId ? FfsGroup::where('ip_id', $ipId)->pluck('id') : null;
+
             $filter->equal('cycle_id', 'Cycle')
-                ->select(Project::where('is_vsla_cycle', 'Yes')->pluck('title', 'id'));
+                ->select(Project::where('is_vsla_cycle', 'Yes')
+                    ->when($ipGroupIds, fn($q) => $q->whereIn('group_id', $ipGroupIds))
+                    ->pluck('title', 'id'));
 
             $filter->equal('group_id', 'Group')
-                ->select(FfsGroup::where('type', 'VSLA')->pluck('name', 'id'));
+                ->select(FfsGroup::where('type', 'VSLA')
+                    ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                    ->pluck('name', 'id'));
 
             $filter->equal('processing_status', 'Status')->select([
                 'pending' => 'Pending',

@@ -47,7 +47,10 @@ class UserController extends AdminController
             $filter->equal('sex', 'Gender')->select(['Male' => 'Male', 'Female' => 'Female']);
 
             $filter->equal('group_id', 'FFS Group')->select(function () {
-                return FfsGroup::where('status', 'Active')->orderBy('name')->pluck('name', 'id');
+                $ipId = $this->getAdminIpId();
+                return FfsGroup::where('status', 'Active')
+                    ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                    ->orderBy('name')->pluck('name', 'id');
             });
 
             $filter->equal('status', 'Status')->select([

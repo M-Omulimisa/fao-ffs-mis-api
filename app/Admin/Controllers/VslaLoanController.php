@@ -49,12 +49,19 @@ class VslaLoanController extends AdminController
 
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
+            $this->addIpFilter($filter);
+
+            $ipId = $this->getAdminIpId();
+            $ipGroupIds = $ipId ? FfsGroup::where('ip_id', $ipId)->pluck('id') : null;
 
             $filter->equal('cycle_id', 'Cycle')
-                ->select(Project::where('is_vsla_cycle', 'Yes')->pluck('title', 'id'));
+                ->select(Project::where('is_vsla_cycle', 'Yes')
+                    ->when($ipGroupIds, fn($q) => $q->whereIn('group_id', $ipGroupIds))
+                    ->pluck('title', 'id'));
 
             $filter->equal('borrower_id', 'Borrower')
-                ->select(User::orderBy('name')->pluck('name', 'id'));
+                ->select(User::when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                    ->orderBy('name')->pluck('name', 'id'));
 
             $filter->equal('status', 'Status')->select([
                 'pending' => 'Pending',

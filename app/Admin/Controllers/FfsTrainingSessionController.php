@@ -43,7 +43,8 @@ class FfsTrainingSessionController extends AdminController
                 User::where(function ($q) {
                     $q->where('user_type', 'Admin')
                       ->orWhere('user_type', 'Employee');
-                })->orderBy('name')->pluck('name', 'id')
+                })->when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                  ->orderBy('name')->pluck('name', 'id')
             );
             $filter->equal('session_type', 'Type')->select(FfsTrainingSession::getSessionTypes());
             $filter->equal('status', 'Status')->select(FfsTrainingSession::getStatuses());

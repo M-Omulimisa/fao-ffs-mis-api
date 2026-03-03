@@ -58,7 +58,9 @@ class MemberController extends AdminController
             
             // Group filters
             $filter->equal('group_id', 'FFS Group')->select(function() {
+                $ipId = $this->getAdminIpId();
                 return FfsGroup::where('status', 'Active')
+                    ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
                     ->orderBy('name')
                     ->pluck('name', 'id');
             });
