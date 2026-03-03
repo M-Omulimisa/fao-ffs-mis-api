@@ -90,13 +90,14 @@ class VslaMeetingAttendanceController extends AdminController
 
         $grid->column('member.name', __('Member Details'))
             ->display(function ($name) {
-                $phone = $this->member->phone_number ?? 'N/A';
+                $member = $this->member;
+                $phone = $member->phone_number ?? 'N/A';
                 $role = '';
-                if ($this->member->is_group_admin === 'Yes') $role = ' 👑';
-                elseif ($this->member->is_group_secretary === 'Yes') $role = ' 📝';
-                elseif ($this->member->is_group_treasurer === 'Yes') $role = ' 💰';
+                if ($member && $member->is_group_admin === 'Yes') $role = ' 👑';
+                elseif ($member && $member->is_group_secretary === 'Yes') $role = ' 📝';
+                elseif ($member && $member->is_group_treasurer === 'Yes') $role = ' 💰';
                 return "<div>"
-                    . "<strong>" . \Illuminate\Support\Str::limit($name, 25) . "{$role}</strong>"
+                    . "<strong>" . \Illuminate\Support\Str::limit($name ?: 'Unknown', 25) . "{$role}</strong>"
                     . "<br><small class='text-muted'>{$phone}</small>"
                     . "</div>";
             });
