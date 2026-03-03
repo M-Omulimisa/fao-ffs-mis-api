@@ -3,6 +3,7 @@
 namespace App\Admin\Controllers;
 
 use App\Models\VslaLoan;
+use App\Models\FfsGroup;
 use App\Models\Project;
 use App\Models\VslaMeeting;
 use App\Models\User;
