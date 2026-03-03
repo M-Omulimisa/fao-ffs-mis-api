@@ -52,7 +52,7 @@ class MarketPriceController extends AdminController
             return '-';
         });
         $grid->column('unit', __('Unit'))->display(function () {
-            return $this->unit ?? $this->product->unit;
+            return $this->unit ?? $this->product?->unit ?? '-';
         });
         $grid->column('status', __('Status'))->using([
             'Active' => 'Active',

@@ -46,14 +46,15 @@ class EventBookingController extends AdminController
             return Utils::my_date_time($t);
         });
         $grid->column('administrator_id', __('Booked by'))->display(function ($t) {
-            return $this->booked_by->name;
+            return $this->booked_by?->name ?? 'N/A';
         });
         $grid->column('event_id', __('Event id'))
             ->display(function ($t) {
-                return $this->event->title;
+                return $this->event?->title ?? 'N/A';
             });
         $grid->column('event_ticket_id', __('Ticket'))
             ->display(function ($t) {
+                if (!$this->event_ticket) return '-';
                 return  number_format($this->event_ticket->price) . " - UGX " . $this->event_ticket->name;
             });
         $grid->column('is_paid', __('Is paid'))

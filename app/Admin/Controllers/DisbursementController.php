@@ -44,11 +44,11 @@ class DisbursementController extends AdminController
         
         $grid->quickSearch('description')->placeholder('Search by description');
         
-        $grid->filter(function ($filter) {
+        $grid->filter(function ($filter) use ($ipId) {
             $filter->disableIdFilter();
             
             $filter->equal('project_id', 'Project')
-                ->select(Project::pluck('title', 'id'));
+                ->select(Project::when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))->pluck('title', 'id'));
             
             $filter->between('disbursement_date', 'Date')->date();
         });

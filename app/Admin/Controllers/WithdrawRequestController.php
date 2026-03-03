@@ -39,18 +39,20 @@ class WithdrawRequestController extends AdminController
         // User Column
         $grid->column('user.name', __('User'))
             ->display(function () {
+                if (!$this->user) return '<span class="text-muted">-</span>';
                 return '<a href="/admin/users/' . $this->user_id . '">' . $this->user->name . '</a><br>' .
-                    '<small class="text-muted">' . $this->user->phone_number . '</small>';
+                    '<small class="text-muted">' . ($this->user->phone_number ?? '') . '</small>';
             })
             ->width(180);
 
         // DIP ID Column
         $grid->column('user.business_name', __('DIP ID'))
             ->display(function () {
-                if (empty($this->user->business_name)) {
+                $bizName = $this->user?->business_name;
+                if (empty($bizName)) {
                     return '-';
                 }
-                return '<span class="label label-primary">' . $this->user->business_name . '</span>';
+                return '<span class="label label-primary">' . $bizName . '</span>';
             })
             ->width(90);
 
@@ -72,7 +74,7 @@ class WithdrawRequestController extends AdminController
         // Current Balance Column
         $grid->column('current_balance', __('Current Balance'))
             ->display(function () {
-                $currentBalance = $this->user->calculateAccountBalance();
+                $currentBalance = $this->user?->calculateAccountBalance() ?? 0;
                 $color = $currentBalance >= $this->amount ? 'success' : 'danger';
                 return '<span class="text-' . $color . '">UGX ' . number_format($currentBalance, 2) . '</span>';
             })
@@ -115,7 +117,7 @@ class WithdrawRequestController extends AdminController
                 if (!$this->processed_by_id) {
                     return '<span class="text-muted">-</span>';
                 }
-                return $this->processedBy->name ?? '-';
+                return $this->processedBy?->name ?? '-';
             })
             ->width(120);
 

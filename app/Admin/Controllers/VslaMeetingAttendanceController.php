@@ -83,6 +83,7 @@ class VslaMeetingAttendanceController extends AdminController
 
         $grid->column('meeting.meeting_info', __('Meeting'))
             ->display(function () {
+                if (!$this->meeting) return '-';
                 $number = $this->meeting->meeting_number ?? '-';
                 $date = $this->meeting->meeting_date ? date('M d', strtotime($this->meeting->meeting_date)) : '-';
                 return "<strong>#{$number}</strong><br><small>{$date}</small>";
@@ -91,7 +92,7 @@ class VslaMeetingAttendanceController extends AdminController
         $grid->column('member.name', __('Member Details'))
             ->display(function ($name) {
                 $member = $this->member;
-                $phone = $member->phone_number ?? 'N/A';
+                $phone = $member?->phone_number ?? 'N/A';
                 $role = '';
                 if ($member && $member->is_group_admin === 'Yes') $role = ' 👑';
                 elseif ($member && $member->is_group_secretary === 'Yes') $role = ' 📝';

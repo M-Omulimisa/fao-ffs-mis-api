@@ -67,7 +67,7 @@ class MembersController extends AdminController
         ]); */
         $grid->column('campus_id', __('Campus'))
             ->display(function () {
-                return $this->campus->name;
+                return $this->campus?->name ?? '-';
             })->sortable();
         $grid->column('year', __('Graduated'))
             ->display(function () {

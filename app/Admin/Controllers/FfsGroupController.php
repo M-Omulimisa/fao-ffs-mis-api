@@ -111,7 +111,9 @@ class FfsGroupController extends AdminController
             $filter->like('district_text', 'District (Text)');
             $filter->like('name', 'Group Name');
             $filter->like('primary_value_chain', 'Value Chain');
-            $filter->equal('facilitator_id', 'Facilitator')->select(User::pluck('name', 'id'));
+            $filter->equal('facilitator_id', 'Facilitator')->select(
+                User::when($ipId, fn($q) => $q->where('ip_id', $ipId))->orderBy('name')->pluck('name', 'id')
+            );
             $filter->between('establishment_date', 'Established')->date();
         });
         
