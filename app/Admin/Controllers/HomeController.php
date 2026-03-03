@@ -101,9 +101,31 @@ class HomeController extends Controller
                 . "</div>";
         }
         
+        // TEMP DEBUG: Show what the system sees for this user
+        $debugUser = Admin::user();
+        $debugIpId = $ipId;
+        $debugGroups = FfsGroup::when($debugIpId, fn($q) => $q->where('ip_id', $debugIpId))->count();
+        $debugMembers = User::whereNotNull('group_id')->where('group_id', '!=', '')->when($debugIpId, fn($q) => $q->where('ip_id', $debugIpId))->count();
+        $debugCycles = Project::where('is_vsla_cycle', 'Yes')
+            ->when($debugIpId, function($q) use ($debugIpId) {
+                $gids = FfsGroup::where('ip_id', $debugIpId)->pluck('id');
+                $q->whereIn('group_id', $gids);
+            })->count();
+        $debugRoles = $debugUser ? $debugUser->roles->pluck('slug')->implode(', ') : 'N/A';
+        $debugBanner = "<div style='background:#ff6600;color:#fff;padding:10px 15px;margin-bottom:15px;border:2px solid red;'>"
+            . "<strong>DEBUG (TEMP):</strong> "
+            . "User #{$debugUser->id} ({$debugUser->name}) | "
+            . "Roles: {$debugRoles} | "
+            . "ip_id from model: " . var_export($debugUser->ip_id, true) . " | "
+            . "Resolved ipId: " . var_export($debugIpId, true) . " | "
+            . "isSuperAdmin: " . var_export($this->isSuperAdmin(), true) . " | "
+            . "Groups: {$debugGroups} | Members: {$debugMembers} | Cycles: {$debugCycles}"
+            . "</div>";
+        
         return $content
             ->title('📊 FAO FFS-MIS Dashboard')
             ->description('Farmer Field School Management Information System - Karamoja Region')
+            ->row($debugBanner)
             ->row($ipBanner)
             ->row(function (Row $row) {
                 $this->addKPICards($row);
