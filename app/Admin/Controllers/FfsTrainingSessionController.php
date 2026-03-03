@@ -117,7 +117,12 @@ class FfsTrainingSessionController extends AdminController
 
     protected function detail($id)
     {
-        $show = new Show(FfsTrainingSession::findOrFail($id));
+        $record = FfsTrainingSession::findOrFail($id);
+        if (!$this->verifyIpAccess($record)) {
+            return $this->denyIpAccess();
+        }
+
+        $show = new Show($record);
 
         $show->panel()->style('primary')->title('Training Session Details');
 

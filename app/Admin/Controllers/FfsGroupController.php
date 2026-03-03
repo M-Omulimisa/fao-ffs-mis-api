@@ -288,7 +288,12 @@ class FfsGroupController extends AdminController
      */
     protected function detail($id)
     {
-        $show = new Show(FfsGroup::findOrFail($id));
+        $record = FfsGroup::findOrFail($id);
+        if (!$this->verifyIpAccess($record)) {
+            return $this->denyIpAccess();
+        }
+
+        $show = new Show($record);
         
         $show->panel()->style('primary')->title('Group Details');
 

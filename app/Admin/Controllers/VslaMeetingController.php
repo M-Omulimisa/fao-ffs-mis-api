@@ -159,7 +159,12 @@ class VslaMeetingController extends AdminController
      */
     protected function detail($id)
     {
-        $show = new Show(VslaMeeting::findOrFail($id));
+        $record = VslaMeeting::findOrFail($id);
+        if (!$this->verifyIpAccess($record)) {
+            return $this->denyIpAccess();
+        }
+
+        $show = new Show($record);
 
         $show->field('id', __('ID'));
         $show->field('local_id', __('Local ID'));

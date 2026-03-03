@@ -186,7 +186,17 @@ class VslaLoanController extends AdminController
      */
     protected function detail($id)
     {
-        $show = new Show(VslaLoan::findOrFail($id));
+        $record = VslaLoan::findOrFail($id);
+
+        // IP scope guard via meeting -> group
+        if (!$this->isSuperAdmin()) {
+            $meeting = $record->meeting ?? null;
+            if (!$meeting || (int) $meeting->ip_id !== $this->getAdminIpId()) {
+                return $this->denyIpAccess();
+            }
+        }
+
+        $show = new Show($record);
 
         $show->field('id', __('ID'));
         $show->field('local_id', __('Local ID'));

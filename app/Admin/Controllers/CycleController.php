@@ -187,7 +187,12 @@ class CycleController extends AdminController
 
     protected function detail($id)
     {
-        $show = new Show(Project::findOrFail($id));
+        $record = Project::findOrFail($id);
+        if (!$this->verifyIpAccessViaGroup($record)) {
+            return $this->denyIpAccess();
+        }
+
+        $show = new Show($record);
 
         $show->panel()->style('primary')->title('Savings Cycle Details');
 

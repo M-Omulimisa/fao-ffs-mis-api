@@ -230,7 +230,12 @@ class MemberController extends AdminController
      */
     protected function detail($id)
     {
-        $show = new Show(User::findOrFail($id));
+        $record = User::findOrFail($id);
+        if (!$this->verifyIpAccess($record)) {
+            return $this->denyIpAccess();
+        }
+
+        $show = new Show($record);
         
         $show->panel()->style('success')->title('Member Profile');
 

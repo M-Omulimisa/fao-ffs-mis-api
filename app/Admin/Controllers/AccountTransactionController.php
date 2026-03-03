@@ -327,7 +327,12 @@ class AccountTransactionController extends AdminController
      */
     protected function detail($id)
     {
-        $show = new Show(AccountTransaction::findOrFail($id));
+        $record = AccountTransaction::findOrFail($id);
+        if (!$this->verifyIpAccessViaGroup($record)) {
+            return $this->denyIpAccess();
+        }
+
+        $show = new Show($record);
 
         $show->field('id', __('ID'));
         
