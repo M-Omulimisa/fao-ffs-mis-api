@@ -248,7 +248,8 @@ class VslaGroupManifestController extends Controller
         // Share-related calculations — column is share_value in the projects table
         $sharePrice = ($cycle->share_value > 0) ? (float) $cycle->share_value : 5000;
         $maxSharesPerMember = $cycle->max_shares_per_member ?? 10;
-        $totalSharesSold = $transactions->where('account_type', 'SHARE')->sum('amount') / $sharePrice;
+        $shareAmount = $transactions->where('account_type', 'SHARE')->sum('amount');
+        $totalSharesSold = ($sharePrice > 0) ? ($shareAmount / $sharePrice) : 0;
         $totalShareValue = $totalSharesSold * $sharePrice;
         
         // Savings calculations
@@ -398,7 +399,8 @@ class VslaGroupManifestController extends Controller
             ->where('cycle_id', $cycle->id)
             ->get();
         
-        $totalShares = $transactions->where('account_type', 'SHARE')->sum('amount') / $sharePrice;
+        $shareAmount = $transactions->where('account_type', 'SHARE')->sum('amount');
+        $totalShares = ($sharePrice > 0) ? ($shareAmount / $sharePrice) : 0;
         $shareValue = $totalShares * $sharePrice;
         $savingsBalance = $transactions->whereIn('account_type', ['DEPOSIT', 'SAVING'])->sum('amount');
         $finesBalance = $transactions->where('account_type', 'FINE')->sum('amount');

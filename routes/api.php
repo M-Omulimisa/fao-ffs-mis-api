@@ -89,6 +89,7 @@ Route::post('chat-mark-as-read', [ApiResurceController::class, 'chat_mark_as_rea
 Route::get('chat-heads', [ApiResurceController::class, 'chat_heads']);
 Route::get('chat-messages', [ApiResurceController::class, 'chat_messages']);
 Route::get("users/me", [ApiResurceController::class, "my_profile"])->middleware(EnsureTokenIsValid::class);
+Route::get("users/my-roles", [ApiResurceController::class, "my_roles"])->middleware(EnsureTokenIsValid::class);
 Route::get("manifest", [ApiResurceController::class, "manifest"]);
 Route::get("live-search", [ApiResurceController::class, "live_search"]);
 Route::get("search-history", [ApiResurceController::class, "search_history"]);
@@ -123,6 +124,18 @@ Route::prefix('vsla-onboarding')->group(function () {
         Route::get('/data/savings-cycle', [VslaOnboardingDataController::class, 'getSavingsCycleData']);
         Route::get('/data/all', [VslaOnboardingDataController::class, 'getAllOnboardingData']);
     });
+});
+
+// ========================================
+// VSLA AGENT ONBOARDING ROUTES (Field Officer / Facilitator)
+// Register a new VSLA on behalf of community members - 3-step wizard
+// ========================================
+use App\Http\Controllers\Api\VslaAgentOnboardingController;
+
+Route::prefix('agent-vsla')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::post('/create-group',       [VslaAgentOnboardingController::class, 'createGroup']);
+    Route::post('/register-officers',  [VslaAgentOnboardingController::class, 'registerOfficers']);
+    Route::post('/create-cycle',       [VslaAgentOnboardingController::class, 'createCycle']);
 });
 
 // ========================================

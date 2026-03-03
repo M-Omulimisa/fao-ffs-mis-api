@@ -1477,6 +1477,124 @@ class ApiResurceController extends Controller
      * Get all FFS groups for registration dropdown
      * Returns active groups with essential information
      */
+    /**
+     * Return all roles/permissions for the currently authenticated user.
+     *
+     * Role slugs:
+     *   field_officer       – facilitator_id on any active FFS group
+     *   co_facilitator      – co_facilitator_id on any training session
+     *   group_chairperson   – is_group_admin = 'Yes'
+     *   group_secretary     – is_group_secretary = 'Yes'
+     *   group_treasurer     – is_group_treasurer = 'Yes'
+     *   group_leader        – any of the three leadership roles above
+     *   group_member        – has a group_id assigned
+     *   system_admin        – user_type = 'admin'/'Admin'
+     *   authenticated       – always present for any logged-in user
+     */
+    public function my_roles(Request $r)
+    {
+        $u = auth('api')->user();
+        if ($u == null) {
+            $u = auth()->user();
+        }
+        if ($u == null) {
+            $administrator_id = Utils::get_user_id($r);
+            $u = \App\Models\User::find($administrator_id);
+        }
+        if ($u == null) {
+            return $this->error('User not found.');
+        }
+
+        $roles = [];
+
+        // Every authenticated user gets this base role
+        $roles[] = [
+            'slug'        => 'authenticated',
+            'name'        => 'Authenticated User',
+            'description' => 'Logged-in user',
+        ];
+
+        // System admin
+        if (strtolower((string) $u->user_type) === 'admin') {
+            $roles[] = [
+                'slug'        => 'system_admin',
+                'name'        => 'System Administrator',
+                'description' => 'Full system access',
+            ];
+        }
+
+        // VSLA group leadership roles
+        if ($u->is_group_admin === 'Yes') {
+            $roles[] = [
+                'slug'        => 'group_chairperson',
+                'name'        => 'Group Chairperson',
+                'description' => 'VSLA group chairperson / administrator',
+            ];
+        }
+        if ($u->is_group_secretary === 'Yes') {
+            $roles[] = [
+                'slug'        => 'group_secretary',
+                'name'        => 'Group Secretary',
+                'description' => 'VSLA group secretary',
+            ];
+        }
+        if ($u->is_group_treasurer === 'Yes') {
+            $roles[] = [
+                'slug'        => 'group_treasurer',
+                'name'        => 'Group Treasurer',
+                'description' => 'VSLA group treasurer',
+            ];
+        }
+        if (
+            $u->is_group_admin === 'Yes' ||
+            $u->is_group_secretary === 'Yes' ||
+            $u->is_group_treasurer === 'Yes'
+        ) {
+            $roles[] = [
+                'slug'        => 'group_leader',
+                'name'        => 'Group Leader',
+                'description' => 'Any VSLA leadership role',
+            ];
+        }
+
+        // Group membership
+        if (!empty($u->group_id)) {
+            $roles[] = [
+                'slug'        => 'group_member',
+                'name'        => 'Group Member',
+                'description' => 'Member of a VSLA/FFS group',
+            ];
+        }
+
+        // Field officer / facilitator – check FFS groups
+        $isFacilitator = \App\Models\FfsGroup::where('facilitator_id', $u->id)->exists();
+        if ($isFacilitator) {
+            $roles[] = [
+                'slug'        => 'field_officer',
+                'name'        => 'Field Officer',
+                'description' => 'FFS/VSLA facilitator / field officer',
+            ];
+        }
+
+        // Co-facilitator – check training sessions
+        $isCoFacilitator = \DB::table('ffs_training_sessions')
+            ->where('co_facilitator_id', $u->id)
+            ->exists();
+        if ($isCoFacilitator) {
+            $roles[] = [
+                'slug'        => 'co_facilitator',
+                'name'        => 'Co-Facilitator',
+                'description' => 'Secondary facilitator on training sessions',
+            ];
+        }
+
+        return $this->success('User roles retrieved.', [
+            'user_id' => $u->id,
+            'roles'   => $roles,
+            'slugs'   => array_column($roles, 'slug'),
+        ]);
+    }
+
     public function ffs_groups(Request $r)
     {
         try {

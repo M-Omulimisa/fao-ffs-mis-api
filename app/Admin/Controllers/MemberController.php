@@ -156,6 +156,26 @@ class MemberController extends AdminController
                    '<strong>' . $this->group->name . '</strong>';
         });
         
+        // Implementing Partner
+        $grid->column('ip_id', 'IP')->display(function () {
+            if ($this->ip_id) {
+                $ip = ImplementingPartner::find($this->ip_id);
+                if ($ip) {
+                    $name = $ip->short_name ?: $ip->name;
+                    return "<span class='label label-primary'>{$name}</span>";
+                }
+            }
+            // Fallback: try to get from group
+            if ($this->group && $this->group->ip_id) {
+                $ip = ImplementingPartner::find($this->group->ip_id);
+                if ($ip) {
+                    $name = $ip->short_name ?: $ip->name;
+                    return "<span class='label label-default'>{$name}</span>";
+                }
+            }
+            return '<span style="color:#999;">-</span>';
+        })->sortable();
+        
         $grid->column('location', 'Location')->display(function() {
             $parts = [];
             if ($this->village) $parts[] = $this->village;
@@ -198,31 +218,6 @@ class MemberController extends AdminController
         $grid->column('created_at', 'Registered')->display(function($date) {
             return \Carbon\Carbon::parse($date)->format('d M Y');
         })->sortable();
-        
-        // SMS Actions
-        $grid->column('actions', 'SMS Actions')->display(function () {
-            if (empty($this->phone_number)) {
-                return '<span class="text-muted"><i class="fa fa-phone-slash"></i></span>';
-            }
-            
-            $credentials_url = admin_url('ffs-members/' . $this->id . '/send-credentials');
-            $welcome_url = admin_url('ffs-members/' . $this->id . '/send-welcome');
-            
-            return '
-                <a href="' . $credentials_url . '" 
-                   class="btn btn-xs btn-success" 
-                   onclick="return confirm(\'Send login credentials to ' . addslashes($this->name) . '?\')"
-                   title="Send login credentials">
-                    <i class="fa fa-key"></i> Credentials
-                </a>
-                <a href="' . $welcome_url . '" 
-                   class="btn btn-xs btn-info"
-                   onclick="return confirm(\'Send welcome SMS to ' . addslashes($this->name) . '?\')" 
-                   title="Send welcome message">
-                    <i class="fa fa-envelope"></i> Welcome
-                </a>
-            ';
-        });
 
         return $grid;
     }
@@ -692,6 +687,14 @@ class MemberController extends AdminController
                     $group = FfsGroup::find($form->group_id);
                     if ($group && $group->ip_id) {
                         $form->ip_id = $group->ip_id;
+                    }
+                }
+
+                // Final fallback: inherit ip_id from the creating admin user
+                if (empty($form->ip_id)) {
+                    $adminIpId = \Encore\Admin\Facades\Admin::user()->ip_id ?? null;
+                    if ($adminIpId) {
+                        $form->ip_id = $adminIpId;
                     }
                 }
             } else {

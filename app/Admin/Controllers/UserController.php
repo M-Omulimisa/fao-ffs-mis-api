@@ -3,6 +3,8 @@
 namespace App\Admin\Controllers;
 
 use App\Models\User;
+use App\Models\FfsGroup;
+use App\Models\Location;
 use App\Models\ImplementingPartner;
 use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
@@ -15,546 +17,421 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends AdminController
 {
     use IpScopeable;
-    /**
-     * Title for current resource.
-     *
-     * @var string
-     */
-    protected $title = 'Users';
+
+    protected $title = 'System Users';
 
     /**
      * Make a grid builder.
-     *
-     * @return Grid
      */
     protected function grid()
     {
         $grid = new Grid(new User());
         $grid->model()->orderBy('id', 'desc');
-
-        // IP Scoping: IP admins see only their own users
         $this->applyIpScope($grid);
-
         $grid->disableBatchActions();
 
-        // ID Column
-        $grid->column('id', __('ID'))
-            ->sortable()
-            ->width(60)
-            ->style('font-weight: bold; color: #05179F;');
+        $grid->quickSearch('name', 'first_name', 'last_name', 'phone_number', 'email')
+            ->placeholder('Search name, phone, email...');
 
-        $grid->column('avatar', __('Photo'))
-            ->lightbox(['width' => 50, 'height' => 50])
-            ->width(60);
+        $grid->actions(function ($actions) {
+            $actions->disableDelete();
+        });
 
-        // Full Name Column
-        $grid->column('full_name', __('Full Name'))
-            ->display(function () {
-                return trim($this->first_name . ' ' . $this->last_name);
-            })
-            ->sortable()
-            ->width(180);
-
-        // Gender Column
-        $grid->column('sex', __('Gender'))
-            ->label([
-                'Male' => 'info',
-                'Female' => 'danger',
-            ])
-            ->width(80);
-
-        // Phone Number Column
-        $grid->column('phone_number', __('Phone'))
-            ->sortable()
-            ->width(120);
-
-        // Email Column
-        $grid->column('email', __('Email'))
-            ->sortable()
-            ->hide()
-            ->width(180);
-
-        // User Type Column
-        $grid->column('user_type', __('User Type'))
-            ->label([
-                'Admin' => 'danger',
-                'Customer' => 'success',
-                'Vendor' => 'warning',
-            ])
-            ->hide()
-            ->filter([
-                'Admin' => 'Admin',
-                'Customer' => 'Customer',
-                'Vendor' => 'Vendor',
-            ])
-            ->sortable()
-            ->width(100);
-
-        // Country Column
-        $grid->column('country', __('Country'))
-            ->hide()
-            ->width(120);
-
-        // Tribe Column
-        $grid->column('tribe', __('Tribe'))
-            ->width(120);
-
-        // Address Column
-        $grid->column('address', __('Address'))
-            ->limit(30)
-            ->width(150);
-
-        // Status Column
-        $grid->column('status', __('Status'))
-            ->label([
-                'Active' => 'success',
-                'Pending' => 'warning',
-                'Banned' => 'danger',
-                'Inactive' => 'default',
-            ], 'Active')
-
-            ->filter([
-                'Active' => 'Active',
-                'Pending' => 'Pending',
-                'Banned' => 'Banned',
-                'Inactive' => 'Inactive',
-            ])
-            ->width(90);
-
-        // Date of Birth Column
-        $grid->column('dob', __('DOB'))
-            ->display(function ($dob) {
-                if (empty($dob) || $dob == '0000-00-00') {
-                    return '-';
-                }
-                return date('d M Y', strtotime($dob));
-            })
-            ->hide()
-            ->width(100);
-
-        // Created At Column
-        $grid->column('created_at', __('Registered'))
-            ->display(function ($created_at) {
-                return date('d M Y', strtotime($created_at));
-            })
-            ->sortable()
-            ->width(100);
-
-        // Quick Search
-        $grid->quickSearch('first_name', 'last_name', 'email', 'phone_number')
-            ->placeholder('Search by name, email, or phone');
-
-        // Filters
+        // ── Filters ──
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
+            $this->addIpFilter($filter);
 
-            $filter->like('first_name', 'First Name');
-            $filter->like('last_name', 'Last Name');
-            $filter->like('phone_number', 'Phone Number');
-            $filter->like('email', 'Email');
+            $filter->like('name', 'Name');
+            $filter->like('phone_number', 'Phone');
+            $filter->equal('sex', 'Gender')->select(['Male' => 'Male', 'Female' => 'Female']);
 
-            $filter->equal('sex', 'Gender')->radio([
-                '' => 'All',
-                'Male' => 'Male',
-                'Female' => 'Female',
-            ]);
+            $filter->equal('group_id', 'FFS Group')->select(function () {
+                return FfsGroup::where('status', 'Active')->orderBy('name')->pluck('name', 'id');
+            });
 
             $filter->equal('status', 'Status')->select([
-                'Active' => 'Active',
-                'Pending' => 'Pending',
-                'Inactive' => 'Inactive',
-                'Banned' => 'Banned',
+                '1' => 'Active',
+                '0' => 'Inactive',
             ]);
 
-            $filter->like('country', 'Country');
-            $filter->like('tribe', 'Tribe');
-            $filter->between('created_at', 'Registered Date')->date();
+            $filter->equal('user_type', 'User Type')->select([
+                'Admin' => 'Admin',
+                'Customer' => 'Member',
+            ]);
+
+            $filter->between('created_at', 'Registered')->date();
         });
 
+        // ── Columns ──
+        $grid->column('id', 'ID')->sortable();
+        $grid->column('avatar', 'Photo')->image('', 50, 50);
 
-        // SMS action column
-        $grid->column('sms_actions', 'SMS Actions')->display(function () {
-            $userId = $this->id;
-            return '
-                <a href="' . url('/admin/users/' . $userId . '/send-credentials') . '" 
-                   target="_blank" 
-                   class="btn btn-xs btn-success" 
-                   title="Send login credentials via SMS">
-                    <i class="fa fa-paper-plane"></i> Credentials
-                </a>
-                <br>
-                <a href="' . url('/admin/users/' . $userId . '/send-welcome') . '" 
-                   target="_blank" 
-                   class="btn btn-xs btn-info" 
-                   title="Send welcome message via SMS"
-                   style="margin-left: 3px; margin-top 10px;">
-                    <i class="fa fa-envelope"></i> Welcome
-                </a>
-            ';
-        })->width(200);
+        $grid->column('name', 'Full Name')->display(function () {
+            $name = $this->name ?: trim($this->first_name . ' ' . $this->last_name);
+            $html = "<strong>{$name}</strong>";
 
-        // Disable view action since we don't use it
-        $grid->actions(function ($actions) {
-            $actions->disableView();
+            // Role badges
+            if ($this->is_group_admin == 'Yes') {
+                $html .= '<br><span class="label label-primary"><i class="fa fa-star"></i> Chairperson</span>';
+            } elseif ($this->is_group_secretary == 'Yes') {
+                $html .= '<br><span class="label label-info"><i class="fa fa-pencil"></i> Secretary</span>';
+            } elseif ($this->is_group_treasurer == 'Yes') {
+                $html .= '<br><span class="label label-warning"><i class="fa fa-money"></i> Treasurer</span>';
+            }
+
+            return $html;
+        })->sortable();
+
+        $grid->column('phone_number', 'Phone')->display(function () {
+            $html = '<i class="fa fa-phone text-success"></i> ' . ($this->phone_number ?: '-');
+            if ($this->phone_number_2) {
+                $html .= '<br><i class="fa fa-phone text-muted"></i> ' . $this->phone_number_2;
+            }
+            return $html;
         });
+
+        $grid->column('sex', 'Gender')->dot([
+            'Male' => 'primary',
+            'Female' => 'danger',
+        ], 'warning')->sortable();
+
+        $grid->column('group.name', 'FFS Group')->display(function () {
+            if (!$this->group) {
+                return '<span class="text-muted">Not Assigned</span>';
+            }
+            $type = $this->group->type;
+            $colors = ['FFS' => 'success', 'FBS' => 'primary', 'VSLA' => 'warning', 'Association' => 'info'];
+            return '<span class="label label-' . ($colors[$type] ?? 'default') . '">' . $type . '</span><br>'
+                 . '<strong>' . $this->group->name . '</strong>';
+        });
+
+        $grid->column('ip_id', 'IP')->display(function () {
+            if ($this->ip_id) {
+                $ip = ImplementingPartner::find($this->ip_id);
+                if ($ip) {
+                    $name = $ip->short_name ?: $ip->name;
+                    return "<span class='label label-primary'>{$name}</span>";
+                }
+            }
+            if ($this->group && $this->group->ip_id) {
+                $ip = ImplementingPartner::find($this->group->ip_id);
+                if ($ip) {
+                    return "<span class='label label-default'>" . ($ip->short_name ?: $ip->name) . "</span>";
+                }
+            }
+            return '<span style="color:#999;">-</span>';
+        })->sortable();
+
+        $grid->column('user_type', 'Type')->display(function ($type) {
+            $colors = ['Admin' => 'danger', 'Customer' => 'success'];
+            $label = $type === 'Customer' ? 'Member' : $type;
+            return '<span class="label label-' . ($colors[$type] ?? 'default') . '">' . $label . '</span>';
+        })->sortable();
+
+        $grid->column('status', 'Status')->display(function () {
+            return $this->status == 1
+                ? '<span class="label label-success">Active</span>'
+                : '<span class="label label-default">Inactive</span>';
+        })->sortable();
+
+        $grid->column('onboarding_step', 'Onboarding')->display(function ($step) {
+            $labels = [
+                'not_started'         => ['Not Started', 'default'],
+                'step_1_welcome'      => ['Welcome', 'default'],
+                'step_2_terms'        => ['Terms', 'info'],
+                'step_3_registration' => ['Registered', 'info'],
+                'step_4_group'        => ['Group', 'primary'],
+                'step_5_members'      => ['Members', 'primary'],
+                'step_6_cycle'        => ['Cycle', 'warning'],
+                'step_7_complete'     => ['Complete', 'success'],
+            ];
+            $info = $labels[$step] ?? ['Unknown', 'default'];
+            return '<span class="label label-' . $info[1] . '">' . $info[0] . '</span>';
+        })->sortable()->hide();
+
+        $grid->column('created_at', 'Registered')->display(function ($date) {
+            return \Carbon\Carbon::parse($date)->format('d M Y');
+        })->sortable();
 
         return $grid;
     }
 
     /**
      * Make a show builder.
-     *
-     * @param mixed $id
-     * @return Show
      */
     protected function detail($id)
     {
-        // Prevent detail view from being accessed during creation
-        if ($id === 'create' || !is_numeric($id)) {
-            abort(404);
-        }
-
         $show = new Show(User::findOrFail($id));
+        $show->panel()->style('success')->title('User Profile');
 
-        $show->field('id', __('Id'));
-        $show->field('first_name', __('First Name'));
-        $show->field('last_name', __('Last Name'));
-        $show->field('username', __('Username'));
-        $show->field('email', __('Email'));
-        $show->field('phone_number', __('Phone Number'));
-        $show->field('sex', __('Gender'));
-        $show->field('dob', __('Date of Birth'));
-        $show->field('user_type', __('User Type'));
-        $show->field('status', __('Status'));
+        $show->field('avatar', 'Photo')->image('', 150, 150);
 
-        $show->divider();
+        $show->divider('Personal Information');
+        $show->field('name', 'Full Name');
+        $show->field('sex', 'Gender');
+        $show->field('dob', 'Date of Birth')->as(function ($date) {
+            if (!$date) return 'N/A';
+            return date('d M Y', strtotime($date)) . ' (' . \Carbon\Carbon::parse($date)->age . ' yrs)';
+        });
+        $show->field('marital_status', 'Marital Status');
+        $show->field('education_level', 'Education Level');
+        $show->field('occupation', 'Occupation');
 
-        $show->field('country', __('Country'));
-        $show->field('tribe', __('Tribe'));
-        $show->field('address', __('Address'));
-        $show->field('occupation', __('Occupation'));
+        $show->divider('Contact');
+        $show->field('phone_number', 'Primary Phone');
+        $show->field('phone_number_2', 'Secondary Phone');
+        $show->field('email', 'Email');
 
-        $show->divider();
+        $show->divider('Organization');
+        $show->field('implementingPartner.name', 'Implementing Partner');
+        $show->field('group.name', 'FFS Group');
+        $show->field('user_type', 'User Type');
+        $show->field('is_group_admin', 'Chairperson')->using(['Yes' => 'Yes', 'No' => 'No']);
+        $show->field('is_group_secretary', 'Secretary')->using(['Yes' => 'Yes', 'No' => 'No']);
+        $show->field('is_group_treasurer', 'Treasurer')->using(['Yes' => 'Yes', 'No' => 'No']);
 
-        $show->field('father_name', __("Father's Name"));
-        $show->field('mother_name', __("Mother's Name"));
+        $show->divider('Location');
+        $show->field('district_id', 'District')->as(function () {
+            $loc = Location::find($this->district_id);
+            return $loc ? $loc->name : 'N/A';
+        });
+        $show->field('subcounty_id', 'Subcounty')->as(function () {
+            $loc = Location::find($this->subcounty_id);
+            return $loc ? $loc->name : 'N/A';
+        });
+        $show->field('village', 'Village');
+        $show->field('address', 'Address');
 
-        $show->divider();
+        $show->divider('Household');
+        $show->field('national_id_number', 'National ID (NIN)');
+        $show->field('household_size', 'Household Size');
+        $show->field('father_name', "Father's Name");
+        $show->field('mother_name', "Mother's Name");
+        $show->field('emergency_contact_name', 'Emergency Contact');
+        $show->field('emergency_contact_phone', 'Emergency Contact Phone');
 
-        $show->field('avatar', __('Photo'));
-        $show->field('reg_date', __('Registration Date'));
-        $show->field('last_seen', __('Last Seen'));
-        $show->field('created_at', __('Created At'));
-        $show->field('updated_at', __('Updated At'));
+        $show->divider('Account');
+        $show->field('username', 'Username');
+        $show->field('status', 'Status')->using(['1' => 'Active', '0' => 'Inactive']);
+        $show->field('onboarding_step', 'Onboarding Step');
+        $show->field('created_at', 'Created');
+        $show->field('registered_by_id', 'Registered By')->as(function ($id) {
+            if (!$id) return 'N/A';
+            $u = User::find($id);
+            return $u ? $u->name : 'Unknown';
+        });
 
         return $show;
     }
 
     /**
      * Make a form builder.
-     *
-     * @return Form
      */
     protected function form()
     {
         $form = new Form(new User());
+        $this->addIpFieldToForm($form);
 
-        if ($form->isCreating()) {
-            // SIMPLIFIED FORM FOR USER CREATION - Only Essential Info
-            $form->hidden('user_type')->value('Customer');
-            
-            $form->divider('Basic Information');
-            
-            $form->row(function ($row) {
-                $row->width(6)->text('first_name', __('First Name'))
-                    ->rules('required')
-                    ->help('Required field');
-                $row->width(6)->text('last_name', __('Last Name'))
-                    ->rules('required')
-                    ->help('Required field');
-            });
+        $form->hidden('user_type')->default('Customer');
 
-            $form->row(function ($row) {
-                $row->width(6)->text('phone_number', __('Phone Number'))
-                    ->rules('required|unique:users,phone_number')
-                    ->help('Required field. Will be used as username.');
-                    
-                $row->width(6)->radio('sex', __('Gender'))
-                    ->options([
-                        'Male' => 'Male',
-                        'Female' => 'Female',
-                    ])
-                    ->rules('required')
-                    ->default('Male');
-            });
-
-            $form->divider('Organization');
-            
-            $form->row(function ($row) {
-                $ipOptions = ImplementingPartner::where('status', 'Active')
-                    ->orderBy('name')
-                    ->pluck('name', 'id')
-                    ->toArray();
-                $row->width(6)->select('ip_id', __('Implementing Partner'))
-                    ->options($ipOptions)
-                    ->help('Select the Implementing Partner this user belongs to');
-
-                // Role assignment - IP admins can only assign IP-level and below roles
-                $roleModel = config('admin.database.roles_model');
-                $rolesQuery = $roleModel::query();
-                if (!$this->isSuperAdmin()) {
-                    $rolesQuery->where('slug', '!=', 'super_admin');
-                }
-                $row->width(6)->multipleSelect('roles', trans('admin.roles'))
-                    ->options($rolesQuery->pluck('name', 'id'))
-                    ->help('Assign roles to this user (optional)');
-            });
-
-            $form->divider('Security');
-
-            $form->row(function ($row) {
-                $row->width(6)->password('password', __('Password'))
-                    ->help('Optional. If blank, phone number will be used as default password.');
-                $row->width(6)->password('password_confirmation', __('Confirm Password'))
-                    ->help('Re-enter password for confirmation');
-            });
-
-            $form->html('<div class="alert alert-info">
-                <strong>Note:</strong> 
-                <ul>
-                    <li>Username will be automatically set to the phone number</li>
-                    <li>User will be registered under your admin account</li>
-                    <li>If no password is set, it defaults to the phone number (user can change later)</li>
-                </ul>
-            </div>');
-            
-            return $form;
-        }
-
-        // FULL FORM FOR EDITING EXISTING USERS
+        // ── Personal Information ──
         $form->row(function ($row) {
-            $row->width(3)->text('first_name', __('First Name'))
-                ->help('First name');
-            $row->width(3)->text('last_name', __('Last Name'))
-                ->help('Last name');
-            $row->width(3)->radio('sex', __('Gender'))
-                ->options([
-                    'Male' => 'Male',
-                    'Female' => 'Female',
-                ])
-                ->default('Male');
-
-            $row->width(3)->text('phone_number', __('Phone Number'))
-                ->help('Phone number');
+            $row->width(4)->text('first_name', 'First Name')->required();
+            $row->width(4)->text('last_name', 'Last Name')->required();
+            $row->width(4)->radio('sex', 'Gender')
+                ->options(['Male' => 'Male', 'Female' => 'Female'])
+                ->default('Male')->required();
         });
 
-        $form->divider('Organization');
+        $form->row(function ($row) {
+            $row->width(4)->date('dob', 'Date of Birth')->help('Optional');
+            $row->width(4)->select('marital_status', 'Marital Status')->options([
+                'Single' => 'Single', 'Married' => 'Married', 'Divorced' => 'Divorced',
+                'Widowed' => 'Widowed', 'Separated' => 'Separated',
+            ])->default('Single');
+            $row->width(4)->select('education_level', 'Education Level')->options([
+                'None' => 'No Formal Education', 'Primary' => 'Primary', 'O-Level' => 'O-Level',
+                'A-Level' => 'A-Level', 'Certificate' => 'Certificate', 'Diploma' => 'Diploma',
+                'Degree' => 'Degree', 'Masters' => 'Masters', 'PhD' => 'PhD',
+            ]);
+        });
 
         $form->row(function ($row) {
-            $ipOptions = ImplementingPartner::where('status', 'Active')
-                ->orderBy('name')
-                ->pluck('name', 'id')
-                ->toArray();
-            $row->width(6)->select('ip_id', __('Implementing Partner'))
-                ->options($ipOptions)
-                ->help('Select the Implementing Partner this user belongs to');
+            $row->width(6)->text('occupation', 'Occupation')->default('Farmer');
+            $row->width(6)->image('avatar', 'Photo')->removable();
+        });
 
-            $row->width(3)->image('avatar', __('Profile Photo'))
-                ->help('Upload profile photo (optional)')
-                ->uniqueName()
-                ->move('images/users');
+        // ── Contact ──
+        $form->row(function ($row) {
+            $row->width(4)->text('phone_number', 'Primary Phone')
+                ->placeholder('e.g. 0771234567')
+                ->creationRules(['required', 'unique:users,phone_number'])
+                ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
+                ->help('Used as login username & default password');
+            $row->width(4)->text('phone_number_2', 'Alternative Phone');
+            $row->width(4)->email('email', 'Email');
+        });
 
-            // Role assignment - IP admins can only assign IP-level and below roles (not Super Admin)
+        // ── Group & Role ──
+        $form->row(function ($row) {
+            $ipId = $this->getAdminIpId();
+            $row->width(6)->select('group_id', 'FFS Group')->options(function () use ($ipId) {
+                $query = FfsGroup::where('status', 'Active')->orderBy('type')->orderBy('name');
+                if ($ipId !== null) {
+                    $query->where('ip_id', $ipId);
+                }
+                return $query->get()->mapWithKeys(function ($g) {
+                    return [$g->id => "[{$g->type}] {$g->name}"];
+                });
+            })->help('Only active groups shown');
+            $row->width(6)->radio('status', 'Account Status')
+                ->options(['1' => 'Active', '0' => 'Inactive'])->default('1');
+        });
+
+        $form->row(function ($row) {
+            $row->width(4)->radio('is_group_admin', 'Chairperson?')
+                ->options(['Yes' => 'Yes', 'No' => 'No'])->default('No');
+            $row->width(4)->radio('is_group_secretary', 'Secretary?')
+                ->options(['Yes' => 'Yes', 'No' => 'No'])->default('No');
+            $row->width(4)->radio('is_group_treasurer', 'Treasurer?')
+                ->options(['Yes' => 'Yes', 'No' => 'No'])->default('No');
+        });
+
+        // ── Location ──
+        $form->row(function ($row) {
+            $row->width(3)->select('district_id', 'District')->options(function () {
+                return Location::where('parent', 0)->orderBy('name')->pluck('name', 'id');
+            });
+            $row->width(3)->select('subcounty_id', 'Subcounty')->options(function () {
+                return Location::where('parent', '>', 0)
+                    ->whereHas('parent_location', fn($q) => $q->where('parent', 0))
+                    ->orderBy('name')->pluck('name', 'id');
+            });
+            $row->width(3)->select('parish_id', 'Parish')->options(function () {
+                return Location::whereHas('parent_location', fn($q) => $q->where('parent', '>', 0))
+                    ->orderBy('name')->pluck('name', 'id');
+            });
+            $row->width(3)->text('village', 'Village');
+        });
+
+        $form->text('address', 'Home Address');
+
+        // ── Household & Identity ──
+        $form->divider('Household & Identity');
+        $form->row(function ($row) {
+            $row->width(4)->text('national_id_number', 'National ID (NIN)');
+            $row->width(4)->number('household_size', 'Household Size')->default(1)->min(1);
+            $row->width(4)->select('onboarding_step', 'Onboarding Step')->options([
+                'not_started'         => '0 - Not Started',
+                'step_1_welcome'      => '1 - Welcome Seen',
+                'step_2_terms'        => '2 - Terms Accepted',
+                'step_3_registration' => '3 - Registered',
+                'step_4_group'        => '4 - Group Created',
+                'step_5_members'      => '5 - Members Registered',
+                'step_6_cycle'        => '6 - Cycle Configured',
+                'step_7_complete'     => '7 - Onboarding Complete',
+            ])->default('not_started');
+        });
+
+        $form->row(function ($row) {
+            $row->width(6)->text('father_name', "Father's Name");
+            $row->width(6)->text('mother_name', "Mother's Name");
+        });
+
+        $form->row(function ($row) {
+            $row->width(6)->text('emergency_contact_name', 'Emergency Contact Name');
+            $row->width(6)->mobile('emergency_contact_phone', 'Emergency Contact Phone');
+        });
+
+        $form->row(function ($row) {
+            $row->width(6)->textarea('skills', 'Skills')->rows(2);
+            $row->width(6)->textarea('disabilities', 'Special Needs')->rows(2);
+        });
+
+        $form->textarea('remarks', 'Remarks')->rows(2);
+
+        // ── Account & Security ──
+        $form->divider('Account & Security');
+
+        $form->row(function ($row) use ($form) {
             $roleModel = config('admin.database.roles_model');
             $rolesQuery = $roleModel::query();
             if (!$this->isSuperAdmin()) {
-                // IP admins cannot assign Super Admin role (slug: super_admin)
                 $rolesQuery->where('slug', '!=', 'super_admin');
             }
-            $row->width(3)->multipleSelect('roles', trans('admin.roles'))
-                ->options($rolesQuery->pluck('name', 'id'));
-        });
+            $row->width(6)->multipleSelect('roles', 'Roles')
+                ->options($rolesQuery->pluck('name', 'id'))
+                ->help('Assign system roles (optional)');
 
-        $form->row(function ($row) {
-            $row->width(4)->radio('user_type', __('User Type'))
-                ->options([
-                    'Customer' => 'Customer',
-                    'Admin' => 'Admin',
-                ])
-                ->default('Customer')
-                ->help('Customer = Regular User, Admin = System Administrator');
-
-            $row->width(4)->date('dob', __('Date of Birth'))
-                ->format('YYYY-MM-DD')
-                ->help('Optional field');
-
-            $row->width(4)->text('email', __('Email'))
-                ->help('Optional');
-        });
-
-        // SECTION: Location Information
-        $form->divider('Location Information');
-
-        $countries = [
-            'Uganda' => 'Uganda',
-            'Kenya' => 'Kenya',
-            'Tanzania' => 'Tanzania',
-            'Rwanda' => 'Rwanda',
-            'Burundi' => 'Burundi',
-            'South Sudan' => 'South Sudan',
-            'DRC' => 'DRC',
-        ];
-
-        $tribes = [
-            'Acholi' => 'Acholi',
-            'Alur' => 'Alur',
-            'Baganda' => 'Baganda',
-            'Bagisu' => 'Bagisu',
-            'Bagwere' => 'Bagwere',
-            'Banyankole' => 'Banyankole',
-            'Banyoro' => 'Banyoro',
-            'Bakonzo' => 'Bakonzo',
-            'Basoga' => 'Basoga',
-            'Batoro' => 'Batoro',
-            'Iteso' => 'Iteso',
-            'Japadhola' => 'Japadhola',
-            'Kakwa' => 'Kakwa',
-            'Karamojong' => 'Karamojong',
-            'Langi' => 'Langi',
-            'Lugbara' => 'Lugbara',
-            'Madi' => 'Madi',
-            'Other' => 'Other',
-        ];
-
-        $form->row(function ($row) use ($countries, $tribes) {
-            $row->width(6)->select('country', __('Country of Residence'))
-                ->options($countries)
-                ->default('Uganda')
-                ->help('Optional - defaults to Uganda');
-
-            $row->width(6)->radio('tribe', __('Tribe'))
-                ->options($tribes)
-                ->help('Optional - select your tribe');
-        });
-
-        $form->row(function ($row) {
-            $row->width(6)->text('address', __('Home Address'))
-                ->rules('required')
-                ->help('Required field. Your permanent home address');
-
-            $row->width(6)->text('occupation', __('Occupation'))
-                ->help('Optional');
-        });
-
-        // SECTION: Family Information
-        $form->divider('Family Information');
-
-        $form->row(function ($row) {
-            $row->width(6)->text('father_name', __("Father's Name"))
-                ->rules('required')
-                ->help('Required field');
-
-            $row->width(6)->text('mother_name', __("Mother's Name"))
-                ->rules('required')
-                ->help('Required field');
-        });
-
-        // SECTION 5: Biological Children (Optional)
-        $form->divider('Biological Children (if any)');
-
-        $form->row(function ($row) {
-            $row->width(6)->text('child_1', __('1st Child'))
-                ->help('Full name of 1st child (optional)');
-
-            $row->width(6)->text('child_2', __('2nd Child'))
-                ->help('Full name of 2nd child (optional)');
-        });
-
-        $form->row(function ($row) {
-            $row->width(6)->text('child_3', __('3rd Child'))
-                ->help('Full name of 3rd child (optional)');
-
-            $row->width(6)->text('child_4', __('4th Child'))
-                ->help('Full name of 4th child (optional)');
-        });
-
-
-        // SECTION 8: Account Status & Password
-        $form->divider('Account Status & Security');
-
-        $form->row(function ($row) {
-            $row->width(4)->radio('status', __('Account Status'))
-                ->options([
-                    'Active' => 'Active',
-                    'Pending' => 'Pending',
-                    'Inactive' => 'Inactive',
-                    'Banned' => 'Banned',
-                ])
-                ->default('Active');
-
-            $row->width(4)->password('password', __('Password'))
-                ->help('Leave blank to keep current password. Minimum 6 characters.');
-
-            $row->width(4)->password('password_confirmation', __('Confirm Password'))
-                ->help('Re-enter password for confirmation');
-        });
-
-        // Auto-generate name field from first_name and last_name
-        $form->saving(function (Form $form) {
-            // Auto-generate full name from first_name and last_name
-            if ($form->first_name && $form->last_name) {
-                $form->name = trim($form->first_name . ' ' . $form->last_name);
-            }
-
-            // FOR NEW USERS: Auto-fill required fields
             if ($form->isCreating()) {
-                // Set username to phone_number
-                if ($form->phone_number) {
-                    $form->username = $form->phone_number;
+                $row->width(6)->password('password', 'Password')
+                    ->help('Optional. If blank, phone number is the default password.');
+            } else {
+                $row->width(6)->password('password', 'Change Password')
+                    ->help('Leave blank to keep current password');
+            }
+        });
+
+        if ($form->isCreating()) {
+            $form->text('username', 'Username (optional)');
+        }
+
+        // ── Saving logic ──
+        $form->saving(function (Form $form) {
+            $form->name = trim($form->first_name . ' ' . $form->last_name);
+
+            if ($form->isCreating()) {
+                if (empty($form->username) && !empty($form->phone_number)) {
+                    $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
+                } elseif (empty($form->username)) {
+                    $form->username = 'user_' . time();
                 }
 
-                // Set default password to phone_number if no password provided
-                if (!$form->password) {
-                    $form->password = Hash::make($form->phone_number);
+                if (empty($form->password)) {
+                    $plain = !empty($form->phone_number) ? preg_replace('/[^0-9]/', '', $form->phone_number) : '123456';
+                    $form->password = Hash::make($plain);
                 } else {
                     $form->password = Hash::make($form->password);
                 }
 
-                // Set registered_by_id to current admin
-                $form->registered_by_id = \Admin::user()->id;
+                $form->created_by_id = Admin::user()->id;
+                $form->registered_by_id = Admin::user()->id;
 
-                // Set default values for required fields
-                if (!$form->user_type) {
-                    $form->user_type = 'Customer';
+                // Smart onboarding
+                if ($form->onboarding_step === 'not_started' || empty($form->onboarding_step)) {
+                    if (!empty($form->group_id)) {
+                        $activeCycle = \App\Models\Project::where('group_id', $form->group_id)
+                            ->where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')->first();
+                        $form->onboarding_step = $activeCycle ? 'step_7_complete' : 'step_5_members';
+                        if ($activeCycle) $form->onboarding_completed_at = now();
+                    } elseif (!empty($form->first_name) && !empty($form->phone_number)) {
+                        $form->onboarding_step = 'step_3_registration';
+                    }
                 }
 
-                if (!$form->status) {
-                    $form->status = 'Active';
+                // Inherit ip_id from group if not set
+                if (empty($form->ip_id) && !empty($form->group_id)) {
+                    $group = FfsGroup::find($form->group_id);
+                    if ($group && $group->ip_id) $form->ip_id = $group->ip_id;
                 }
 
-                // Set default country
-                if (!$form->country) {
-                    $form->country = 'Uganda';
+                // Fallback: inherit ip_id from creating admin
+                if (empty($form->ip_id)) {
+                    $adminIp = Admin::user()->ip_id ?? null;
+                    if ($adminIp) $form->ip_id = $adminIp;
                 }
-            }
-
-            // Hash password if provided (for updates)
-            if ($form->password && !$form->isCreating()) {
-                if ($form->model()->password != $form->password) {
+            } else {
+                if (!empty($form->password)) {
                     $form->password = Hash::make($form->password);
+                } else {
+                    unset($form->password);
                 }
             }
         });
 
-        // Hide password confirmation from database
-        $form->ignore(['password_confirmation']);
-
-        // Form configuration
-        // $form->disableCreatingCheck();
-        // $form->disableEditingCheck();
         $form->disableViewCheck();
-
-        // Tools configuration
+        $form->disableEditingCheck();
         $form->tools(function (Form\Tools $tools) {
             $tools->disableView();
         });

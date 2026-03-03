@@ -27,16 +27,25 @@ trait IpScopeable
      */
     protected function getAdminIpId(): ?int
     {
+        // Super admins are never IP-scoped regardless of their ip_id value
+        if ($this->isSuperAdmin()) {
+            return null;
+        }
         $user = Admin::user();
         return $user ? $user->ip_id : null;
     }
 
     /**
      * Is this admin a Super Admin (no IP restriction)?
+     * Checks actual role slug rather than ip_id value.
      */
     protected function isSuperAdmin(): bool
     {
-        return $this->getAdminIpId() === null;
+        $user = Admin::user();
+        if (!$user) {
+            return false;
+        }
+        return $user->isRole('super_admin');
     }
 
     /**
@@ -65,24 +74,25 @@ trait IpScopeable
 
     /**
      * Automatically set ip_id on a form model when creating.
-     * Super admins get a dropdown to pick an IP; IP admins get auto-set.
+     * All admin users get a dropdown to pick an IP.
+     * Non-super-admins have their own IP pre-selected as default.
      */
     protected function addIpFieldToForm($form): void
     {
-        $ipId = $this->getAdminIpId();
+        $user = Admin::user();
+        $ipId = $user ? $user->ip_id : null;
 
-        if ($ipId !== null) {
-            // IP admin — auto-assign, show as readonly display
-            $form->hidden('ip_id')->default($ipId);
-            $form->display('ip_display', 'Implementing Partner')->with(function () use ($ipId) {
-                $ip = ImplementingPartner::find($ipId);
-                return $ip ? $ip->name : 'N/A';
-            });
+        $field = $form->select('ip_id', 'Implementing Partner')
+            ->options(ImplementingPartner::getDropdownOptions());
+
+        if ($this->isSuperAdmin()) {
+            $field->help('Assign this record to an Implementing Partner');
         } else {
-            // Super admin — pick an IP
-            $form->select('ip_id', 'Implementing Partner')
-                ->options(ImplementingPartner::getDropdownOptions())
-                ->help('Assign this record to an Implementing Partner');
+            // Pre-select the admin's own IP
+            if ($ipId) {
+                $field->default($ipId);
+            }
+            $field->help('Defaults to your Implementing Partner');
         }
     }
 
