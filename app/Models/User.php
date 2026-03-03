@@ -37,6 +37,28 @@ class User extends Administrator implements JWTSubject
             self::handleNameSplitting($user);
             self::validateUniqueFields($user);
             self::generateMemberCode($user);
+
+            // Auto-assign ip_id from group or current admin user
+            if (empty($user->ip_id)) {
+                // First try: inherit ip_id from the group
+                if ($user->group_id) {
+                    $group = \App\Models\FfsGroup::find($user->group_id);
+                    if ($group && $group->ip_id) {
+                        $user->ip_id = $group->ip_id;
+                    }
+                }
+                // Second try: inherit from admin user creating this record
+                if (empty($user->ip_id)) {
+                    try {
+                        $adminUser = \Encore\Admin\Facades\Admin::user();
+                        if ($adminUser && $adminUser->ip_id) {
+                            $user->ip_id = $adminUser->ip_id;
+                        }
+                    } catch (\Throwable $e) {
+                        // Admin facade not available in API context
+                    }
+                }
+            }
         });
 
         // Handle member updates

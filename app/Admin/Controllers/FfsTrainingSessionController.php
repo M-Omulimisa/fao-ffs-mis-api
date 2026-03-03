@@ -30,11 +30,17 @@ class FfsTrainingSessionController extends AdminController
         $grid->quickSearch('title', 'topic')->placeholder('Search by title or topic');
 
         // Filters
-        $grid->filter(function ($filter) {
-            $filter->disableIdFilter();
-            $this->addIpFilter($filter);
+        $ipId = $this->getAdminIpId();
+        $isSuperAdmin = $this->isSuperAdmin();
 
-            $ipId = $this->getAdminIpId();
+        $grid->filter(function ($filter) use ($ipId, $isSuperAdmin) {
+            $filter->disableIdFilter();
+            if ($isSuperAdmin) {
+                $filter->equal('ip_id', 'Implementing Partner')
+                    ->select(\App\Models\ImplementingPartner::getDropdownOptions());
+            }
+
+            // $ipId captured via use()
             $groupQuery = FfsGroup::orderBy('name');
             if ($ipId) $groupQuery->where('ip_id', $ipId);
             $filter->equal('group_id', 'Group')->select($groupQuery->pluck('name', 'id'));

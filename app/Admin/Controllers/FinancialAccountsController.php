@@ -70,9 +70,14 @@ class FinancialAccountsController extends AdminController
         $grid->quickSearch('name', 'phone_number', 'member_code')->placeholder('Search by name, phone, or member code');
         
         // Filters
-        $grid->filter(function ($filter) {
+        $isSuperAdmin = $this->isSuperAdmin();
+
+        $grid->filter(function ($filter) use ($isSuperAdmin) {
             $filter->disableIdFilter();
-            $this->addIpFilter($filter);
+            if ($isSuperAdmin) {
+                $filter->equal('ip_id', 'Implementing Partner')
+                    ->select(\App\Models\ImplementingPartner::getDropdownOptions());
+            }
             
             $filter->like('name', 'Member Name');
             $filter->like('phone_number', 'Phone Number');

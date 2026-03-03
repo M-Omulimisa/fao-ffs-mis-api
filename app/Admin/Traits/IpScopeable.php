@@ -82,18 +82,27 @@ trait IpScopeable
         $user = Admin::user();
         $ipId = $user ? $user->ip_id : null;
 
-        $field = $form->select('ip_id', 'Implementing Partner')
-            ->options(ImplementingPartner::getDropdownOptions());
-
         if ($this->isSuperAdmin()) {
-            $field->help('Assign this record to an Implementing Partner');
+            $field = $form->select('ip_id', 'Implementing Partner')
+                ->options(ImplementingPartner::getDropdownOptions())
+                ->help('Assign this record to an Implementing Partner');
         } else {
-            // Pre-select the admin's own IP
+            // Non-super-admins: force their own IP (hidden + display)
+            $form->hidden('ip_id')->default($ipId);
             if ($ipId) {
-                $field->default($ipId);
+                $ip = ImplementingPartner::find($ipId);
+                $ipName = $ip ? $ip->name . ' (' . $ip->short_name . ')' : 'IP #' . $ipId;
+                $form->display('ip_display', 'Implementing Partner')->default($ipName)
+                    ->help('Auto-assigned to your Implementing Partner');
             }
-            $field->help('Defaults to your Implementing Partner');
         }
+
+        // Belt-and-suspenders: also force ip_id on save for non-super-admins
+        $form->saving(function ($form) use ($ipId) {
+            if ($ipId !== null && !$this->isSuperAdmin()) {
+                $form->input('ip_id', $ipId);
+            }
+        });
     }
 
     /**

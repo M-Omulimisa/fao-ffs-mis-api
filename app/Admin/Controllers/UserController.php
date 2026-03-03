@@ -38,20 +38,25 @@ class UserController extends AdminController
         });
 
         // ── Filters ──
-        $grid->filter(function ($filter) {
+        $ipId = $this->getAdminIpId();
+        $isSuperAdmin = $this->isSuperAdmin();
+
+        $grid->filter(function ($filter) use ($ipId, $isSuperAdmin) {
             $filter->disableIdFilter();
-            $this->addIpFilter($filter);
+            if ($isSuperAdmin) {
+                $filter->equal('ip_id', 'Implementing Partner')
+                    ->select(\App\Models\ImplementingPartner::getDropdownOptions());
+            }
 
             $filter->like('name', 'Name');
             $filter->like('phone_number', 'Phone');
             $filter->equal('sex', 'Gender')->select(['Male' => 'Male', 'Female' => 'Female']);
 
-            $filter->equal('group_id', 'FFS Group')->select(function () {
-                $ipId = $this->getAdminIpId();
-                return FfsGroup::where('status', 'Active')
+            $filter->equal('group_id', 'FFS Group')->select(
+                FfsGroup::where('status', 'Active')
                     ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
-                    ->orderBy('name')->pluck('name', 'id');
-            });
+                    ->orderBy('name')->pluck('name', 'id')
+            );
 
             $filter->equal('status', 'Status')->select([
                 '1' => 'Active',

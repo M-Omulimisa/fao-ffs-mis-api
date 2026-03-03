@@ -52,18 +52,23 @@ class MemberController extends AdminController
         });
         
         // Filters
-        $grid->filter(function($filter){
+        $ipId = $this->getAdminIpId();
+        $isSuperAdmin = $this->isSuperAdmin();
+
+        $grid->filter(function($filter) use ($ipId, $isSuperAdmin) {
             $filter->disableIdFilter();
-            $this->addIpFilter($filter);
+            if ($isSuperAdmin) {
+                $filter->equal('ip_id', 'Implementing Partner')
+                    ->select(\App\Models\ImplementingPartner::getDropdownOptions());
+            }
             
             // Group filters
-            $filter->equal('group_id', 'FFS Group')->select(function() {
-                $ipId = $this->getAdminIpId();
-                return FfsGroup::where('status', 'Active')
+            $filter->equal('group_id', 'FFS Group')->select(
+                FfsGroup::where('status', 'Active')
                     ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
                     ->orderBy('name')
-                    ->pluck('name', 'id');
-            });
+                    ->pluck('name', 'id')
+            );
             
             $filter->equal('is_group_admin', 'Position')->select([
                 'Yes' => 'Chairperson',

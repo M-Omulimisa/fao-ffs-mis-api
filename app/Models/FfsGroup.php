@@ -337,6 +337,18 @@ class FfsGroup extends Model
             if (empty($group->created_by_id) && auth()->check()) {
                 $group->created_by_id = auth()->id();
             }
+
+            // Auto-assign ip_id from current admin user if not set
+            if (empty($group->ip_id)) {
+                try {
+                    $adminUser = \Encore\Admin\Facades\Admin::user();
+                    if ($adminUser && $adminUser->ip_id) {
+                        $group->ip_id = $adminUser->ip_id;
+                    }
+                } catch (\Throwable $e) {
+                    // Admin facade may not be available (e.g. API context)
+                }
+            }
         });
 
         // Commenting out updating hook until members() relationship is available

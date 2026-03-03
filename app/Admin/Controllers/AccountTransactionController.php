@@ -74,11 +74,17 @@ class AccountTransactionController extends AdminController
         
         $grid->quickSearch('description')->placeholder('Search by description');
         
-        $grid->filter(function ($filter) {
-            $filter->disableIdFilter();
-            $this->addIpFilter($filter);
+        $ipId = $this->getAdminIpId();
+        $isSuperAdmin = $this->isSuperAdmin();
 
-            $ipId = $this->getAdminIpId();
+        $grid->filter(function ($filter) use ($ipId, $isSuperAdmin) {
+            $filter->disableIdFilter();
+            if ($isSuperAdmin) {
+                $filter->equal('ip_id', 'Implementing Partner')
+                    ->select(\App\Models\ImplementingPartner::getDropdownOptions());
+            }
+
+            // $ipId captured via use()
             $ipGroupIds = $ipId ? \App\Models\FfsGroup::where('ip_id', $ipId)->pluck('id') : null;
             
             // Filter by owner type (Member vs Group)

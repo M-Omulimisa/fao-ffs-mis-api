@@ -40,9 +40,14 @@ class AdvisoryPostController extends AdminController
         $this->applyIpScope($grid);
 
         // Filters
-        $grid->filter(function ($filter) {
+        $isSuperAdmin = $this->isSuperAdmin();
+
+        $grid->filter(function ($filter) use ($isSuperAdmin) {
             $filter->disableIdFilter();
-            $this->addIpFilter($filter);
+            if ($isSuperAdmin) {
+                $filter->equal('ip_id', 'Implementing Partner')
+                    ->select(\App\Models\ImplementingPartner::getDropdownOptions());
+            }
 
             $filter->equal('category_id', 'Category')->select(function () {
                 return AdvisoryCategory::where('status', 'Active')

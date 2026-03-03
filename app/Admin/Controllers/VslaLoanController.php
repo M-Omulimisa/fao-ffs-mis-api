@@ -47,11 +47,17 @@ class VslaLoanController extends AdminController
 
         $grid->quickSearch('id')->placeholder('Search by ID');
 
-        $grid->filter(function ($filter) {
-            $filter->disableIdFilter();
-            $this->addIpFilter($filter);
+        $ipId = $this->getAdminIpId();
+        $isSuperAdmin = $this->isSuperAdmin();
 
-            $ipId = $this->getAdminIpId();
+        $grid->filter(function ($filter) use ($ipId, $isSuperAdmin) {
+            $filter->disableIdFilter();
+            if ($isSuperAdmin) {
+                $filter->equal('ip_id', 'Implementing Partner')
+                    ->select(\App\Models\ImplementingPartner::getDropdownOptions());
+            }
+
+            // $ipId captured via use()
             $ipGroupIds = $ipId ? FfsGroup::where('ip_id', $ipId)->pluck('id') : null;
 
             $filter->equal('cycle_id', 'Cycle')

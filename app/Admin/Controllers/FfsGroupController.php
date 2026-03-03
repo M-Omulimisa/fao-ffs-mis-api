@@ -91,13 +91,19 @@ class FfsGroupController extends AdminController
             $actions->disableDelete();
         });
         
-        // Filters
-        $grid->filter(function($filter){
+        // Filters — variables extracted before closure to avoid $this binding issues
+        $ipId = $this->getAdminIpId();
+        $isSuperAdmin = $this->isSuperAdmin();
+
+        $grid->filter(function($filter) use ($ipId, $isSuperAdmin) {
             $filter->disableIdFilter();
             
             $filter->equal('type', 'Group Type')->select(FfsGroup::getTypes());
             $filter->equal('status', 'Status')->select(FfsGroup::getStatuses());
-            $this->addIpFilter($filter);
+            if ($isSuperAdmin) {
+                $filter->equal('ip_id', 'Implementing Partner')
+                    ->select(ImplementingPartner::getDropdownOptions());
+            }
             $filter->equal('ip_name', 'IP (Legacy)')->select(
                 FfsGroup::whereNotNull('ip_name')->distinct()->pluck('ip_name', 'ip_name')
             );

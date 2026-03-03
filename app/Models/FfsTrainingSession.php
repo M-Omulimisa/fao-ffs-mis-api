@@ -9,6 +9,29 @@ class FfsTrainingSession extends Model
 {
     use SoftDeletes;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-assign ip_id from group or admin user when creating
+        static::creating(function ($session) {
+            if (empty($session->ip_id) && $session->group_id) {
+                $group = FfsGroup::find($session->group_id);
+                if ($group && $group->ip_id) {
+                    $session->ip_id = $group->ip_id;
+                }
+            }
+            if (empty($session->ip_id)) {
+                try {
+                    $adminUser = \Encore\Admin\Facades\Admin::user();
+                    if ($adminUser && $adminUser->ip_id) {
+                        $session->ip_id = $adminUser->ip_id;
+                    }
+                } catch (\Throwable $e) {}
+            }
+        });
+    }
+
     protected $fillable = [
         'ip_id',
         'group_id', // deprecated - keeping for backward compat

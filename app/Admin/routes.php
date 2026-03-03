@@ -16,41 +16,6 @@ Route::group([
     // ========================================
     $router->get('/', 'HomeController@index')->name('home');
 
-    // TEMPORARY DEBUG: Check what admin user sees
-    $router->get('/debug-ip', function () {
-        $user = \Encore\Admin\Facades\Admin::user();
-        if (!$user) return response()->json(['error' => 'Not authenticated']);
-        
-        $ipId = null;
-        $isSuperAdmin = $user->isRole('super_admin');
-        if (!$isSuperAdmin) {
-            $ipId = $user->ip_id;
-        }
-        
-        $groups = \App\Models\FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
-        $members = \App\Models\User::whereNotNull('group_id')->where('group_id', '!=', '')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
-        $cycles = \App\Models\Project::where('is_vsla_cycle', 'Yes')
-            ->when($ipId, function($q) use ($ipId) {
-                $gids = \App\Models\FfsGroup::where('ip_id', $ipId)->pluck('id');
-                $q->whereIn('group_id', $gids);
-            })->count();
-        
-        return response()->json([
-            'user_id' => $user->id,
-            'name' => $user->name,
-            'ip_id' => $user->ip_id,
-            'ip_id_type' => gettype($user->ip_id),
-            'is_super_admin' => $isSuperAdmin,
-            'resolved_ip_id' => $ipId,
-            'roles' => $user->roles->pluck('slug')->toArray(),
-            'query_results' => [
-                'groups' => $groups,
-                'members' => $members,
-                'cycles' => $cycles,
-            ],
-        ]);
-    });
-
     // ========================================
     // IMPLEMENTING PARTNERS (IP) — Backbone Multi-Tenancy
     // Super Admins manage all IPs; IP admins see their own only

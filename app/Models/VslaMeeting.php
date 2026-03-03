@@ -9,6 +9,29 @@ class VslaMeeting extends Model
 {
     use SoftDeletes;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-assign ip_id from group when creating
+        static::creating(function ($meeting) {
+            if (empty($meeting->ip_id) && $meeting->group_id) {
+                $group = FfsGroup::find($meeting->group_id);
+                if ($group && $group->ip_id) {
+                    $meeting->ip_id = $group->ip_id;
+                }
+            }
+            if (empty($meeting->ip_id)) {
+                try {
+                    $adminUser = \Encore\Admin\Facades\Admin::user();
+                    if ($adminUser && $adminUser->ip_id) {
+                        $meeting->ip_id = $adminUser->ip_id;
+                    }
+                } catch (\Throwable $e) {}
+            }
+        });
+    }
+
     protected $fillable = [
         'ip_id',
         'local_id',
