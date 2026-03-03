@@ -46,14 +46,6 @@ class CycleController extends AdminController
             $grid->model()->whereIn('group_id', $groupIds);
         }
 
-        $grid->disableExport();
-
-
-        $grid->disableCreateButton();
-        $grid->disableActions();
-        $grid->disableBatchActions();
-
-
         // Disable batch delete to prevent accidents
         $grid->batchActions(function ($batch) {
             $batch->disableDelete();
