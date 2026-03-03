@@ -79,6 +79,12 @@ class FfsGroupController extends AdminController
         // ── IP Scoping: IP admins see only their own groups ──
         $this->applyIpScope($grid);
 
+        // ── Field Facilitator Scoping: only see groups assigned to them ──
+        $adminUser = \Encore\Admin\Facades\Admin::user();
+        if ($adminUser && $adminUser->isRole('field_facilitator')) {
+            $grid->model()->where('facilitator_id', $adminUser->id);
+        }
+
         // Disable batch actions and deletion
         $grid->disableBatchActions();
         $grid->actions(function ($actions) {
