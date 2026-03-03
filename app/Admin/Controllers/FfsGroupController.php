@@ -200,19 +200,14 @@ class FfsGroupController extends AdminController
         
         $grid->column('facilitator_display', 'Facilitator')->display(function() {
             if ($this->facilitator) {
-                return $this->facilitator->name;
+                $name = $this->facilitator->name;
+                $phone = $this->facilitator->phone_number ? '<br><small class="text-muted"><i class="fa fa-phone"></i> ' . $this->facilitator->phone_number . '</small>' : '';
+                return $name . $phone;
             }
-            return $this->contact_person_name ?: '<span style="color: #999;">-</span>';
-        })->hide();
-        
-        $grid->column('contact_person_phone', 'Contact')->display(function($phone) {
-            return $phone ?: '-';
-        })->hide();
-        
-        $grid->column('facilitator_sex', 'Facilitator Gender')->display(function($sex) {
-            if (empty($sex)) return '-';
-            return $sex === 'Male' || $sex === 'M' ? '♂ Male' : '♀ Female';
-        })->hide();
+            $name = $this->contact_person_name ?: '-';
+            $phone = $this->contact_person_phone ? '<br><small class="text-muted"><i class="fa fa-phone"></i> ' . $this->contact_person_phone . '</small>' : '';
+            return $name . $phone;
+        })->sortable('contact_person_name');
         
         $grid->column('secondary_value_chains', 'Other Activities')->display(function($chains) {
             if (empty($chains)) return '-';
@@ -509,17 +504,6 @@ class FfsGroupController extends AdminController
                 ->options($userOptions)
                 ->default($adminUser ? $adminUser->id : null)
                 ->help('Defaults to the user creating/profiling this group');
-            $row->width(3)->text('contact_person_phone', 'Phone Number')
-                ->help('Auto-filled from facilitator or enter manually');
-            $row->width(3)->select('facilitator_sex', 'Facilitator Gender')->options([
-                'Male' => 'Male',
-                'Female' => 'Female',
-            ]);
-        });
-
-        $form->row(function ($row) {
-            $row->width(6)->text('contact_person_name', 'Contact Name (override)')
-                ->help('Optional: overrides the facilitator name if needed');
             $row->width(6)->date('registration_date', 'System Registration Date')->default(date('Y-m-d'));
         });
 
@@ -582,16 +566,12 @@ class FfsGroupController extends AdminController
             if (!empty($form->facilitator_id)) {
                 $facilitator = User::find($form->facilitator_id);
                 if ($facilitator) {
-                    // Fill contact name if not manually overridden
-                    if (empty($form->contact_person_name)) {
-                        $form->contact_person_name = $facilitator->name;
-                    }
-                    // Fill phone if not set
-                    if (empty($form->contact_person_phone) && $facilitator->phone_number) {
+                    // Always sync contact name & phone from facilitator
+                    $form->contact_person_name = $facilitator->name;
+                    if ($facilitator->phone_number) {
                         $form->contact_person_phone = $facilitator->phone_number;
                     }
-                    // Fill gender if not set
-                    if (empty($form->facilitator_sex) && $facilitator->sex) {
+                    if ($facilitator->sex) {
                         $form->facilitator_sex = $facilitator->sex;
                     }
                 }

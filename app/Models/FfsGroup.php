@@ -352,7 +352,7 @@ class FfsGroup extends Model
     }
 
     /**
-     * Generate unique group code
+     * Generate unique group code (retries if duplicate exists)
      */
     public static function generateGroupCode($type, $districtId)
     {
@@ -362,13 +362,18 @@ class FfsGroup extends Model
         $typeCode = substr($type, 0, 3);
         $year = date('y');
         
-        // Get count of groups of this type in this district
+        // Start from count+1 and increment until a unique code is found
         $count = self::where('type', $type)
             ->where('district_id', $districtId)
             ->whereYear('created_at', date('Y'))
             ->count() + 1;
         
-        return sprintf('%s-%s-%s-%04d', $districtCode, $typeCode, $year, $count);
+        do {
+            $code = sprintf('%s-%s-%s-%04d', $districtCode, $typeCode, $year, $count);
+            $count++;
+        } while (self::where('code', $code)->exists());
+        
+        return $code;
     }
 
     /**
