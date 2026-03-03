@@ -48,12 +48,11 @@ class CycleController extends AdminController
 
         $grid->disableExport();
 
-        // Only admins (not read-only managers) may create/edit
-        if (!$this->isSuperAdmin() && !$this->canManageCycles()) {
-            $grid->disableCreateButton();
-            $grid->disableActions();
-            $grid->disableBatchActions();
-        }
+
+        $grid->disableCreateButton();
+        $grid->disableActions();
+        $grid->disableBatchActions();
+
 
         // Disable batch delete to prevent accidents
         $grid->batchActions(function ($batch) {
@@ -133,7 +132,7 @@ class CycleController extends AdminController
             if (!$groupId) return '-';
             $group = FfsGroup::find($groupId);
             if (!$group) return '-';
-            $typeColors = ['FFS'=>'primary','FBS'=>'success','VSLA'=>'warning','Association'=>'info'];
+            $typeColors = ['FFS' => 'primary', 'FBS' => 'success', 'VSLA' => 'warning', 'Association' => 'info'];
             $color = $typeColors[$group->type] ?? 'default';
             return "<span class='label label-{$color}'>{$group->type}</span> <strong>{$group->name}</strong>"
                 . "<br><small class='text-muted'>{$group->code}</small>";
@@ -454,15 +453,14 @@ class CycleController extends AdminController
             return redirect()->back();
         }
 
-        // IP access check
-        if (!$this->isSuperAdmin()) {
+
             $ipId  = $this->getAdminIpId();
             $group = FfsGroup::find($cycle->group_id);
             if (!$group || $group->ip_id !== $ipId) {
                 admin_toastr('Access denied: this cycle belongs to a different IP.', 'error');
                 return redirect()->back();
             }
-        }
+        
 
         // Deactivate other cycles for the same group
         Project::where('group_id', $cycle->group_id)
@@ -507,6 +505,7 @@ class CycleController extends AdminController
      */
     protected function canManageCycles(): bool
     {
+        return true;
         $user = Admin::user();
         if (!$user) return false;
         // Allow if user has admin role or is an IP admin (has ip_id set)
