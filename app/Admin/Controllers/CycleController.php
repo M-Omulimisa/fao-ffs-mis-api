@@ -444,14 +444,10 @@ class CycleController extends AdminController
             return redirect()->back();
         }
 
-
-            $ipId  = $this->getAdminIpId();
-            $group = FfsGroup::find($cycle->group_id);
-            if (!$group || $group->ip_id !== $ipId) {
-                admin_toastr('Access denied: this cycle belongs to a different IP.', 'error');
-                return redirect()->back();
-            }
-        
+        // IP scope guard — super admins can activate any cycle
+        if (!$this->verifyIpAccessViaGroup($cycle)) {
+            return $this->denyIpAccess();
+        }
 
         // Deactivate other cycles for the same group
         Project::where('group_id', $cycle->group_id)
@@ -482,6 +478,11 @@ class CycleController extends AdminController
             return redirect()->back();
         }
 
+        // IP scope guard — super admins can deactivate any cycle
+        if (!$this->verifyIpAccessViaGroup($cycle)) {
+            return $this->denyIpAccess();
+        }
+
         $cycle->is_active_cycle = 'No';
         $cycle->save();
 
@@ -496,11 +497,10 @@ class CycleController extends AdminController
      */
     protected function canManageCycles(): bool
     {
-        return true;
         $user = Admin::user();
         if (!$user) return false;
-        // Allow if user has admin role or is an IP admin (has ip_id set)
-        return $user->isAdministrator()
+        // Super admins and IP admins can manage; read-only roles cannot
+        return $this->isSuperAdmin()
             || ($user->ip_id !== null);
     }
 }

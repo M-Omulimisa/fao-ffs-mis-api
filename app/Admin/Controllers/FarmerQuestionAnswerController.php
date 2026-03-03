@@ -386,6 +386,15 @@ class FarmerQuestionAnswerController extends AdminController
     public function approve($id)
     {
         $answer = FarmerQuestionAnswer::findOrFail($id);
+
+        // IP scope guard via question author
+        if (!$this->isSuperAdmin()) {
+            $author = $answer->question->author ?? null;
+            if (!$author || (int) $author->ip_id !== $this->getAdminIpId()) {
+                return $this->denyIpAccess();
+            }
+        }
+
         $answer->is_approved = 'Yes';
         $answer->status = 'Published';
         $answer->save();
@@ -403,7 +412,15 @@ class FarmerQuestionAnswerController extends AdminController
     public function accept($id)
     {
         $answer = FarmerQuestionAnswer::findOrFail($id);
-        
+
+        // IP scope guard via question author
+        if (!$this->isSuperAdmin()) {
+            $author = $answer->question->author ?? null;
+            if (!$author || (int) $author->ip_id !== $this->getAdminIpId()) {
+                return $this->denyIpAccess();
+            }
+        }
+
         if ($answer->is_approved != 'Yes') {
             admin_toastr('Only approved answers can be marked as accepted', 'error');
             return redirect()->back();

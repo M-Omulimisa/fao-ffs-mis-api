@@ -107,4 +107,51 @@ trait IpScopeable
                 ->select(ImplementingPartner::getDropdownOptions());
         }
     }
+
+    /**
+     * Verify IP ownership for a record with a direct ip_id column.
+     * Super admins always pass. IP admins must own the record.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $record
+     * @return bool  true if access is allowed
+     */
+    protected function verifyIpAccess($record): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        $ipId = $this->getAdminIpId();
+        return $record && (int) $record->ip_id === $ipId;
+    }
+
+    /**
+     * Verify IP ownership for a record that belongs to a group.
+     * Checks the group's ip_id. Super admins always pass.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $record  Must have group_id or group relation
+     * @return bool  true if access is allowed
+     */
+    protected function verifyIpAccessViaGroup($record): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        $ipId = $this->getAdminIpId();
+        if (!$record) {
+            return false;
+        }
+        $group = \App\Models\FfsGroup::find($record->group_id);
+        return $group && (int) $group->ip_id === $ipId;
+    }
+
+    /**
+     * Deny access with a redirect + toast when IP check fails.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    protected function denyIpAccess()
+    {
+        admin_toastr('Access denied: this record belongs to a different Implementing Partner.', 'error');
+        return redirect()->back();
+    }
 }

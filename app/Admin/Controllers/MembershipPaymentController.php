@@ -384,7 +384,15 @@ class MembershipPaymentController extends AdminController
     {
         try {
             $payment = MembershipPayment::findOrFail($id);
-            
+
+            // IP scope guard via payment user
+            if (!$this->isSuperAdmin()) {
+                $paymentUser = $payment->user ?? null;
+                if (!$paymentUser || (int) $paymentUser->ip_id !== $this->getAdminIpId()) {
+                    return $this->denyIpAccess();
+                }
+            }
+
             if ($payment->status == MembershipPayment::STATUS_CONFIRMED) {
                 admin_toastr('Payment already confirmed', 'warning');
                 return back();

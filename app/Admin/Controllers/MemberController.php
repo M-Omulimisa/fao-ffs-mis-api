@@ -372,7 +372,12 @@ class MemberController extends AdminController
     public function sendCredentials($id)
     {
         $user = User::findOrFail($id);
-        
+
+        // IP scope guard
+        if (!$this->verifyIpAccess($user)) {
+            return $this->denyIpAccess();
+        }
+
         // Validate phone number
         if (empty($user->phone_number)) {
             admin_toastr('Member has no phone number on file', 'error');
@@ -429,7 +434,12 @@ class MemberController extends AdminController
     public function sendWelcome($id)
     {
         $user = User::findOrFail($id);
-        
+
+        // IP scope guard
+        if (!$this->verifyIpAccess($user)) {
+            return $this->denyIpAccess();
+        }
+
         // Validate phone number
         if (empty($user->phone_number)) {
             admin_toastr('Member has no phone number on file', 'error');
