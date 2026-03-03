@@ -494,20 +494,32 @@ class FfsGroupController extends AdminController
         
         $form->divider('Facilitation & Contact');
 
-        // Facilitator
+        // Facilitator — dropdown of system users, defaults to current admin
         $form->row(function ($row) {
-            $row->width(4)->text('contact_person_name', 'Facilitator/Contact Name');
-            $row->width(4)->text('contact_person_phone', 'Phone Number');
-            $row->width(4)->select('facilitator_sex', 'Facilitator Gender')->options([
+            $adminUser = \Encore\Admin\Facades\Admin::user();
+            $ipId = $this->getAdminIpId();
+
+            $usersQuery = User::orderBy('name');
+            if ($ipId !== null) {
+                $usersQuery->where('ip_id', $ipId);
+            }
+            $userOptions = $usersQuery->pluck('name', 'id');
+
+            $row->width(6)->select('facilitator_id', 'Facilitator')
+                ->options($userOptions)
+                ->default($adminUser ? $adminUser->id : null)
+                ->help('Defaults to the user creating/profiling this group');
+            $row->width(3)->text('contact_person_phone', 'Phone Number')
+                ->help('Auto-filled from facilitator or enter manually');
+            $row->width(3)->select('facilitator_sex', 'Facilitator Gender')->options([
                 'Male' => 'Male',
                 'Female' => 'Female',
             ]);
         });
 
         $form->row(function ($row) {
-            $row->width(6)->select('facilitator_id', 'Linked Facilitator Account')->options(
-                User::pluck('name', 'id')
-            )->help('Optional: Link to system user');
+            $row->width(6)->text('contact_person_name', 'Contact Name (override)')
+                ->help('Optional: overrides the facilitator name if needed');
             $row->width(6)->date('registration_date', 'System Registration Date')->default(date('Y-m-d'));
         });
 
@@ -565,6 +577,25 @@ class FfsGroupController extends AdminController
                 $form->total_members = $computed;
             }
             $form->pwd_members = $pwdM + $pwdF;
+
+            // Auto-populate facilitator details from selected user
+            if (!empty($form->facilitator_id)) {
+                $facilitator = User::find($form->facilitator_id);
+                if ($facilitator) {
+                    // Fill contact name if not manually overridden
+                    if (empty($form->contact_person_name)) {
+                        $form->contact_person_name = $facilitator->name;
+                    }
+                    // Fill phone if not set
+                    if (empty($form->contact_person_phone) && $facilitator->phone_number) {
+                        $form->contact_person_phone = $facilitator->phone_number;
+                    }
+                    // Fill gender if not set
+                    if (empty($form->facilitator_sex) && $facilitator->sex) {
+                        $form->facilitator_sex = $facilitator->sex;
+                    }
+                }
+            }
         });
 
         // Auto-create default VSLA cycle when a new VSLA group is saved
