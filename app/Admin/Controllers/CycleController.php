@@ -432,7 +432,6 @@ class CycleController extends AdminController
             }
         });
 
-        $form->disableCreatingCheck();
         $form->disableReset();
         $form->disableViewCheck();
 
