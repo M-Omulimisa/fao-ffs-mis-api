@@ -248,7 +248,7 @@ class UserController extends AdminController
         $form->row(function ($row) {
             $row->width(4)->text('first_name', 'First Name')->required();
             $row->width(4)->text('last_name', 'Last Name')->required();
-            $row->width(4)->radio('sex', 'Gender')
+            $row->width(4)->select('sex', 'Gender')
                 ->options(['Male' => 'Male', 'Female' => 'Female'])
                 ->default('Male')->required();
         });
@@ -294,17 +294,17 @@ class UserController extends AdminController
                     return [$g->id => "[{$g->type}] {$g->name}"];
                 });
             })->help('Only active groups shown');
-            $row->width(6)->radio('status', 'Account Status')
+            $row->width(6)->select('status', 'Account Status')
                 ->options(['1' => 'Active', '0' => 'Inactive'])->default('1');
         });
 
         $form->row(function ($row) {
-            $row->width(4)->radio('is_group_admin', 'Chairperson?')
-                ->options(['Yes' => 'Yes', 'No' => 'No'])->default('No');
-            $row->width(4)->radio('is_group_secretary', 'Secretary?')
-                ->options(['Yes' => 'Yes', 'No' => 'No'])->default('No');
-            $row->width(4)->radio('is_group_treasurer', 'Treasurer?')
-                ->options(['Yes' => 'Yes', 'No' => 'No'])->default('No');
+            $row->width(4)->select('is_group_admin', 'Chairperson?')
+                ->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
+            $row->width(4)->select('is_group_secretary', 'Secretary?')
+                ->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
+            $row->width(4)->select('is_group_treasurer', 'Treasurer?')
+                ->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
         });
 
         // ── Location ──
