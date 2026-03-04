@@ -219,8 +219,6 @@ class UserController extends AdminController
         $show->divider('Household');
         $show->field('national_id_number', 'National ID (NIN)');
         $show->field('household_size', 'Household Size');
-        $show->field('father_name', "Father's Name");
-        $show->field('mother_name', "Mother's Name");
         $show->field('emergency_contact_name', 'Emergency Contact');
         $show->field('emergency_contact_phone', 'Emergency Contact Phone');
 
@@ -345,11 +343,6 @@ class UserController extends AdminController
                 'step_6_cycle'        => '6 - Cycle Configured',
                 'step_7_complete'     => '7 - Onboarding Complete',
             ])->default('not_started');
-        });
-
-        $form->row(function ($row) {
-            $row->width(6)->text('father_name', "Father's Name");
-            $row->width(6)->text('mother_name', "Mother's Name");
         });
 
         $form->row(function ($row) {

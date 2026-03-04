@@ -313,8 +313,6 @@ class MemberController extends AdminController
         $show->field('household_size', 'Household Size')->as(function($size) {
             return $size ? $size . ' people' : 'N/A';
         });
-        $show->field('father_name', "Father's Name");
-        $show->field('mother_name', "Mother's Name");
         
         // Emergency Contact
         $show->divider('Emergency Contact');
@@ -608,12 +606,6 @@ class MemberController extends AdminController
                 'step_6_cycle'        => '6 - Cycle Configured',
                 'step_7_complete'     => '7 - Onboarding Complete',
             ])->default('not_started')->help('Controls where mobile app resumes onboarding');
-        });
-
-        // Parents' names (used in household section)
-        $form->row(function ($row) {
-            $row->width(6)->text('father_name', "Father's Name");
-            $row->width(6)->text('mother_name', "Mother's Name");
         });
 
         // Emergency Contact
