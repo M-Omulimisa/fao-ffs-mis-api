@@ -118,6 +118,28 @@ class Location extends Model
     }
 
     /**
+     * Get Karamoja region districts only (for VSLA profiling)
+     */
+    public static function get_karamoja_districts()
+    {
+        $region = Location::where('name', 'Karamoja Region')
+            ->where('type', 'Region')
+            ->first();
+
+        if ($region) {
+            return Location::where('parent', $region->id)
+                ->where('type', 'District')
+                ->orderBy('name', 'ASC')
+                ->get();
+        }
+
+        // Fallback: return all districts if Karamoja region not found
+        return Location::where('type', 'District')
+            ->orderBy('name', 'ASC')
+            ->get();
+    }
+
+    /**
      * Get all regions
      */
     public static function get_regions()

@@ -2276,6 +2276,16 @@ class ApiResurceController extends Controller
         );
     }
 
+    public function locations_karamoja_districts(Request $r)
+    {
+        $items = Location::get_karamoja_districts();
+        return $this->success(
+            "Successfully retrieved Karamoja districts",
+            $items,
+            200
+        );
+    }
+
     public function locations_sub_counties(Request $r)
     {
         $items = Location::get_sub_counties();

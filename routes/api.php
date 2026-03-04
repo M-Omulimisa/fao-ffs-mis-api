@@ -73,6 +73,7 @@ Route::get("vendors", [ApiResurceController::class, "vendors"]);
 Route::get("delivery-addresses", [ApiResurceController::class, "delivery_addresses"]);
 Route::get("locations", [ApiResurceController::class, "locations"]);
 Route::get("locations/districts", [ApiResurceController::class, "locations_districts"]);
+Route::get("locations/karamoja-districts", [ApiResurceController::class, "locations_karamoja_districts"]);
 Route::get("locations/sub-counties", [ApiResurceController::class, "locations_sub_counties"]);
 Route::get("locations/sub-counties/{district_id}", [ApiResurceController::class, "locations_sub_counties_by_district"]);
 Route::get("locations/parishes/{sub_county_id}", [ApiResurceController::class, "locations_parishes"]);
