@@ -253,25 +253,8 @@ class MemberController extends AdminController
         $show->divider('Personal Information');
         $show->field('name', 'Full Name');
         $show->field('sex', 'Gender')->using(['Male' => 'Male', 'Female' => 'Female']);
-        $show->field('dob', 'Date of Birth')->as(function($date) {
-            if (!$date) return 'N/A';
-            $age = \Carbon\Carbon::parse($date)->age;
-            return date('d M Y', strtotime($date)) . " ({$age} years old)";
-        });
-        $show->field('marital_status', 'Marital Status');
-        $show->field('education_level', 'Education Level');
-        $show->field('occupation', 'Occupation');
-        
-        // Contact Information
-        $show->divider('Contact Details');
-        $show->field('phone_number', 'Primary Phone')->as(function($phone) {
+        $show->field('phone_number', 'Phone Number')->as(function($phone) {
             return $phone ? '<a href="tel:' . $phone . '">' . $phone . '</a>' : 'N/A';
-        })->unescape();
-        $show->field('phone_number_2', 'Secondary Phone')->as(function($phone) {
-            return $phone ? '<a href="tel:' . $phone . '">' . $phone . '</a>' : 'N/A';
-        })->unescape();
-        $show->field('email', 'Email Address')->as(function($email) {
-            return $email ? '<a href="mailto:' . $email . '">' . $email . '</a>' : 'N/A';
         })->unescape();
         
         // FFS Group Information
@@ -297,52 +280,13 @@ class MemberController extends AdminController
             $location = Location::find($this->district_id);
             return $location ? $location->name : 'N/A';
         });
-        $show->field('subcounty_id', 'Subcounty')->as(function() {
-            $location = Location::find($this->subcounty_id);
-            return $location ? $location->name : 'N/A';
-        });
-        $show->field('parish_id', 'Parish')->as(function() {
-            $location = Location::find($this->parish_id);
-            return $location ? $location->name : 'N/A';
-        });
         $show->field('village', 'Village');
-        $show->field('address', 'Home Address');
         
-        // Household Information
-        $show->divider('Household Information');
-        $show->field('household_size', 'Household Size')->as(function($size) {
-            return $size ? $size . ' people' : 'N/A';
-        });
-        
-        // Additional Information
-        $show->divider('Additional Information');
-        $show->field('skills', 'Skills & Expertise');
-        $show->field('disabilities', 'Special Needs/Disabilities');
-        $show->field('remarks', 'Additional Notes');
-        
-        // National ID
-        $show->divider('Identity & Household');
-        $show->field('national_id_number', 'National ID (NIN)');
-        $show->field('household_size', 'Household Size')->as(function($size) {
-            return $size ? $size . ' people' : 'N/A';
-        });
-
         // Account Information
-        $show->divider('Account Status & Onboarding');
-        $show->field('username', 'Login Username');
+        $show->divider('Account Status');
         $show->field('status', 'Account Status')->using([
             '1' => '✓ Active',
             '0' => '✗ Inactive',
-        ]);
-        $show->field('onboarding_step', 'Onboarding Step')->using([
-            'not_started'         => '0 - Not Started',
-            'step_1_welcome'      => '1 - Welcome Seen',
-            'step_2_terms'        => '2 - Terms Accepted',
-            'step_3_registration' => '3 - Registered',
-            'step_4_group'        => '4 - Group Created',
-            'step_5_members'      => '5 - Members Registered',
-            'step_6_cycle'        => '6 - Cycle Configured',
-            'step_7_complete'     => '7 - Onboarding Complete',
         ]);
         $show->field('created_at', 'Registration Date')->as(function($date) {
             return \Carbon\Carbon::parse($date)->format('d M Y H:i');
@@ -508,34 +452,14 @@ class MemberController extends AdminController
             $row->width(4)->text('last_name', 'Last Name')->required();
             $row->width(4)->select('sex', 'Gender')->options(['Male' => 'Male', 'Female' => 'Female'])->default('Male')->required();
         });
-        
+
         $form->row(function ($row) {
-            $row->width(4)->date('dob', 'Date of Birth')->help('Optional but helps for age reporting');
-            $row->width(4)->select('marital_status', 'Marital Status')->options([
-                'Single' => 'Single', 'Married' => 'Married', 'Divorced' => 'Divorced', 
-                'Widowed' => 'Widowed', 'Separated' => 'Separated'
-            ])->default('Single');
-            $row->width(4)->select('education_level', 'Education Level')->options([
-                'None' => 'No Formal Education', 'Primary' => 'Primary', 'O-Level' => 'O-Level', 
-                'A-Level' => 'A-Level', 'Certificate' => 'Certificate', 'Diploma' => 'Diploma', 
-                'Degree' => 'Degree', 'Masters' => 'Masters', 'PhD' => 'PhD'
-            ])->default('Primary');
-        });
-        
-        $form->row(function ($row) {
-            $row->width(6)->text('occupation', 'Occupation')->default('Farmer')->placeholder('e.g. Farmer, Trader, Teacher');
-            $row->width(6)->image('avatar', 'Photo')->removable();
-        });
-        
-        // Contact Information
-        $form->row(function ($row) {
-            $row->width(4)->text('phone_number', 'Primary Phone')
+            $row->width(6)->text('phone_number', 'Phone Number')
                 ->placeholder('e.g. 0771234567')
                 ->creationRules(['required', 'unique:users,phone_number'])
                 ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
                 ->help('Used as login username & password');
-            $row->width(4)->text('phone_number_2', 'Alternative Phone')->placeholder('Optional second number');
-            $row->width(4)->email('email', 'Email')->placeholder('Optional email address');
+            $row->width(6)->image('avatar', 'Photo')->removable();
         });
         
         // Group Assignment (IP-scoped for non-super-admins)
@@ -562,52 +486,11 @@ class MemberController extends AdminController
         
         // Location
         $form->row(function ($row) {
-            $row->width(3)->select('district_id', 'District')->options(function() {
+            $row->width(6)->select('district_id', 'District')->options(function() {
                 return Location::where('parent', 0)->orderBy('name')->pluck('name', 'id');
             });
-            $row->width(3)->select('subcounty_id', 'Subcounty')->options(function() {
-                // Load all subcounties; JS dependency would require custom JS, so show all for now
-                return Location::where('parent', '>', 0)
-                    ->whereHas('parent_location', function($q) {
-                        $q->where('parent', 0);
-                    })
-                    ->orderBy('name')
-                    ->pluck('name', 'id');
-            })->help('Optional: Select subcounty');
-            $row->width(3)->select('parish_id', 'Parish')->options(function() {
-                return Location::whereHas('parent_location', function($q) {
-                    $q->where('parent', '>', 0);
-                })->orderBy('name')->pluck('name', 'id');
-            })->help('Optional: Select parish');
-            $row->width(3)->text('village', 'Village');
+            $row->width(6)->text('village', 'Village');
         });
-
-        $form->text('address', 'Home Address')->placeholder('Physical address');
-
-        // Household & Family
-        $form->divider('Household & Family');
-        $form->row(function ($row) {
-            $row->width(4)->text('national_id_number', 'National ID (NIN)')->placeholder('e.g. CM20000680KBZN');
-            $row->width(4)->number('household_size', 'Household Size')->default(1)->min(1)->help('Number of people in household');
-            $row->width(4)->select('onboarding_step', 'Onboarding Step')->options([
-                'not_started'         => '0 - Not Started',
-                'step_1_welcome'      => '1 - Welcome Seen',
-                'step_2_terms'        => '2 - Terms Accepted',
-                'step_3_registration' => '3 - Registered',
-                'step_4_group'        => '4 - Group Created',
-                'step_5_members'      => '5 - Members Registered',
-                'step_6_cycle'        => '6 - Cycle Configured',
-                'step_7_complete'     => '7 - Onboarding Complete',
-            ])->default('not_started')->help('Controls where mobile app resumes onboarding');
-        });
-
-        // Additional
-        $form->row(function ($row) {
-            $row->width(6)->textarea('skills', 'Skills')->rows(2);
-            $row->width(6)->textarea('disabilities', 'Special Needs')->rows(2);
-        });
-
-        $form->textarea('remarks', 'Remarks')->rows(2);
 
         // Account & Security
         $form->divider('Account & Security');
@@ -631,10 +514,6 @@ class MemberController extends AdminController
                     ->help('Leave blank to keep current password');
             }
         });
-
-        if ($form->isCreating()) {
-            $form->text('username', 'Username (optional)');
-        }
         
         // Saving logic
         $form->saving(function (Form $form) {
