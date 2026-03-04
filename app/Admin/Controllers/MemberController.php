@@ -314,13 +314,6 @@ class MemberController extends AdminController
             return $size ? $size . ' people' : 'N/A';
         });
         
-        // Emergency Contact
-        $show->divider('Emergency Contact');
-        $show->field('emergency_contact_name', 'Contact Name');
-        $show->field('emergency_contact_phone', 'Contact Phone')->as(function($phone) {
-            return $phone ? '<a href="tel:' . $phone . '">' . $phone . '</a>' : 'N/A';
-        })->unescape();
-        
         // Additional Information
         $show->divider('Additional Information');
         $show->field('skills', 'Skills & Expertise');
@@ -606,12 +599,6 @@ class MemberController extends AdminController
                 'step_6_cycle'        => '6 - Cycle Configured',
                 'step_7_complete'     => '7 - Onboarding Complete',
             ])->default('not_started')->help('Controls where mobile app resumes onboarding');
-        });
-
-        // Emergency Contact
-        $form->row(function ($row) {
-            $row->width(6)->text('emergency_contact_name', 'Emergency Contact Name');
-            $row->width(6)->mobile('emergency_contact_phone', 'Emergency Contact Phone');
         });
 
         // Additional
