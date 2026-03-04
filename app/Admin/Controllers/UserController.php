@@ -183,18 +183,7 @@ class UserController extends AdminController
         $show->divider('Personal Information');
         $show->field('name', 'Full Name');
         $show->field('sex', 'Gender');
-        $show->field('dob', 'Date of Birth')->as(function ($date) {
-            if (!$date) return 'N/A';
-            return date('d M Y', strtotime($date)) . ' (' . \Carbon\Carbon::parse($date)->age . ' yrs)';
-        });
-        $show->field('marital_status', 'Marital Status');
-        $show->field('education_level', 'Education Level');
-        $show->field('occupation', 'Occupation');
-
-        $show->divider('Contact');
-        $show->field('phone_number', 'Primary Phone');
-        $show->field('phone_number_2', 'Secondary Phone');
-        $show->field('email', 'Email');
+        $show->field('phone_number', 'Phone Number');
 
         $show->divider('Organization');
         $show->field('implementingPartner.name', 'Implementing Partner');
@@ -209,21 +198,10 @@ class UserController extends AdminController
             $loc = Location::find($this->district_id);
             return $loc ? $loc->name : 'N/A';
         });
-        $show->field('subcounty_id', 'Subcounty')->as(function () {
-            $loc = Location::find($this->subcounty_id);
-            return $loc ? $loc->name : 'N/A';
-        });
         $show->field('village', 'Village');
-        $show->field('address', 'Address');
-
-        $show->divider('Household');
-        $show->field('national_id_number', 'National ID (NIN)');
-        $show->field('household_size', 'Household Size');
 
         $show->divider('Account');
-        $show->field('username', 'Username');
         $show->field('status', 'Status')->using(['1' => 'Active', '0' => 'Inactive']);
-        $show->field('onboarding_step', 'Onboarding Step');
         $show->field('created_at', 'Created');
         $show->field('registered_by_id', 'Registered By')->as(function ($id) {
             if (!$id) return 'N/A';
@@ -254,32 +232,12 @@ class UserController extends AdminController
         });
 
         $form->row(function ($row) {
-            $row->width(4)->date('dob', 'Date of Birth')->help('Optional');
-            $row->width(4)->select('marital_status', 'Marital Status')->options([
-                'Single' => 'Single', 'Married' => 'Married', 'Divorced' => 'Divorced',
-                'Widowed' => 'Widowed', 'Separated' => 'Separated',
-            ])->default('Single');
-            $row->width(4)->select('education_level', 'Education Level')->options([
-                'None' => 'No Formal Education', 'Primary' => 'Primary', 'O-Level' => 'O-Level',
-                'A-Level' => 'A-Level', 'Certificate' => 'Certificate', 'Diploma' => 'Diploma',
-                'Degree' => 'Degree', 'Masters' => 'Masters', 'PhD' => 'PhD',
-            ]);
-        });
-
-        $form->row(function ($row) {
-            $row->width(6)->text('occupation', 'Occupation')->default('Farmer');
-            $row->width(6)->image('avatar', 'Photo')->removable();
-        });
-
-        // ── Contact ──
-        $form->row(function ($row) {
-            $row->width(4)->text('phone_number', 'Primary Phone')
+            $row->width(6)->text('phone_number', 'Phone Number')
                 ->placeholder('e.g. 0771234567')
                 ->creationRules(['required', 'unique:users,phone_number'])
                 ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
                 ->help('Used as login username & default password');
-            $row->width(4)->text('phone_number_2', 'Alternative Phone');
-            $row->width(4)->email('email', 'Email');
+            $row->width(6)->image('avatar', 'Photo')->removable();
         });
 
         // ── Group & Role ──
@@ -309,46 +267,11 @@ class UserController extends AdminController
 
         // ── Location ──
         $form->row(function ($row) {
-            $row->width(3)->select('district_id', 'District')->options(function () {
+            $row->width(6)->select('district_id', 'District')->options(function () {
                 return Location::where('parent', 0)->orderBy('name')->pluck('name', 'id');
             });
-            $row->width(3)->select('subcounty_id', 'Subcounty')->options(function () {
-                return Location::where('parent', '>', 0)
-                    ->whereHas('parent_location', fn($q) => $q->where('parent', 0))
-                    ->orderBy('name')->pluck('name', 'id');
-            });
-            $row->width(3)->select('parish_id', 'Parish')->options(function () {
-                return Location::whereHas('parent_location', fn($q) => $q->where('parent', '>', 0))
-                    ->orderBy('name')->pluck('name', 'id');
-            });
-            $row->width(3)->text('village', 'Village');
+            $row->width(6)->text('village', 'Village');
         });
-
-        $form->text('address', 'Home Address');
-
-        // ── Household & Identity ──
-        $form->divider('Household & Identity');
-        $form->row(function ($row) {
-            $row->width(4)->text('national_id_number', 'National ID (NIN)');
-            $row->width(4)->number('household_size', 'Household Size')->default(1)->min(1);
-            $row->width(4)->select('onboarding_step', 'Onboarding Step')->options([
-                'not_started'         => '0 - Not Started',
-                'step_1_welcome'      => '1 - Welcome Seen',
-                'step_2_terms'        => '2 - Terms Accepted',
-                'step_3_registration' => '3 - Registered',
-                'step_4_group'        => '4 - Group Created',
-                'step_5_members'      => '5 - Members Registered',
-                'step_6_cycle'        => '6 - Cycle Configured',
-                'step_7_complete'     => '7 - Onboarding Complete',
-            ])->default('not_started');
-        });
-
-        $form->row(function ($row) {
-            $row->width(6)->textarea('skills', 'Skills')->rows(2);
-            $row->width(6)->textarea('disabilities', 'Special Needs')->rows(2);
-        });
-
-        $form->textarea('remarks', 'Remarks')->rows(2);
 
         // ── Account & Security ──
         $form->divider('Account & Security');
@@ -371,10 +294,6 @@ class UserController extends AdminController
                     ->help('Leave blank to keep current password');
             }
         });
-
-        if ($form->isCreating()) {
-            $form->text('username', 'Username (optional)');
-        }
 
         // ── Saving logic ──
         $form->saving(function (Form $form) {
