@@ -621,7 +621,7 @@ class FfsGroupController extends AdminController
             $cycle->status             = 'ongoing';
             $cycle->start_date         = date('Y-01-01');   // Jan 1 of current year
             $cycle->end_date           = date('Y-12-31');   // Dec 31 of current year
-            $cycle->share_value        = 5000;               // Default UGX 5,000
+            $cycle->share_value        = 2000;               // Default UGX 2,000
             $cycle->meeting_frequency  = $group->meeting_frequency ?? 'Weekly';
             $cycle->loan_interest_rate = 10;                 // 10% default
             $cycle->interest_frequency = 'Monthly';

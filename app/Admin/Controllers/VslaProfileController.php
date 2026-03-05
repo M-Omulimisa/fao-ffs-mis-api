@@ -249,7 +249,7 @@ class VslaProfileController extends AdminController
 
         $form->currency('share_value', 'Share Value (UGX)')
             ->symbol('UGX')
-            ->default(5000)
+            ->default(2000)
             ->help('Cost per share in Uganda Shillings');
 
         $form->decimal('loan_interest_rate', 'Loan Interest Rate (%)')
@@ -434,7 +434,7 @@ class VslaProfileController extends AdminController
                 $cycle->saving_type          = $profile->saving_type ?? 'shares';
                 $cycle->start_date           = $profile->cycle_start_date ?? date('Y-m-d');
                 $cycle->end_date             = $profile->cycle_end_date ?? date('Y-12-31');
-                $cycle->share_value          = $profile->share_value ?? 5000;
+                $cycle->share_value          = $profile->share_value ?? 2000;
                 $cycle->meeting_frequency    = $profile->meeting_frequency ?? 'Weekly';
                 $cycle->loan_interest_rate   = $profile->loan_interest_rate ?? 10;
                 $cycle->interest_frequency   = $profile->interest_frequency ?? 'Monthly';

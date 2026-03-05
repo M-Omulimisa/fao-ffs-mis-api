@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\AesaSession;
 use App\Models\AesaObservation;
 use App\Models\FfsGroup;
-use App\Models\Location;
 use App\Models\User;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
@@ -186,6 +185,18 @@ class AesaController extends Controller
                 'status',
             ]));
 
+            // Auto-populate location fields from the selected group
+            if ($session->group_id) {
+                $group = FfsGroup::find($session->group_id);
+                if ($group) {
+                    $session->district_text = $group->district_text;
+                    $session->sub_county_text = $group->subcounty_text;
+                    $session->village_text = $group->village;
+                    $session->district_id = $group->district_id;
+                    $session->save();
+                }
+            }
+
             // If observations are included in the same request (bulk create)
             if ($request->has('observations') && is_array($request->observations)) {
                 foreach ($request->observations as $obsData) {
@@ -255,6 +266,18 @@ class AesaController extends Controller
                 'gps_latitude', 'gps_longitude',
                 'status',
             ]));
+
+            // Auto-populate location fields from the selected group
+            if ($session->group_id) {
+                $group = FfsGroup::find($session->group_id);
+                if ($group) {
+                    $session->district_text = $group->district_text;
+                    $session->sub_county_text = $group->subcounty_text;
+                    $session->village_text = $group->village;
+                    $session->district_id = $group->district_id;
+                    $session->save();
+                }
+            }
 
             $session->load(['observations', 'group', 'facilitator', 'createdBy']);
 
@@ -623,18 +646,6 @@ class AesaController extends Controller
                     'name' => trim($f->first_name . ' ' . $f->last_name),
                 ];
             });
-
-            // Add districts (all districts — primarily Northern Uganda / Karamoja)
-            $options['districts'] = Location::where('type', 'District')
-                ->orderBy('name', 'ASC')
-                ->get()
-                ->map(function ($d) {
-                    return [
-                        'id'   => $d->id,
-                        'name' => $d->name,
-                    ];
-                })
-                ->values();
 
             return $this->success($options, 'Dropdown options retrieved successfully');
         } catch (\Exception $e) {

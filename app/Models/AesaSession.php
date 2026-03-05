@@ -75,6 +75,62 @@ class AesaSession extends Model
         'Mini-Group C',
     ];
 
+    const DISTRICTS = [
+        // Acholi
+        'Agago',
+        'Amuru',
+        'Gulu',
+        'Kitgum',
+        'Lamwo',
+        'Nwoya',
+        'Omoro',
+        'Pader',
+        // Lango
+        'Alebtong',
+        'Amolatar',
+        'Apac',
+        'Dokolo',
+        'Kole',
+        'Kwania',
+        'Lira',
+        'Otuke',
+        'Oyam',
+        // West Nile
+        'Adjumani',
+        'Arua',
+        'Koboko',
+        'Madi-Okollo',
+        'Maracha',
+        'Moyo',
+        'Nebbi',
+        'Obongi',
+        'Pakwach',
+        'Terego',
+        'Yumbe',
+        'Zombo',
+        // Karamoja
+        'Abim',
+        'Amudat',
+        'Kaabong',
+        'Karenga',
+        'Kotido',
+        'Moroto',
+        'Nabilatuk',
+        'Nakapiripirit',
+        'Napak',
+        // Teso
+        'Amuria',
+        'Bukedea',
+        'Kapelebyong',
+        'Katakwi',
+        'Kumi',
+        'Ngora',
+        'Serere',
+        'Soroti',
+        // Other
+        'Other',
+    ];
+
     public static function getStatuses(): array
     {
         return [

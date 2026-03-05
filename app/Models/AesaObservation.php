@@ -405,6 +405,7 @@ class AesaObservation extends Model
             'responsible_persons' => self::RESPONSIBLE_PERSONS,
             'observation_locations' => AesaSession::OBSERVATION_LOCATIONS,
             'mini_groups' => AesaSession::MINI_GROUPS,
+            'districts' => AesaSession::DISTRICTS,
         ];
     }
 }
