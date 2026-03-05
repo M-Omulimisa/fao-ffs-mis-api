@@ -134,9 +134,21 @@ Route::prefix('vsla-onboarding')->group(function () {
 use App\Http\Controllers\Api\VslaAgentOnboardingController;
 
 Route::prefix('agent-vsla')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/facilitator-info',    [VslaAgentOnboardingController::class, 'facilitatorInfo']);
     Route::post('/create-group',       [VslaAgentOnboardingController::class, 'createGroup']);
     Route::post('/register-officers',  [VslaAgentOnboardingController::class, 'registerOfficers']);
     Route::post('/create-cycle',       [VslaAgentOnboardingController::class, 'createCycle']);
+
+    // ── Facilitator Module (groups, members, dashboard) ──
+    Route::get('/dashboard',                        [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'dashboard']);
+    Route::get('/my-groups',                        [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'myGroups']);
+    Route::get('/my-groups/{id}',                   [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'groupDetail']);
+    Route::put('/my-groups/{id}',                   [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'updateGroup']);
+    Route::get('/my-groups/{id}/members',           [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'groupMembers']);
+    Route::post('/my-groups/{id}/members',          [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'addMember']);
+    Route::put('/members/{id}',                     [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'updateMember']);
+    Route::put('/members/{id}/role',                [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'updateMemberRole']);
+    Route::get('/all-members',                      [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'allMembers']);
 });
 
 // ========================================

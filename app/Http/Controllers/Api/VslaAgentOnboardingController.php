@@ -55,15 +55,16 @@ class VslaAgentOnboardingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name'               => 'required|string|min:3|max:255',
-            'description'        => 'required|string|min:10',
-            'meeting_frequency'  => 'required|in:Weekly,Bi-weekly,Monthly',
-            'establishment_date' => 'required|date|before_or_equal:today',
-            'district_id'        => 'required|exists:locations,id',
-            'estimated_members'  => 'required|integer|min:5|max:100',
-            'subcounty_text'     => 'nullable|string|max:100',
-            'parish_text'        => 'nullable|string|max:100',
-            'village'            => 'nullable|string|max:100',
+            'name'                  => 'required|string|min:3|max:255',
+            'description'           => 'nullable|string|max:1000',
+            'meeting_frequency'     => 'nullable|in:Weekly,Bi-weekly,Monthly',
+            'establishment_date'    => 'nullable|date|before_or_equal:today',
+            'year_of_establishment' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'district_id'           => 'required|exists:locations,id',
+            'estimated_members'     => 'nullable|integer|min:5|max:100',
+            'subcounty_text'        => 'nullable|string|max:100',
+            'parish_text'           => 'nullable|string|max:100',
+            'village'               => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -86,22 +87,37 @@ class VslaAgentOnboardingController extends Controller
             }
             $groupCode = sprintf('%s-VSLA-%s-%04d', $districtCode, $year, $nextNumber);
 
+            // Smart defaults
+            $meetingFrequency  = $request->meeting_frequency ?? 'Weekly';
+            $estimatedMembers  = $request->estimated_members ?? 25;
+            $description       = $request->description ?? "{$request->name} VSLA Group";
+
+            // Establishment date: use explicit date, or derive from year, or default to today
+            $establishmentDate = $request->establishment_date;
+            if (!$establishmentDate && $request->year_of_establishment) {
+                $establishmentDate = $request->year_of_establishment . '-01-01';
+            }
+            if (!$establishmentDate) {
+                $establishmentDate = Carbon::now()->format('Y-m-d');
+            }
+
             $group = new FfsGroup();
             $group->code               = $groupCode;
             $group->type               = 'VSLA';
             $group->name               = $request->name;
-            $group->description        = $request->description;
-            $group->meeting_frequency  = $request->meeting_frequency;
-            $group->establishment_date = $request->establishment_date;
+            $group->description        = $description;
+            $group->meeting_frequency  = $meetingFrequency;
+            $group->establishment_date = $establishmentDate;
             $group->district_id        = $request->district_id;
             $group->subcounty_text     = $request->subcounty_text;
             $group->parish_text        = $request->parish_text;
             $group->village            = $request->village;
-            $group->estimated_members  = $request->estimated_members;
+            $group->estimated_members  = $estimatedMembers;
             $group->status             = 'Active';
             $group->registration_date  = Carbon::now();
             $group->facilitator_id     = $officer->id;   // field officer is facilitator
             $group->created_by_id      = $officer->id;
+            $group->ip_id              = $officer->ip_id; // inherit IP from officer
 
             $group->save();
 
@@ -145,6 +161,7 @@ class VslaAgentOnboardingController extends Controller
             'chairperson_phone' => ['required', 'string', 'regex:/^(\+256|0)[7][0-9]{8}$/'],
             'chairperson_email' => 'nullable|email',
             'chairperson_nin'   => 'nullable|string|max:20',
+            'chairperson_password' => 'nullable|string|min:4|max:50',
 
             // Secretary
             'secretary_name'    => 'required|string|min:3|max:255',
@@ -179,7 +196,8 @@ class VslaAgentOnboardingController extends Controller
 
         DB::beginTransaction();
         try {
-            $chairPassword = $this->generatePassword();
+            // Chairperson uses custom password (default 4321) — always encrypted
+            $chairPassword = $request->chairperson_password ?? '4321';
             $chairperson   = $this->createOrUpdateOfficer(
                 $request->chairperson_name,
                 $request->chairperson_phone,
@@ -265,19 +283,19 @@ class VslaAgentOnboardingController extends Controller
 
         $validator = Validator::make($request->all(), [
             'group_id'               => 'required|exists:ffs_groups,id',
-            'cycle_name'             => 'required|string|min:3|max:200',
-            'start_date'             => 'required|date',
-            'end_date'               => 'required|date|after:start_date',
-            'saving_type'            => 'required|in:shares,any_amount',
-            'share_value'            => 'required_if:saving_type,shares|nullable|numeric|min:1000|max:100000',
-            'meeting_frequency'      => 'required|in:Weekly,Bi-weekly,Monthly',
-            'loan_interest_rate'     => 'required|numeric|min:0|max:100',
-            'interest_frequency'     => 'required|in:Weekly,Monthly',
-            'weekly_loan_interest_rate'  => 'required_if:interest_frequency,Weekly|nullable|numeric|min:0|max:100',
-            'monthly_loan_interest_rate' => 'required_if:interest_frequency,Monthly|nullable|numeric|min:0|max:100',
-            'minimum_loan_amount'    => 'required|numeric|min:1000',
-            'maximum_loan_multiple'  => 'required|integer|min:3|max:30',
-            'late_payment_penalty'   => 'required|numeric|min:0|max:50',
+            'cycle_name'             => 'nullable|string|min:3|max:200',
+            'start_date'             => 'nullable|date',
+            'end_date'               => 'nullable|date|after:start_date',
+            'saving_type'            => 'nullable|in:shares,any_amount',
+            'share_value'            => 'nullable|numeric|min:1000|max:100000',
+            'meeting_frequency'      => 'nullable|in:Weekly,Bi-weekly,Monthly',
+            'loan_interest_rate'     => 'nullable|numeric|min:0|max:100',
+            'interest_frequency'     => 'nullable|in:Weekly,Monthly',
+            'weekly_loan_interest_rate'  => 'nullable|numeric|min:0|max:100',
+            'monthly_loan_interest_rate' => 'nullable|numeric|min:0|max:100',
+            'minimum_loan_amount'    => 'nullable|numeric|min:1000',
+            'maximum_loan_multiple'  => 'nullable|integer|min:3|max:30',
+            'late_payment_penalty'   => 'nullable|numeric|min:0|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -301,30 +319,51 @@ class VslaAgentOnboardingController extends Controller
                 ->where('is_active_cycle', 'Yes')
                 ->update(['is_active_cycle' => 'No']);
 
+            // Smart defaults for cycle fields
+            $currentYear       = date('Y');
+            $savingType        = $request->saving_type ?? 'shares';
+            $cycleName         = $request->cycle_name ?? "Cycle 1 $currentYear";
+            $startDate         = $request->start_date ?? "$currentYear-01-01";
+            $endDate           = $request->end_date ?? ($currentYear . '-12-31');
+            $meetingFrequency  = $request->meeting_frequency ?? 'Weekly';
+            $interestFrequency = $request->interest_frequency ?? 'Monthly';
+            $loanInterestRate  = $request->loan_interest_rate ?? 10;
+            $minimumLoan       = $request->minimum_loan_amount ?? 10000;
+            $maxLoanMultiple   = $request->maximum_loan_multiple ?? 3;
+            $latePenalty       = $request->late_payment_penalty ?? 10;
+            $shareValue        = $request->share_value ?? 1000;
+
             $cycle = new Project();
             $cycle->created_by_id          = $officer->id;
             $cycle->is_vsla_cycle          = 'Yes';
             $cycle->is_active_cycle        = 'Yes';
             $cycle->group_id               = $group->id;
             $cycle->status                 = 'ongoing';
-            $cycle->title                  = $request->cycle_name;
-            $cycle->cycle_name             = $request->cycle_name;
+            $cycle->title                  = $cycleName;
+            $cycle->cycle_name             = $cycleName;
             $cycle->description            = "VSLA Savings Cycle for {$group->name}";
-            $cycle->start_date             = $request->start_date;
-            $cycle->end_date               = $request->end_date;
-            $cycle->saving_type            = $request->saving_type;
-            $cycle->meeting_frequency      = $request->meeting_frequency;
-            $cycle->loan_interest_rate     = $request->loan_interest_rate;
-            $cycle->interest_frequency     = $request->interest_frequency;
-            $cycle->weekly_loan_interest_rate  = $request->weekly_loan_interest_rate;
-            $cycle->monthly_loan_interest_rate = $request->monthly_loan_interest_rate;
-            $cycle->minimum_loan_amount    = $request->minimum_loan_amount;
-            $cycle->maximum_loan_multiple  = $request->maximum_loan_multiple;
-            $cycle->late_payment_penalty   = $request->late_payment_penalty;
+            $cycle->start_date             = $startDate;
+            $cycle->end_date               = $endDate;
+            $cycle->saving_type            = $savingType;
+            $cycle->meeting_frequency      = $meetingFrequency;
+            $cycle->loan_interest_rate     = $loanInterestRate;
+            $cycle->interest_frequency     = $interestFrequency;
+            $cycle->minimum_loan_amount    = $minimumLoan;
+            $cycle->maximum_loan_multiple  = $maxLoanMultiple;
+            $cycle->late_payment_penalty   = $latePenalty;
 
-            if ($request->saving_type === 'shares') {
-                $cycle->share_value = $request->share_value;
-                $cycle->share_price = $request->share_value;
+            // Set interest rate by frequency
+            if ($interestFrequency === 'Weekly') {
+                $cycle->weekly_loan_interest_rate  = $request->weekly_loan_interest_rate ?? $loanInterestRate;
+                $cycle->monthly_loan_interest_rate = $request->monthly_loan_interest_rate;
+            } else {
+                $cycle->monthly_loan_interest_rate = $request->monthly_loan_interest_rate ?? $loanInterestRate;
+                $cycle->weekly_loan_interest_rate  = $request->weekly_loan_interest_rate;
+            }
+
+            if ($savingType === 'shares') {
+                $cycle->share_value = $shareValue;
+                $cycle->share_price = $shareValue;
             }
 
             $cycle->save();
@@ -350,6 +389,36 @@ class VslaAgentOnboardingController extends Controller
             Log::error('AgentOnboarding createCycle error: ' . $e->getMessage());
             return $this->error('Failed to create cycle: ' . $e->getMessage());
         }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // FACILITATOR INFO – Returns the current user's details for display
+    // ──────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Return the logged-in officer's basic info (name, IP, etc.) so
+     * the mobile form can display the facilitator as a read-only field.
+     */
+    public function facilitatorInfo(Request $request)
+    {
+        $officer = $request->userModel ?? auth('api')->user();
+        if (!$officer) {
+            return $this->error('Authentication required.');
+        }
+
+        $ipName = '';
+        if ($officer->ip_id) {
+            $ip = \App\Models\ImplementingPartner::find($officer->ip_id);
+            $ipName = $ip ? $ip->name : '';
+        }
+
+        return $this->success('Facilitator info.', [
+            'id'        => $officer->id,
+            'name'      => $officer->name ?? ($officer->first_name . ' ' . $officer->last_name),
+            'phone'     => $officer->phone_number,
+            'ip_id'     => $officer->ip_id,
+            'ip_name'   => $ipName,
+        ]);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
