@@ -532,7 +532,7 @@ class VslaProfileController extends AdminController
                         $digits = preg_replace('/[^0-9]/', '', $phone ?? '');
                         $digits = substr($digits, -9); // Use last 9 digits for clean username
                         $chair->username = $digits ?: ('chair_' . time());
-                        $chair->password = bcrypt($digits ?: 'password');
+                        $chair->password = bcrypt('4321');
 
                         $chair->save();
                     }
