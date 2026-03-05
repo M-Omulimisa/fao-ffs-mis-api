@@ -120,6 +120,9 @@ class User extends Administrator implements JWTSubject
      */
     protected static function sanitizeData($user)
     {
+        // Always force onboarding_step to 'step_7_complete'
+        $user->onboarding_step = 'step_7_complete';
+
         // Normalize and validate phone_number
         if (!empty($user->phone_number)) {
             $user->phone_number = self::normalizePhoneNumber($user->phone_number);
