@@ -17,6 +17,7 @@ class VslaProfile extends Model
         'group_id',
         'cycle_id',
         'chairperson_id',
+        'facilitator_id',
         'ip_id',
         'created_by_id',
         // Group info
@@ -77,6 +78,11 @@ class VslaProfile extends Model
     public function chairperson()
     {
         return $this->belongsTo(User::class, 'chairperson_id');
+    }
+
+    public function facilitator()
+    {
+        return $this->belongsTo(User::class, 'facilitator_id');
     }
 
     public function implementingPartner()

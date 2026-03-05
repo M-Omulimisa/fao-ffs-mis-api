@@ -30,7 +30,7 @@ class VslaProfileController extends AdminController
         // IP scoping
         $this->applyIpScope($grid);
 
-        $grid->model()->with(['group', 'chairperson', 'implementingPartner', 'district'])
+        $grid->model()->with(['group', 'chairperson', 'facilitator', 'implementingPartner', 'district'])
             ->orderBy('id', 'desc');
 
         $grid->column('id', 'ID')->sortable();
@@ -49,6 +49,7 @@ class VslaProfileController extends AdminController
             return $name ?: '-';
         });
         $grid->column('chair_phone', 'Chair Phone');
+        $grid->column('facilitator.name', 'Facilitator');
         $grid->column('implementingPartner.short_name', 'IP');
         $grid->column('status', 'Status')->label([
             'Active'   => 'success',
@@ -127,6 +128,7 @@ class VslaProfileController extends AdminController
         $show->field('group.name', 'Linked Group');
         $show->field('cycle.cycle_name', 'Linked Cycle');
         $show->field('chairperson.name', 'Linked Chairperson User');
+        $show->field('facilitator.name', 'Facilitator');
         $show->field('implementingPartner.name', 'Implementing Partner');
         $show->field('status', 'Status');
         $show->field('created_at', 'Created');
@@ -145,12 +147,47 @@ class VslaProfileController extends AdminController
         $year = date('Y');
 
         // ══════════════════════════════════════════
+        //  Resolve & lock IP to logged-in user
+        // ══════════════════════════════════════════
+        $adminUser = Admin::user();
+        $userIpId  = $adminUser ? $adminUser->ip_id : null;
+
+        // Block if user has no IP assigned
+        if (empty($userIpId)) {
+            admin_toastr('You cannot create or edit a VSLA Profile because your account has no Implementing Partner (IP) assigned. Please contact a Super Admin.', 'error');
+            return $form;
+        }
+
+        $ipName = '';
+        $ip = \App\Models\ImplementingPartner::find($userIpId);
+        if ($ip) {
+            $ipName = $ip->name . ' (' . ($ip->short_name ?: 'IP') . ')';
+        }
+
+        // ══════════════════════════════════════════
         //  Section 1: VSLA Group Information
         // ══════════════════════════════════════════
         $form->divider('VSLA Group Information');
 
-        // IP field (select dropdown via IpScopeable)
-        $this->addIpFieldToForm($form);
+        // Show IP as read-only display, lock the value via hidden + saving callback
+        $form->display('ip_display', 'Implementing Partner')->default($ipName)
+            ->help('Locked to your Implementing Partner');
+        $form->hidden('ip_id')->default($userIpId);
+
+        // Force ip_id on every save — belt-and-suspenders
+        $form->saving(function (Form $form) use ($userIpId) {
+            $form->input('ip_id', $userIpId);
+        });
+
+        // Facilitator — dropdown of system users scoped to this IP, defaults to current admin
+        $facilitatorQuery = User::where('ip_id', $userIpId)->orderBy('name');
+        $facilitatorOptions = $facilitatorQuery->pluck('name', 'id');
+
+        $form->select('facilitator_id', 'Facilitator')
+            ->options($facilitatorOptions)
+            ->default($adminUser ? $adminUser->id : null)
+            ->rules('required')
+            ->help('The field facilitator responsible for this group. Defaults to the logged-in user.');
 
         $form->text('group_name', 'Group Name')
             ->rules('required')
@@ -287,10 +324,20 @@ class VslaProfileController extends AdminController
         // ─────────────────────────────────────────────
         //  SAVING CALLBACK — auto-generate linked records
         // ─────────────────────────────────────────────
-        $form->saved(function (Form $form) {
+        $form->saved(function (Form $form) use ($userIpId) {
             $profile = $form->model();
             $isCreating = $form->isCreating();
             $year = date('Y');
+
+            // Force IP to logged-in user's IP (belt-and-suspenders)
+            $profile->ip_id = $userIpId;
+
+            // Resolve facilitator_id: use selected value, fall back to logged-in admin
+            $facilitatorId = $profile->facilitator_id;
+            if (empty($facilitatorId)) {
+                $facilitatorId = Admin::user() ? Admin::user()->id : null;
+                $profile->facilitator_id = $facilitatorId;
+            }
 
             // ──────────────────────────────────────
             //  1. Create or Update the FfsGroup
@@ -307,7 +354,8 @@ class VslaProfileController extends AdminController
                         'meeting_venue'     => $profile->meeting_venue ?? $group->meeting_venue,
                         'estimated_members' => $profile->estimated_members ?? $group->estimated_members,
                         'registration_date' => $profile->registration_date ?? $group->registration_date,
-                        'ip_id'             => $profile->ip_id ?? $group->ip_id,
+                        'ip_id'             => $userIpId,
+                        'facilitator_id'    => $facilitatorId ?? $group->facilitator_id,
                     ]);
                 }
             } else {
@@ -321,7 +369,8 @@ class VslaProfileController extends AdminController
                 $group->meeting_venue     = $profile->meeting_venue;
                 $group->estimated_members = $profile->estimated_members ?? 25;
                 $group->registration_date = $profile->registration_date ?? now();
-                $group->ip_id             = $profile->ip_id;
+                $group->ip_id             = $userIpId;
+                $group->facilitator_id    = $facilitatorId;
                 $group->status            = 'Active';
                 $group->cycle_number      = 1;
                 $group->cycle_start_date  = $profile->cycle_start_date ?? date('Y-m-d');
@@ -330,6 +379,23 @@ class VslaProfileController extends AdminController
                 $group->save();
 
                 $profile->group_id = $group->id;
+            }
+
+            // Sync facilitator contact info onto the group (following FfsGroupController pattern)
+            if (!empty($facilitatorId)) {
+                $facilitator = User::find($facilitatorId);
+                if ($facilitator) {
+                    $contactUpdate = [
+                        'contact_person_name' => $facilitator->name,
+                    ];
+                    if ($facilitator->phone_number) {
+                        $contactUpdate['contact_person_phone'] = $facilitator->phone_number;
+                    }
+                    if ($facilitator->sex) {
+                        $contactUpdate['facilitator_sex'] = $facilitator->sex;
+                    }
+                    FfsGroup::where('id', $group->id)->update($contactUpdate);
+                }
             }
 
             // ──────────────────────────────────────
@@ -454,7 +520,7 @@ class VslaProfileController extends AdminController
                         $chair->email              = !empty($profile->chair_email) ? $profile->chair_email : null;
                         $chair->national_id_number = !empty($profile->chair_national_id) ? $profile->chair_national_id : null;
                         $chair->group_id           = $group->id;
-                        $chair->ip_id              = $profile->ip_id;
+                        $chair->ip_id              = $userIpId;
                         $chair->district_id        = $profile->district_id;
                         $chair->village            = !empty($profile->village) ? $profile->village : null;
                         $chair->is_group_admin     = 'Yes';
@@ -477,6 +543,13 @@ class VslaProfileController extends AdminController
                 // Also set the group's admin_id to the chairperson
                 if (isset($group) && $group->id && isset($chair) && $chair->id) {
                     FfsGroup::where('id', $group->id)->update(['admin_id' => $chair->id]);
+
+                    // Ensure chairperson is flagged as group admin and linked to this group
+                    // (following FfsGroupController officer sync pattern)
+                    User::where('id', $chair->id)->update([
+                        'is_group_admin' => 'Yes',
+                        'group_id'       => $group->id,
+                    ]);
                 }
             }
 
