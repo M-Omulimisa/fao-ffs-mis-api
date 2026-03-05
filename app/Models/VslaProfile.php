@@ -25,9 +25,18 @@ class VslaProfile extends Model
         'village',
         'meeting_frequency',
         'meeting_day',
+        'registration_date',
+        'meeting_venue',
+        'estimated_members',
         // Cycle info
+        'cycle_name',
         'share_value',
+        'saving_type',
         'loan_interest_rate',
+        'interest_frequency',
+        'minimum_loan_amount',
+        'maximum_loan_multiple',
+        'late_payment_penalty',
         'cycle_start_date',
         'cycle_end_date',
         // Chairperson info
@@ -35,15 +44,22 @@ class VslaProfile extends Model
         'chair_last_name',
         'chair_phone',
         'chair_sex',
+        'chair_email',
+        'chair_national_id',
         // Meta
         'status',
     ];
 
     protected $casts = [
-        'share_value'       => 'decimal:2',
-        'loan_interest_rate' => 'decimal:2',
-        'cycle_start_date'  => 'date',
-        'cycle_end_date'    => 'date',
+        'share_value'          => 'decimal:2',
+        'loan_interest_rate'   => 'decimal:2',
+        'minimum_loan_amount'  => 'decimal:2',
+        'maximum_loan_multiple' => 'decimal:2',
+        'late_payment_penalty' => 'decimal:2',
+        'registration_date'    => 'date',
+        'cycle_start_date'     => 'date',
+        'cycle_end_date'       => 'date',
+        'estimated_members'    => 'integer',
     ];
 
     // ── Relationships ──
