@@ -1588,6 +1588,32 @@ class ApiResurceController extends Controller
             ];
         }
 
+        // ── Admin panel roles (admin_role_users table) ──
+        // These are the roles assigned via the admin panel (super_admin,
+        // ip_manager, field_facilitator, vsla_treasurer, farmer_member,
+        // me_officer, content_manager).  Include them so the mobile app
+        // can gate features accurately.
+        $existingSlugs = array_column($roles, 'slug');
+        try {
+            $adminRoles = \DB::table('admin_role_users')
+                ->join('admin_roles', 'admin_roles.id', '=', 'admin_role_users.role_id')
+                ->where('admin_role_users.user_id', $u->id)
+                ->select('admin_roles.slug', 'admin_roles.name')
+                ->get();
+
+            foreach ($adminRoles as $ar) {
+                if (!in_array($ar->slug, $existingSlugs, true)) {
+                    $roles[] = [
+                        'slug'        => $ar->slug,
+                        'name'        => $ar->name,
+                        'description' => 'Admin panel role',
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            // Table might not exist in some environments – degrade gracefully
+        }
+
         return $this->success('User roles retrieved.', [
             'user_id' => $u->id,
             'roles'   => $roles,
