@@ -1508,7 +1508,7 @@ class ApiResurceController extends Controller
         $roles = [];
 
         // ──────────────────────────────────────────────────────────────
-        //  PRIMARY: Laravel-Admin roles from admin_role_users table
+        //  Laravel-Admin roles from admin_role_users table ONLY.
         //  These are the actual roles assigned in the admin panel:
         //    super_admin, ip_manager, field_facilitator,
         //    vsla_treasurer, farmer_member, me_officer, content_manager
@@ -1529,54 +1529,6 @@ class ApiResurceController extends Controller
             }
         } catch (\Throwable $e) {
             // Table might not exist in some environments
-        }
-
-        // ──────────────────────────────────────────────────────────────
-        //  SUPPLEMENTARY: Derived status roles (group membership, etc.)
-        //  These provide additional context about the user's status
-        //  in groups, but the admin panel roles above are authoritative.
-        // ──────────────────────────────────────────────────────────────
-        $existingSlugs = array_column($roles, 'slug');
-
-        // Every authenticated user gets this
-        if (!in_array('authenticated', $existingSlugs)) {
-            $roles[] = [
-                'slug'        => 'authenticated',
-                'name'        => 'Authenticated User',
-                'description' => 'Logged-in user',
-            ];
-        }
-
-        // Group membership
-        if (!empty($u->group_id) && !in_array('group_member', $existingSlugs)) {
-            $roles[] = [
-                'slug'        => 'group_member',
-                'name'        => 'Group Member',
-                'description' => 'Member of a VSLA/FFS group',
-            ];
-        }
-
-        // Group leadership flags (chairperson, secretary, treasurer)
-        if ($u->is_group_admin === 'Yes' && !in_array('group_chairperson', $existingSlugs)) {
-            $roles[] = [
-                'slug'        => 'group_chairperson',
-                'name'        => 'Group Chairperson',
-                'description' => 'VSLA group chairperson',
-            ];
-        }
-        if ($u->is_group_secretary === 'Yes' && !in_array('group_secretary', $existingSlugs)) {
-            $roles[] = [
-                'slug'        => 'group_secretary',
-                'name'        => 'Group Secretary',
-                'description' => 'VSLA group secretary',
-            ];
-        }
-        if ($u->is_group_treasurer === 'Yes' && !in_array('group_treasurer', $existingSlugs)) {
-            $roles[] = [
-                'slug'        => 'group_treasurer',
-                'name'        => 'Group Treasurer',
-                'description' => 'VSLA group treasurer',
-            ];
         }
 
         return $this->success('User roles retrieved.', [
