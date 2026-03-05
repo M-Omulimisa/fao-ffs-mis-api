@@ -455,7 +455,7 @@ class VslaFacilitatorController extends Controller
             }
 
             // Normalize phone
-            $phone = $this->normalizePhoneNumber($request->input('phone_number'));
+            $phone = $this->normalizePhone($request->input('phone_number'));
 
             // Check if phone already exists in this group
             $existingInGroup = User::where('group_id', $groupId)
@@ -595,7 +595,7 @@ class VslaFacilitatorController extends Controller
                 $member->name = trim($member->first_name . ' ' . $member->last_name);
             }
             if ($request->filled('phone_number')) {
-                $phone = $this->normalizePhoneNumber($request->input('phone_number'));
+                $phone = $this->normalizePhone($request->input('phone_number'));
                 // Check uniqueness within group
                 $dup = User::where('group_id', $member->group_id)
                     ->where('phone_number', $phone)
