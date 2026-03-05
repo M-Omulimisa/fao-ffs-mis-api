@@ -141,6 +141,9 @@ Route::group([
     // VSLA MODULE - Village Savings & Loan Association
     // ========================================
     
+    // VSLA Profiles - Unified VSLA profiling (auto-generates group + cycle + chairperson)
+    $router->resource('vsla-profiles', VslaProfileController::class);
+    
     // VSLA Meetings - View meeting records from mobile app
     $router->resource('vsla-meetings', VslaMeetingController::class);
     
