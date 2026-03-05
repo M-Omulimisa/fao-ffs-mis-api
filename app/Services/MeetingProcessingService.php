@@ -1027,7 +1027,11 @@ class MeetingProcessingService
                     // Mobile: responsible_member_id, description (as action), notes (as description), due_date
                     // Old: assignedToMemberId, action, description, dueDate
                     $action = $planData['action'] ?? $planData['description'] ?? '';
-                    $description = $planData['description'] ?? $planData['notes'] ?? null;
+                    $description = $planData['notes'] ?? $planData['description'] ?? $action;
+                    // Ensure description is never null
+                    if (empty($description)) {
+                        $description = $action;
+                    }
                     $assignedTo = $planData['assignedToMemberId'] ?? $planData['assigned_to_member_id'] ?? $planData['responsible_member_id'] ?? null;
                     $dueDate = $planData['dueDate'] ?? $planData['due_date'] ?? null;
                     $localId = $planData['planId'] ?? $planData['local_id'] ?? null;

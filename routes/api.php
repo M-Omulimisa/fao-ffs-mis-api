@@ -149,6 +149,12 @@ Route::prefix('agent-vsla')->middleware(EnsureTokenIsValid::class)->group(functi
     Route::put('/members/{id}',                     [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'updateMember']);
     Route::put('/members/{id}/role',                [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'updateMemberRole']);
     Route::get('/all-members',                      [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'allMembers']);
+
+    // ── Facilitator Meetings ──
+    Route::get('/meeting-groups',                   [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'meetingGroups']);
+    Route::get('/all-meetings',                     [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'allMeetings']);
+    Route::get('/my-groups/{id}/meetings',          [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'groupMeetings']);
+    Route::get('/my-groups/{id}/manifest',          [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'groupManifest']);
 });
 
 // ========================================
@@ -1021,6 +1027,35 @@ Route::prefix('farm-activities')->middleware(EnsureTokenIsValid::class)->group(f
     Route::post('/{id}/complete', [\App\Http\Controllers\Api\FarmActivityController::class, 'complete']);
     Route::post('/{id}/skip', [\App\Http\Controllers\Api\FarmActivityController::class, 'skip']);
     Route::post('/{id}/upload-photo', [\App\Http\Controllers\Api\FarmActivityController::class, 'uploadPhoto']);
+});
+
+// ========================================
+// AESA (Agro-Ecosystem Analysis) ROUTES
+// ========================================
+Route::prefix('aesa-sessions')->middleware(EnsureTokenIsValid::class)->group(function () {
+    // Stats & dropdown options (before /{id} to avoid conflict)
+    Route::get('/stats', [\App\Http\Controllers\Api\AesaController::class, 'stats']);
+    Route::get('/dropdown-options', [\App\Http\Controllers\Api\AesaController::class, 'dropdownOptions']);
+    Route::get('/export', [\App\Http\Controllers\Api\AesaController::class, 'export']);
+
+    // Session CRUD
+    Route::get('/', [\App\Http\Controllers\Api\AesaController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\Api\AesaController::class, 'store']);
+    Route::get('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'show']);
+    Route::put('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'update']);
+    Route::delete('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'destroy']);
+    Route::post('/{id}/submit', [\App\Http\Controllers\Api\AesaController::class, 'submit']);
+
+    // Observations nested under sessions
+    Route::get('/{sessionId}/observations', [\App\Http\Controllers\Api\AesaController::class, 'observations']);
+    Route::post('/{sessionId}/observations', [\App\Http\Controllers\Api\AesaController::class, 'storeObservation']);
+});
+
+// AESA Observation direct routes
+Route::prefix('aesa-observations')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'showObservation']);
+    Route::put('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'updateObservation']);
+    Route::delete('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'destroyObservation']);
 });
 
 // ========================================

@@ -93,6 +93,8 @@ class EnsureTokenIsValid
         // Set authenticated user in Laravel Auth system
         // This allows Auth::id() and Auth::user() to work in controllers
         auth()->setUser($u);
+        // Also set on the 'api' guard so auth('api')->user() works in controllers
+        auth('api')->setUser($u);
 
         $requestPath = $request->method() . ' ' . $request->path();
         \Log::info('EnsureTokenIsValid - Processing: ' . $requestPath . ' (User: ' . $user_id . ')');

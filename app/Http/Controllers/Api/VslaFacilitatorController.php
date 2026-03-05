@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FfsGroup;
 use App\Models\Project;
 use App\Models\User;
+use App\Models\VslaMeeting;
 use App\Traits\ApiResponser;
 use App\Traits\PhoneNumberNormalization;
 use Carbon\Carbon;
@@ -774,6 +775,308 @@ class VslaFacilitatorController extends Controller
         } catch (\Exception $e) {
             Log::error('Facilitator allMembers error: ' . $e->getMessage());
             return $this->error('Failed to load members: ' . $e->getMessage());
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // MEETINGS
+    // ──────────────────────────────────────────────────────────────────────
+
+    /**
+     * List all groups with their meeting summary for the facilitator.
+     * Includes ongoing meeting count, total submitted meetings, active cycle info.
+     */
+    public function meetingGroups(Request $request)
+    {
+        try {
+            $officer = auth('api')->user();
+            if (!$officer) return $this->error('Unauthorized', 401);
+
+            $groups = FfsGroup::where('facilitator_id', $officer->id)
+                ->where('type', 'VSLA')
+                ->orderBy('name')
+                ->get();
+
+            $result = $groups->map(function ($g) {
+                $activeCycle = Project::where('group_id', $g->id)
+                    ->where('is_vsla_cycle', 'Yes')
+                    ->where('is_active_cycle', 'Yes')
+                    ->first();
+
+                $totalMeetings = 0;
+                $lastMeetingDate = null;
+
+                if ($activeCycle) {
+                    $totalMeetings = VslaMeeting::where('cycle_id', $activeCycle->id)
+                        ->where('group_id', $g->id)
+                        ->count();
+
+                    $lastMeeting = VslaMeeting::where('cycle_id', $activeCycle->id)
+                        ->where('group_id', $g->id)
+                        ->orderBy('meeting_date', 'desc')
+                        ->first();
+                    $lastMeetingDate = $lastMeeting?->meeting_date;
+                }
+
+                $memberCount = User::where('group_id', $g->id)->count();
+
+                return [
+                    'id'                => $g->id,
+                    'name'              => $g->name,
+                    'code'              => $g->code,
+                    'member_count'      => $memberCount,
+                    'active_cycle'      => $activeCycle ? [
+                        'id'         => $activeCycle->id,
+                        'name'       => $activeCycle->name,
+                        'start_date' => $activeCycle->start_date,
+                        'end_date'   => $activeCycle->end_date,
+                        'share_value' => $activeCycle->share_value,
+                        'saving_type' => $activeCycle->saving_type ?? 'shares',
+                    ] : null,
+                    'total_meetings'    => $totalMeetings,
+                    'last_meeting_date' => $lastMeetingDate,
+                ];
+            });
+
+            return $this->success($result, 'Meeting groups loaded');
+        } catch (\Exception $e) {
+            Log::error('Facilitator meetingGroups error: ' . $e->getMessage());
+            return $this->error('Failed to load meeting groups: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * List meetings for a specific group (scoped to facilitator).
+     * Supports filtering by cycle_id and status.
+     */
+    public function groupMeetings(Request $request, $groupId)
+    {
+        try {
+            $officer = auth('api')->user();
+            if (!$officer) return $this->error('Unauthorized', 401);
+
+            $group = FfsGroup::where('id', $groupId)
+                ->where('facilitator_id', $officer->id)
+                ->first();
+            if (!$group) return $this->error('Group not found', 404);
+
+            $query = VslaMeeting::where('group_id', $groupId)
+                ->orderBy('meeting_date', 'desc');
+
+            if ($request->filled('cycle_id')) {
+                $query->where('cycle_id', $request->cycle_id);
+            }
+
+            if ($request->filled('status')) {
+                $query->where('processing_status', $request->status);
+            }
+
+            $meetings = $query->get()->map(function ($m) {
+                return [
+                    'id'                => $m->id,
+                    'local_id'          => $m->local_id,
+                    'meeting_number'    => $m->meeting_number,
+                    'meeting_date'      => $m->meeting_date,
+                    'members_present'   => $m->members_present ?? 0,
+                    'members_absent'    => $m->members_absent ?? 0,
+                    'total_savings'     => $m->total_savings_collected ?? 0,
+                    'total_loans'       => $m->total_loans_disbursed ?? 0,
+                    'processing_status' => $m->processing_status,
+                    'created_at'        => $m->created_at?->format('Y-m-d H:i'),
+                ];
+            });
+
+            return $this->success([
+                'group' => [
+                    'id'   => $group->id,
+                    'name' => $group->name,
+                    'code' => $group->code,
+                ],
+                'meetings' => $meetings,
+                'total'    => $meetings->count(),
+            ], 'Group meetings loaded');
+        } catch (\Exception $e) {
+            Log::error('Facilitator groupMeetings error: ' . $e->getMessage());
+            return $this->error('Failed to load meetings: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * List ALL submitted meetings across every VSLA group the facilitator owns.
+     * Returns a flat list sorted by meeting_date desc, each row includes group info.
+     */
+    public function allMeetings(Request $request)
+    {
+        try {
+            $officer = auth('api')->user();
+            if (!$officer) return $this->error('Unauthorized', 401);
+
+            $groupIds = FfsGroup::where('facilitator_id', $officer->id)
+                ->where('type', 'VSLA')
+                ->pluck('id');
+
+            if ($groupIds->isEmpty()) {
+                return $this->success([], 'No meetings found');
+            }
+
+            // Pre-load group info keyed by id
+            $groups = FfsGroup::whereIn('id', $groupIds)
+                ->get()
+                ->keyBy('id');
+
+            $query = VslaMeeting::whereIn('group_id', $groupIds)
+                ->orderBy('meeting_date', 'desc')
+                ->orderBy('id', 'desc');
+
+            if ($request->filled('status')) {
+                $query->where('processing_status', $request->status);
+            }
+
+            $meetings = $query->get()->map(function ($m) use ($groups) {
+                $g = $groups->get($m->group_id);
+                return [
+                    'id'                => $m->id,
+                    'local_id'          => $m->local_id,
+                    'group_id'          => $m->group_id,
+                    'group_name'        => $g?->name ?? 'Unknown',
+                    'group_code'        => $g?->code ?? '',
+                    'cycle_id'          => $m->cycle_id,
+                    'meeting_number'    => $m->meeting_number,
+                    'meeting_date'      => $m->meeting_date?->format('Y-m-d'),
+                    'members_present'   => $m->members_present ?? 0,
+                    'members_absent'    => $m->members_absent ?? 0,
+                    'total_savings'     => (float) ($m->total_savings_collected ?? 0),
+                    'total_welfare'     => (float) ($m->total_welfare_collected ?? 0),
+                    'total_social_fund' => (float) ($m->total_social_fund_collected ?? 0),
+                    'total_fines'       => (float) ($m->total_fines_collected ?? 0),
+                    'total_loans'       => (float) ($m->total_loans_disbursed ?? 0),
+                    'total_loans_repaid'=> (float) ($m->total_loans_repaid ?? 0),
+                    'processing_status' => $m->processing_status,
+                    'has_errors'        => $m->has_errors ?? false,
+                    'has_warnings'      => $m->has_warnings ?? false,
+                    'created_at'        => $m->created_at?->format('Y-m-d H:i'),
+                ];
+            });
+
+            return $this->success($meetings, 'All meetings loaded');
+        } catch (\Exception $e) {
+            Log::error('Facilitator allMeetings error: ' . $e->getMessage());
+            return $this->error('Failed to load meetings: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get manifest-like data for a specific group (for facilitator meeting flow).
+     * Returns group info, active cycle, members list — everything the mobile
+     * meeting hub needs to operate for any of the facilitator's groups.
+     */
+    public function groupManifest(Request $request, $groupId)
+    {
+        try {
+            $officer = auth('api')->user();
+            if (!$officer) return $this->error('Unauthorized', 401);
+
+            $group = FfsGroup::where('id', $groupId)
+                ->where('facilitator_id', $officer->id)
+                ->first();
+            if (!$group) return $this->error('Group not found', 404);
+
+            $activeCycle = Project::where('group_id', $group->id)
+                ->where('is_vsla_cycle', 'Yes')
+                ->where('is_active_cycle', 'Yes')
+                ->first();
+
+            $members = User::where('group_id', $group->id)
+                ->select('id', 'name', 'first_name', 'last_name', 'phone_number', 'sex',
+                    'is_group_admin', 'is_group_secretary', 'is_group_treasurer', 'status')
+                ->get()
+                ->map(function ($m) {
+                    $role = 'Member';
+                    if ($m->is_group_admin === 'Yes') $role = 'Chairperson';
+                    elseif ($m->is_group_secretary === 'Yes') $role = 'Secretary';
+                    elseif ($m->is_group_treasurer === 'Yes') $role = 'Treasurer';
+
+                    return [
+                        'id'           => $m->id,
+                        'name'         => $m->name,
+                        'first_name'   => $m->first_name,
+                        'last_name'    => $m->last_name,
+                        'phone_number' => $m->phone_number,
+                        'sex'          => $m->sex,
+                        'role'         => $role,
+                        'status'       => $m->status ?? 'active',
+                    ];
+                });
+
+            // Active loans for the group
+            $activeLoans = [];
+            if ($activeCycle) {
+                $activeLoans = DB::table('vsla_loans')
+                    ->where('cycle_id', $activeCycle->id)
+                    ->where('status', 'active')
+                    ->get()
+                    ->map(function ($loan) {
+                        return [
+                            'id'            => $loan->id,
+                            'borrower_id'   => $loan->borrower_id,
+                            'loan_amount'   => $loan->loan_amount,
+                            'amount_paid'   => $loan->amount_paid ?? 0,
+                            'balance'       => $loan->balance ?? $loan->loan_amount,
+                            'interest_rate' => $loan->interest_rate ?? 0,
+                            'status'        => $loan->status,
+                        ];
+                    })->toArray();
+            }
+
+            // Action plans
+            $actionPlans = [];
+            if ($activeCycle) {
+                try {
+                    $actionPlans = DB::table('vsla_action_plans')
+                        ->where('cycle_id', $activeCycle->id)
+                        ->where('status', 'pending')
+                        ->get()
+                        ->map(function ($plan) {
+                            return [
+                                'id'          => $plan->id,
+                                'description' => $plan->description ?? '',
+                                'status'      => $plan->status,
+                                'due_date'    => $plan->due_date ?? null,
+                            ];
+                        })->toArray();
+                } catch (\Exception $e) {
+                    // Table may not exist
+                }
+            }
+
+            return $this->success([
+                'group_id'   => $group->id,
+                'group_info' => [
+                    'id'                 => $group->id,
+                    'name'               => $group->name,
+                    'code'               => $group->code,
+                    'meeting_frequency'  => $group->meeting_frequency,
+                    'meeting_day'        => $group->meeting_day,
+                    'meeting_venue'      => $group->meeting_venue,
+                ],
+                'cycle_info' => $activeCycle ? [
+                    'id'          => $activeCycle->id,
+                    'name'        => $activeCycle->name,
+                    'start_date'  => $activeCycle->start_date,
+                    'end_date'    => $activeCycle->end_date,
+                    'share_value' => $activeCycle->share_value ?? 1000,
+                    'saving_type' => $activeCycle->saving_type ?? 'shares',
+                ] : null,
+                'members_list' => [
+                    'members'       => $members,
+                    'total_members' => $members->count(),
+                ],
+                'active_loans'  => $activeLoans,
+                'action_plans'  => $actionPlans,
+            ], 'Group manifest loaded');
+        } catch (\Exception $e) {
+            Log::error('Facilitator groupManifest error: ' . $e->getMessage());
+            return $this->error('Failed to load group manifest: ' . $e->getMessage());
         }
     }
 }

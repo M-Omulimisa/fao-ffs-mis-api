@@ -29,7 +29,7 @@ class HomeController extends Controller
     public function index(Content $content)
     {
         // Add Chart.js CDN and custom styles
-        Admin::script('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
+        Admin::js('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
         
         Admin::style('
             /* Flat, Compact Design - Square Corners */
@@ -548,8 +548,10 @@ class HomeController extends Controller
             $content = "
                 <canvas id='activityChart' height='80'></canvas>
                 <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    if (typeof Chart !== 'undefined') {
+                (function() {
+                    var wait = setInterval(function() {
+                        if (typeof Chart === 'undefined' || !document.getElementById('activityChart')) return;
+                        clearInterval(wait);
                         var ctx = document.getElementById('activityChart').getContext('2d');
                         new Chart(ctx, {
                             type: 'line',
@@ -601,8 +603,8 @@ class HomeController extends Controller
                                 }
                             }
                         });
-                    }
-                });
+                    }, 100);
+                })();
                 </script>
             ";
             
@@ -625,8 +627,10 @@ class HomeController extends Controller
             $content = "
                 <canvas id='groupTypeChart' height='200'></canvas>
                 <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    if (typeof Chart !== 'undefined') {
+                (function() {
+                    var wait = setInterval(function() {
+                        if (typeof Chart === 'undefined' || !document.getElementById('groupTypeChart')) return;
+                        clearInterval(wait);
                         var ctx = document.getElementById('groupTypeChart').getContext('2d');
                         new Chart(ctx, {
                             type: 'doughnut',
@@ -659,8 +663,8 @@ class HomeController extends Controller
                                 }
                             }
                         });
-                    }
-                });
+                    }, 100);
+                })();
                 </script>
             ";
             

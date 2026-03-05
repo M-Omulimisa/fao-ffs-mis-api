@@ -3204,3 +3204,1064 @@
 "} 
 [2026-03-05 07:03:09] local.INFO: ============ USER OBSERVER: CREATED EVENT ============ {"user_id":286,"is_dtehm_member":null,"is_dip_member":null} 
 [2026-03-05 07:11:08] local.INFO: ============ USER OBSERVER: CREATED EVENT ============ {"user_id":287,"is_dtehm_member":null,"is_dip_member":null} 
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:26:09] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:26:09] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:26:09] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:26:14] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:14] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:14] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:14] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:26:14] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:26:14] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:26:15] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:15] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 347)  
+[2026-03-05 19:26:15] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 19:26:35] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:36] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:36] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:36] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:26:36] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:26:38] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:38] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:38] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:38] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:26:38] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:26:48] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:48] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:48] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:48] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:26:48] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:26:52] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:52] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:26:52] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:26:57] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:26:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:26:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:26:57] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:26:57] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:27:02] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:27:02] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:27:02] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:27:02] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:27:02] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:28:15] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:28:15] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:28:15] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:28:21] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:28:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:28:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:28:21] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:28:21] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:28:21] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:28:22] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:28:22] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:28:22] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:28:22] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 347)  
+[2026-03-05 19:28:22] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 19:28:26] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:28:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:28:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:28:26] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 347)  
+[2026-03-05 19:28:26] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 19:28:31] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:28:31] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:28:31] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:28:31] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:28:31] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:28:33] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:28:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:28:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:28:33] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:28:33] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:29:26] local.INFO: === UPDATE METHOD CALLED === {"id":"347","input":{"first_name":"Mark","last_name":"Loru","sex":"Male","phone_number":"+256784536400","group_id":"197","status":"1","is_group_admin":"No","is_group_secretary":"No","is_group_treasurer":"No","district_id":null,"village":"Kakingol","roles":["3","6",null],"password":"$2y$10$Yll1Ycy873qmcZPEBo0RYOFrPvv364wmh4ew//B.Ua6tIRPdedaN2","_token":"PJONFHUUcSXChr46wdhPM1nGBnGNlzZG7o6Ha3EW","_method":"PUT","_previous_":"http://localhost:8888/fao-ffs-mis-api/ffs-members?&__search__=loru"}} 
+[2026-03-05 19:29:26] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":347,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-05 19:29:34] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-05 19:29:34] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-05 19:29:39] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-05 19:29:39] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-05 19:29:40] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-05 19:29:40] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-05 19:31:38] local.INFO: === UPDATE METHOD CALLED === {"id":"347","input":{"first_name":"Mark","last_name":"Loru","sex":"Male","phone_number":"+256784536400","group_id":"197","status":"1","is_group_admin":"No","is_group_secretary":"No","is_group_treasurer":"No","district_id":null,"village":"Kakingol","roles":["3","6",null],"password":"4321","_token":"PJONFHUUcSXChr46wdhPM1nGBnGNlzZG7o6Ha3EW","_method":"PUT","_previous_":"http://localhost:8888/fao-ffs-mis-api/ffs-members?&__search__=loru"}} 
+[2026-03-05 19:31:38] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":347,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-05 19:31:41] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:31:42] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:31:42] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:31:42] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:31:42] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 347)  
+[2026-03-05 19:31:42] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 19:31:49] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:31:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:31:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:31:49] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:31:49] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:31:59] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:31:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:31:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:31:59] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:31:59] local.INFO: EnsureTokenIsValid - Response: 401 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:33:26] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:33:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:33:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:33:26] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 1)  
+[2026-03-05 19:33:26] local.ERROR: API Error [500]: Failed to retrieve AESA sessions: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.aesa_sessions' doesn't exist (SQL: select `aesa_sessions`.*, (select count(*) from `aesa_observations` where `aesa_sessions`.`id` = `aesa_observations`.`aesa_session_id` and `aesa_observations`.`deleted_at` is null) as `observations_count` from `aesa_sessions` where `ip_id` = 4 and `aesa_sessions`.`deleted_at` is null order by `observation_date` desc) {"url":"http://localhost:8888/fao-ffs-mis-api/api/aesa-sessions","method":"GET","user_id":1,"trace":"/Applications/MAMP/htdocs/fao-ffs-mis-api/app/Http/Controllers/Api/AesaController.php:98 App\\Http\\Controllers\\Api\\AesaController->error
+/Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Controller.php:54 App\\Http\\Controllers\\Api\\AesaController->index
+/Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php:45 Illuminate\\Routing\\Controller->callAction
+/Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Route.php:261 Illuminate\\Routing\\ControllerDispatcher->dispatch
+/Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Routing/Route.php:205 Illuminate\\Routing\\Route->runController"} 
+[2026-03-05 19:33:26] local.INFO: EnsureTokenIsValid - Response: 500 for GET api/aesa-sessions  
+[2026-03-05 19:33:26] local.ERROR: EnsureTokenIsValid - 500 ERROR on GET api/aesa-sessions | User: 1 | Body: {"success":false,"code":0,"status":0,"message":"Failed to retrieve AESA sessions: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'fao_ffs_mis.aesa_sessions' doesn't exist (SQL: select `aesa_sessions`.*, (select count(*) from `aesa_observations` where `aesa_sessions`.`id` = `aesa_observations`.`aesa_session_id` and `aesa_observations`.`deleted_at` is null) as `observations_count` from `aesa_sessions` where `ip_id` = 4 and `aesa_sessions`.`deleted_at` is null order by `observation_date` desc)","data":""}  
+[2026-03-05 19:33:42] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:33:42] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:33:42] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:33:43] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 1)  
+[2026-03-05 19:33:43] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:33:49] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:33:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:33:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:33:49] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/1 (User: 1)  
+[2026-03-05 19:33:49] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/1  
+[2026-03-05 19:33:56] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:33:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:33:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:33:57] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 1)  
+[2026-03-05 19:33:57] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 19:34:01] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:34:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:01] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 1)  
+[2026-03-05 19:34:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:34:20] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:34:20] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:34:20] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:34:24] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:34:24] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:24] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:24] local.INFO: EnsureTokenIsValid - Processing: POST api/aesa-sessions (User: 1)  
+[2026-03-05 19:34:24] local.INFO: EnsureTokenIsValid - Response: 201 for POST api/aesa-sessions  
+[2026-03-05 19:34:25] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:34:25] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:25] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:25] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 19:34:25] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 19:34:25] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 19:34:26] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:34:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:26] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 347)  
+[2026-03-05 19:34:26] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 19:34:32] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:34:32] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:32] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:32] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:34:32] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:34:43] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:34:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:43] local.INFO: EnsureTokenIsValid - Processing: POST api/aesa-sessions/4/observations (User: 1)  
+[2026-03-05 19:34:43] local.INFO: EnsureTokenIsValid - Response: 201 for POST api/aesa-sessions/4/observations  
+[2026-03-05 19:34:47] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:34:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:47] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:34:47] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:34:52] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:34:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:52] local.INFO: EnsureTokenIsValid - Processing: PUT api/aesa-sessions/4 (User: 1)  
+[2026-03-05 19:34:52] local.INFO: EnsureTokenIsValid - Response: 200 for PUT api/aesa-sessions/4  
+[2026-03-05 19:34:54] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:34:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:54] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:34:54] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - Processing: POST api/aesa-sessions/4/submit (User: 1)  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - Response: 200 for POST api/aesa-sessions/4/submit  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:34:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:35:04] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:35:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:35:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:35:04] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 1)  
+[2026-03-05 19:35:04] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:35:08] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:35:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:35:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:35:08] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:35:08] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:35:09] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:35:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:35:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:35:09] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/export (User: 1)  
+[2026-03-05 19:35:09] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/export  
+[2026-03-05 19:35:16] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:35:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:35:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:35:16] local.INFO: EnsureTokenIsValid - Processing: PUT api/aesa-observations/5 (User: 1)  
+[2026-03-05 19:35:16] local.INFO: EnsureTokenIsValid - Response: 200 for PUT api/aesa-observations/5  
+[2026-03-05 19:35:21] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:35:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:35:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:35:21] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-observations/5 (User: 1)  
+[2026-03-05 19:35:21] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-observations/5  
+[2026-03-05 19:35:30] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:35:30] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:35:30] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:35:30] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 1)  
+[2026-03-05 19:35:30] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:35:31] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:35:31] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:35:31] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:35:31] local.INFO: EnsureTokenIsValid - Processing: PUT api/aesa-sessions/1 (User: 1)  
+[2026-03-05 19:35:31] local.INFO: EnsureTokenIsValid - Response: 200 for PUT api/aesa-sessions/1  
+[2026-03-05 19:36:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:36:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 19:36:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 19:36:21] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:36:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:21] local.INFO: EnsureTokenIsValid - Processing: GET api/members (User: 347)  
+[2026-03-05 19:36:21] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/members  
+[2026-03-05 19:36:32] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:36:32] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:32] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:32] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 19:36:32] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 1)  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - Processing: PUT api/aesa-sessions/1 (User: 1)  
+[2026-03-05 19:36:44] local.INFO: EnsureTokenIsValid - Response: 422 for PUT api/aesa-sessions/1  
+[2026-03-05 19:36:45] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:36:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:45] local.INFO: EnsureTokenIsValid - Processing: POST api/aesa-sessions/1/observations (User: 1)  
+[2026-03-05 19:36:45] local.INFO: EnsureTokenIsValid - Response: 422 for POST api/aesa-sessions/1/observations  
+[2026-03-05 19:36:51] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:36:51] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:51] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:52] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 1)  
+[2026-03-05 19:36:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 1)  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 1)  
+[2026-03-05 19:36:59] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:37:01] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:37:01] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:37:01] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:37:01] local.INFO: EnsureTokenIsValid - Processing: GET api/members (User: 347)  
+[2026-03-05 19:37:01] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/members  
+[2026-03-05 19:38:08] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:38:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:38:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:38:08] local.INFO: EnsureTokenIsValid - Processing: GET api/members (User: 347)  
+[2026-03-05 19:38:08] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/members  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - Processing: PUT api/aesa-observations/1 (User: 1)  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - Response: 422 for PUT api/aesa-observations/1  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - Processing: DELETE api/aesa-observations/1 (User: 1)  
+[2026-03-05 19:38:40] local.INFO: EnsureTokenIsValid - Response: 422 for DELETE api/aesa-observations/1  
+[2026-03-05 19:38:47] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:38:47] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:38:47] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:38:47] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/2 (User: 1)  
+[2026-03-05 19:38:47] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/2  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - Processing: PUT api/aesa-observations/3 (User: 1)  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - Response: 200 for PUT api/aesa-observations/3  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:38:53] local.INFO: EnsureTokenIsValid - Processing: PUT api/aesa-sessions/2 (User: 1)  
+[2026-03-05 19:38:54] local.INFO: EnsureTokenIsValid - Response: 200 for PUT api/aesa-sessions/2  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - Processing: GET api/projects/64 (User: 347)  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/projects/64  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:39:53] local.INFO: EnsureTokenIsValid - Processing: POST api/vsla-meetings/submit (User: 347)  
+[2026-03-05 19:39:54] local.INFO: Loan created for meeting #1 {"loan_id":36,"borrower":"Abraham Lobur","principal":1000.0,"interest":100.0,"total_due":1100.0,"interest_rate":10.0,"duration":3} 
+[2026-03-05 19:39:54] local.INFO: EnsureTokenIsValid - Response: 200 for POST api/vsla-meetings/submit  
+[2026-03-05 19:40:43] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:40:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:40:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:40:43] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:40:43] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:40:44] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:40:44] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:40:44] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:40:44] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:40:44] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:40:49] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:40:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:40:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:40:49] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:40:49] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:40:54] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:40:55] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:40:55] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:40:55] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:40:55] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:40:57] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:40:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:40:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:40:57] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:40:57] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:45:07] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:45:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:45:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:45:07] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:45:07] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:45:12] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:45:12] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:45:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:45:12] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:45:12] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:45:16] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:45:17] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:45:17] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:45:17] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:45:17] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:48:31] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:48:31] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:48:31] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:48:31] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:48:31] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:49:08] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:49:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:49:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:49:08] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:49:08] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:49:16] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:49:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:49:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:49:16] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 19:49:16] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 19:51:33] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:51:34] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:51:34] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:51:34] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 19:51:34] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:51:43] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:52:12] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:52:14] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:52:16] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:52:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:52:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:52:16] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 347)  
+[2026-03-05 19:52:17] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - Processing: POST api/aesa-sessions (User: 347)  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - Response: 201 for POST api/aesa-sessions  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:52:59] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:53:04] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:53:06] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:53:06] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:53:06] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:53:06] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/5 (User: 347)  
+[2026-03-05 19:53:06] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/5  
+[2026-03-05 19:53:13] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:53:13] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:53:13] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:53:13] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 347)  
+[2026-03-05 19:53:13] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 19:55:17] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:55:17] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:55:17] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:55:17] local.INFO: EnsureTokenIsValid - Processing: POST api/aesa-sessions/5/observations (User: 347)  
+[2026-03-05 19:55:17] local.INFO: EnsureTokenIsValid - Response: 201 for POST api/aesa-sessions/5/observations  
+[2026-03-05 19:55:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:55:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:55:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:55:18] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/5 (User: 347)  
+[2026-03-05 19:55:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/5  
+[2026-03-05 19:55:23] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:55:23] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:55:23] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:55:23] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/5 (User: 347)  
+[2026-03-05 19:55:23] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/5  
+[2026-03-05 19:55:28] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:55:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:55:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:55:28] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 347)  
+[2026-03-05 19:55:29] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 19:55:38] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:55:38] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:55:38] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:55:38] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/5 (User: 347)  
+[2026-03-05 19:55:38] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/5  
+[2026-03-05 19:55:49] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:55:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:55:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:55:49] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 347)  
+[2026-03-05 19:55:49] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:56:04] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:56:09] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:09] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/5 (User: 347)  
+[2026-03-05 19:56:09] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/5  
+[2026-03-05 19:56:14] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:14] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:14] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:14] local.INFO: EnsureTokenIsValid - Processing: POST api/aesa-sessions/5/submit (User: 347)  
+[2026-03-05 19:56:14] local.INFO: EnsureTokenIsValid - Response: 200 for POST api/aesa-sessions/5/submit  
+[2026-03-05 19:56:15] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:15] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/5 (User: 347)  
+[2026-03-05 19:56:15] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/5  
+[2026-03-05 19:56:17] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:18] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/5 (User: 347)  
+[2026-03-05 19:56:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/5  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:56:36] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:56:37] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:58:15] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 347)  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 347)  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 19:58:16] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 19:58:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 19:58:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 19:58:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 19:58:18] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 347)  
+[2026-03-05 19:58:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 20:01:53] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 20:01:53] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:01:53] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:01:53] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 1)  
+[2026-03-05 20:01:54] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 20:02:00] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 20:02:00] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:02:00] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:02:00] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 1)  
+[2026-03-05 20:02:00] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 20:02:07] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 20:02:07] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:02:07] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:02:07] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 1)  
+[2026-03-05 20:02:07] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 20:02:40] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:02:40] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:02:40] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:02:40] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 20:02:40] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/all-meetings (User: 347)  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/all-meetings  
+[2026-03-05 20:02:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/all-meetings (User: 347)  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/meeting-groups (User: 347)  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/all-meetings  
+[2026-03-05 20:02:54] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/meeting-groups  
+[2026-03-05 20:02:57] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:02:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:02:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:02:57] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 20:02:57] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 20:03:22] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:03:22] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:03:22] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:03:22] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 347)  
+[2026-03-05 20:03:22] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 347)  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 347)  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 347)  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/347 (User: 347)  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Response: 404 for GET api/vsla/transactions/member-balance/347  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:07:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 347)  
+[2026-03-05 20:07:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-05 20:08:28] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:08:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:08:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:08:28] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 20:08:28] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/347 (User: 347)  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 347)  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Response: 404 for GET api/vsla/transactions/member-balance/347  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 347)  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 347)  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 347)  
+[2026-03-05 20:08:29] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-05 20:09:18] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:09:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:09:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:09:18] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 20:09:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/347 (User: 347)  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 347)  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Response: 404 for GET api/vsla/transactions/member-balance/347  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 347)  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 347)  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 347)  
+[2026-03-05 20:09:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 347)  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 347)  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/347 (User: 347)  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 347)  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Response: 404 for GET api/vsla/transactions/member-balance/347  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 347)  
+[2026-03-05 20:14:19] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-05 20:15:51] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:15:51] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:15:51] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:15:51] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 347)  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 347)  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 347)  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 347)  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/347 (User: 347)  
+[2026-03-05 20:15:52] local.INFO: EnsureTokenIsValid - Response: 404 for GET api/vsla/transactions/member-balance/347  
+[2026-03-05 20:18:49] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 20:18:49] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:18:49] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:18:49] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 1)  
+[2026-03-05 20:18:49] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 20:18:57] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 20:18:57] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:18:57] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:18:57] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 1)  
+[2026-03-05 20:18:57] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 20:19:21] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 20:19:21] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:19:21] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:19:21] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 1)  
+[2026-03-05 20:19:21] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 20:19:28] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-05 20:19:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:19:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:19:28] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 1)  
+[2026-03-05 20:19:28] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  
+[2026-03-05 20:20:44] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:20:44] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:20:44] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:20:44] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 20:20:44] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/347 (User: 347)  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Response: 404 for GET api/vsla/transactions/member-balance/347  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 347)  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 347)  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 347)  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 347)  
+[2026-03-05 20:20:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-05 20:21:44] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:21:44] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:21:44] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:21:44] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/197/manifest (User: 347)  
+[2026-03-05 20:21:44] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/197/manifest  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/347 (User: 347)  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 347)  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Response: 404 for GET api/vsla/transactions/member-balance/347  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 347)  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 347)  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 347)  
+[2026-03-05 20:21:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 20:28:28] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 20:28:28] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 20:28:28] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 20:28:33] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:28:33] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:28:33] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:28:33] local.INFO: EnsureTokenIsValid - Processing: GET api/users/me (User: 347)  
+[2026-03-05 20:28:33] local.INFO: enrichUserWithGroup: user 347 resolved via group_id=197  
+[2026-03-05 20:28:33] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/me  
+[2026-03-05 20:28:34] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:28:34] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:28:34] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:28:34] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 347)  
+[2026-03-05 20:28:34] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:35:16] local.INFO: EnsureTokenIsValid - User ID: 347  
+[2026-03-05 20:35:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:35:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:35:16] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 347)  
+[2026-03-05 20:35:16] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:36:50] local.INFO: enrichUserWithGroup: user 430 resolved via group_id=204  
+[2026-03-05 20:36:50] local.INFO: EnsureTokenIsValid - User ID: 430  
+[2026-03-05 20:36:50] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:36:50] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:36:50] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 430)  
+[2026-03-05 20:36:50] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:36:52] local.INFO: EnsureTokenIsValid - User ID: 430  
+[2026-03-05 20:36:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:36:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:36:52] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 430)  
+[2026-03-05 20:36:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:36:55] local.INFO: EnsureTokenIsValid - User ID: 430  
+[2026-03-05 20:36:55] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:36:55] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:36:55] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 430)  
+[2026-03-05 20:36:55] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:40:00] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":1,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-05 20:40:00] local.INFO: enrichUserWithGroup: user 1 resolved via group_id=1  
+[2026-03-05 20:40:06] local.INFO: enrichUserWithGroup: user 1 resolved via group_id=1  
+[2026-03-05 20:47:36] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":428,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-05 20:47:36] local.INFO: enrichUserWithGroup: user 428 resolved via group_id=203  
+[2026-03-05 20:47:37] local.INFO: EnsureTokenIsValid - User ID: 428  
+[2026-03-05 20:47:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:47:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:47:37] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 428)  
+[2026-03-05 20:47:37] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:47:39] local.INFO: EnsureTokenIsValid - User ID: 428  
+[2026-03-05 20:47:39] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:47:39] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:47:39] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 428)  
+[2026-03-05 20:47:39] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:50:46] local.INFO: EnsureTokenIsValid - User ID: 428  
+[2026-03-05 20:50:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:50:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:50:46] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 428)  
+[2026-03-05 20:50:46] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:58:11] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":426,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-05 20:58:11] local.INFO: enrichUserWithGroup: user 426 resolved via group_id=203  
+[2026-03-05 20:58:12] local.INFO: EnsureTokenIsValid - User ID: 426  
+[2026-03-05 20:58:12] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:58:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:58:12] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 426)  
+[2026-03-05 20:58:12] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:58:17] local.INFO: enrichUserWithGroup: user 426 resolved via group_id=203  
+[2026-03-05 20:58:18] local.INFO: EnsureTokenIsValid - User ID: 426  
+[2026-03-05 20:58:18] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:58:18] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:58:18] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 426)  
+[2026-03-05 20:58:18] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:58:26] local.INFO: EnsureTokenIsValid - User ID: 426  
+[2026-03-05 20:58:26] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:58:26] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:58:26] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 426)  
+[2026-03-05 20:58:26] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:58:42] local.INFO: enrichUserWithGroup: user 426 resolved via group_id=203  
+[2026-03-05 20:58:43] local.INFO: EnsureTokenIsValid - User ID: 426  
+[2026-03-05 20:58:43] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:58:43] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:58:43] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 426)  
+[2026-03-05 20:58:43] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:58:45] local.INFO: EnsureTokenIsValid - User ID: 426  
+[2026-03-05 20:58:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:58:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:58:45] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 426)  
+[2026-03-05 20:58:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:59:35] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":425,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-05 20:59:35] local.INFO: enrichUserWithGroup: user 425 resolved via group_id=203  
+[2026-03-05 20:59:35] local.INFO: EnsureTokenIsValid - User ID: 425  
+[2026-03-05 20:59:35] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:59:35] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:59:35] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 425)  
+[2026-03-05 20:59:35] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:59:37] local.INFO: EnsureTokenIsValid - User ID: 425  
+[2026-03-05 20:59:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:59:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:59:37] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 425)  
+[2026-03-05 20:59:37] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:59:44] local.INFO: enrichUserWithGroup: user 426 resolved via group_id=203  
+[2026-03-05 20:59:45] local.INFO: EnsureTokenIsValid - User ID: 426  
+[2026-03-05 20:59:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:59:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:59:45] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 426)  
+[2026-03-05 20:59:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:59:51] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":425,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-05 20:59:51] local.INFO: enrichUserWithGroup: user 425 resolved via group_id=203  
+[2026-03-05 20:59:52] local.INFO: EnsureTokenIsValid - User ID: 425  
+[2026-03-05 20:59:52] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:59:52] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:59:52] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 425)  
+[2026-03-05 20:59:52] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 20:59:54] local.INFO: EnsureTokenIsValid - User ID: 425  
+[2026-03-05 20:59:54] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 20:59:54] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 20:59:54] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 425)  
+[2026-03-05 20:59:54] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 21:00:36] local.INFO: enrichUserWithGroup: user 399 resolved via group_id=176  
+[2026-03-05 21:00:37] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:00:37] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:00:37] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:00:37] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 399)  
+[2026-03-05 21:00:37] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 21:01:10] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:01:10] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:01:10] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:01:10] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 399)  
+[2026-03-05 21:01:10] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-05 21:01:15] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:01:15] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:01:15] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:01:15] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 399)  
+[2026-03-05 21:01:15] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 21:01:17] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:01:17] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:01:17] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:01:17] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 399)  
+[2026-03-05 21:01:17] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 21:16:45] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:16:45] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:16:45] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:16:45] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/groups/176/manifest (User: 399)  
+[2026-03-05 21:16:45] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/groups/176/manifest  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/loans (User: 399)  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/group-statement (User: 399)  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-statement (User: 399)  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/transactions/member-balance/399 (User: 399)  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/loans  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Response: 404 for GET api/vsla/transactions/member-balance/399  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/group-statement  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/transactions/member-statement  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Processing: GET api/vsla/dashboard (User: 399)  
+[2026-03-05 21:16:46] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/vsla/dashboard  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 399)  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 399)  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 21:23:08] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 399)  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 399)  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 21:23:16] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions (User: 399)  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/stats (User: 399)  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions  
+[2026-03-05 21:26:09] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/stats  
+[2026-03-05 21:26:12] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 21:26:12] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 21:26:12] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 21:26:12] local.INFO: EnsureTokenIsValid - Processing: GET api/aesa-sessions/dropdown-options (User: 399)  
+[2026-03-05 21:26:12] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/aesa-sessions/dropdown-options  

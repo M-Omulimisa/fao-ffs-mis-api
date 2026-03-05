@@ -218,4 +218,12 @@ Route::group([
     $router->resource('movies-pending', MovieController::class);
     $router->resource('movies-success', MovieController::class);
     $router->resource('movies-fail', MovieController::class);
+
+    // ========================================
+    // AESA — Agro-Ecosystem Analysis
+    // Stats dashboard, sessions list, observations list
+    // ========================================
+    $router->get('aesa-stats', 'AesaStatsController@index');
+    $router->resource('aesa-admin-sessions', AesaSessionController::class);
+    $router->resource('aesa-admin-observations', AesaObservationController::class);
 });
