@@ -4478,3 +4478,8 @@
 [2026-03-05 22:17:30] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2026-03-05 22:17:30] local.INFO: EnsureTokenIsValid - Processing: GET api/agent-vsla/dashboard (User: 399)  
 [2026-03-05 22:17:30] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/agent-vsla/dashboard  
+[2026-03-05 22:33:32] local.INFO: EnsureTokenIsValid - User ID: 399  
+[2026-03-05 22:33:32] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-05 22:33:32] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-05 22:33:32] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 399)  
+[2026-03-05 22:33:32] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  

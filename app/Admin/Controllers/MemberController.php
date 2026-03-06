@@ -454,12 +454,20 @@ class MemberController extends AdminController
         });
 
         $form->row(function ($row) {
-            $row->width(6)->text('phone_number', 'Phone Number')
+            $row->width(4)->text('phone_number', 'Phone Number')
                 ->placeholder('e.g. 0771234567')
                 ->creationRules(['required', 'unique:users,phone_number'])
                 ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
                 ->help('Used as login username & password');
-            $row->width(6)->image('avatar', 'Photo')->removable();
+            $row->width(4)->email('email', 'Email Address')
+                ->placeholder('e.g. member@example.com');
+            $row->width(4)->image('avatar', 'Photo')->removable();
+        });
+
+        $form->row(function ($row) {
+            $row->width(6)->text('username', 'Username')
+                ->placeholder('Auto-filled from phone number')
+                ->help('Defaults to phone number if left blank');
         });
         
         // Group Assignment (IP-scoped for non-super-admins)
@@ -521,7 +529,7 @@ class MemberController extends AdminController
             $form->name = trim($form->first_name . ' ' . $form->last_name);
 
             if ($form->isCreating()) {
-                // Auto-generate username from phone if empty
+                // Auto-generate username from phone number if not provided
                 if (empty($form->username) && !empty($form->phone_number)) {
                     $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
                 } elseif (empty($form->username)) {
@@ -578,6 +586,11 @@ class MemberController extends AdminController
                     }
                 }
             } else {
+                // On update: sync username to phone number if username is empty
+                if (empty($form->username) && !empty($form->phone_number)) {
+                    $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
+                }
+
                 // Only hash password if provided
                 if (!empty($form->password)) {
                     $form->password = bcrypt($form->password);
