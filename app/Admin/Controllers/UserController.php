@@ -231,13 +231,28 @@ class UserController extends AdminController
                 ->default('Male')->required();
         });
 
-        $form->row(function ($row) {
-            $row->width(6)->text('phone_number', 'Phone Number')
-                ->placeholder('e.g. 0771234567')
-                ->creationRules(['required', 'unique:users,phone_number'])
-                ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
-                ->help('Used as login username & default password');
-            $row->width(6)->image('avatar', 'Photo')->removable();
+        // Only IP managers and super admins can set facilitator start date
+        $canSetStartDate = $this->isSuperAdmin() ||
+            (Admin::user() && Admin::user()->isRole('ip_manager'));
+
+        $form->row(function ($row) use ($canSetStartDate) {
+            if ($canSetStartDate) {
+                $row->width(4)->text('phone_number', 'Phone Number')
+                    ->placeholder('e.g. 0771234567')
+                    ->creationRules(['required', 'unique:users,phone_number'])
+                    ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
+                    ->help('Used as login username & default password');
+                $row->width(4)->date('facilitator_start_date', 'Facilitator Start Date')
+                    ->help('Date when facilitator started working (for KPI tracking)');
+                $row->width(4)->image('avatar', 'Photo')->removable();
+            } else {
+                $row->width(6)->text('phone_number', 'Phone Number')
+                    ->placeholder('e.g. 0771234567')
+                    ->creationRules(['required', 'unique:users,phone_number'])
+                    ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
+                    ->help('Used as login username & default password');
+                $row->width(6)->image('avatar', 'Photo')->removable();
+            }
         });
 
         // ── Group & Role ──

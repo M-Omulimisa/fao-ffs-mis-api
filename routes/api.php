@@ -1066,3 +1066,13 @@ Route::get('market-price-products', [ApiResurceController::class, 'market_price_
 Route::get('market-prices', [ApiResurceController::class, 'market_prices']);
 Route::get('market-prices-latest', [ApiResurceController::class, 'market_prices_latest']);
 Route::get('market-price-trend', [ApiResurceController::class, 'market_price_trend']);
+
+// ========================================
+// KPI TRACKING ROUTES
+// ========================================
+Route::prefix('kpi')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/benchmarks', [\App\Http\Controllers\Api\KpiController::class, 'benchmarks']);
+    Route::get('/facilitator-scorecard', [\App\Http\Controllers\Api\KpiController::class, 'facilitatorScorecard']);
+    Route::get('/facilitator-trend', [\App\Http\Controllers\Api\KpiController::class, 'facilitatorTrend']);
+    Route::get('/ip-scorecard', [\App\Http\Controllers\Api\KpiController::class, 'ipScorecard']);
+});

@@ -226,4 +226,9 @@ Route::group([
     $router->get('aesa-stats', 'AesaStatsController@index');
     $router->resource('aesa-admin-sessions', AesaSessionController::class);
     $router->resource('aesa-admin-observations', AesaObservationController::class);
+
+    // ========================================
+    // KPI TRACKING — Facilitator & IP performance
+    // ========================================
+    $router->resource('kpi-benchmarks', KpiBenchmarkController::class);
 });

@@ -30,6 +30,11 @@ class ImplementingPartner extends Model
         'status',
         'start_date',
         'end_date',
+        'kpi_target_facilitators',
+        'kpi_target_groups',
+        'kpi_target_trainings_per_week',
+        'kpi_target_meetings_per_week',
+        'kpi_target_members',
         'created_by_id',
     ];
 
@@ -37,6 +42,11 @@ class ImplementingPartner extends Model
         'districts'  => 'array',
         'start_date' => 'date',
         'end_date'   => 'date',
+        'kpi_target_facilitators'       => 'integer',
+        'kpi_target_groups'             => 'integer',
+        'kpi_target_trainings_per_week' => 'integer',
+        'kpi_target_meetings_per_week'  => 'integer',
+        'kpi_target_members'            => 'integer',
     ];
 
     // ── Constants ────────────────────────────────────

@@ -7,6 +7,7 @@ use App\Models\FfsGroup;
 use App\Models\FfsTrainingSession;
 use App\Models\User;
 use Encore\Admin\Controllers\AdminController;
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
@@ -185,6 +186,28 @@ class ImplementingPartnerController extends AdminController
             $form->text('region', 'Region')->placeholder('e.g. Karamoja');
             $form->tags('districts', 'Districts')->help('Add district names covered by this IP');
         });
+
+        // Only super admins can set IP KPI targets
+        $isSuperAdmin = Admin::user() && Admin::user()->isRole('super_admin');
+        if ($isSuperAdmin) {
+            $form->tab('KPI Targets', function (Form $form) {
+                $form->number('kpi_target_facilitators', 'Target Facilitators')
+                    ->default(5)->min(1)->max(100)
+                    ->help('Target number of facilitators for this IP');
+                $form->number('kpi_target_groups', 'Target Groups')
+                    ->default(15)->min(1)->max(500)
+                    ->help('Target number of active groups');
+                $form->number('kpi_target_trainings_per_week', 'Target Trainings per Week')
+                    ->default(30)->min(0)->max(200)
+                    ->help('Target training sessions per week across all facilitators');
+                $form->number('kpi_target_meetings_per_week', 'Target Meetings per Week')
+                    ->default(15)->min(0)->max(500)
+                    ->help('Target group meetings submitted per week');
+                $form->number('kpi_target_members', 'Target Total Members')
+                    ->default(450)->min(0)->max(10000)
+                    ->help('Target total registered members across all groups');
+            });
+        }
 
         return $form;
     }
