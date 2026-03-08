@@ -82,27 +82,6 @@ class ApiResurceController extends Controller
         }
 
         if (
-            $request->business_license_issue_authority == null ||
-            strlen($request->business_license_issue_authority) < 2
-        ) {
-            return $this->error('Business license issue authority is missing.');
-        }
-
-        if (
-            $request->business_license_issue_date == null ||
-            strlen($request->business_license_issue_date) < 2
-        ) {
-            return $this->error('Business license issue date is missing.');
-        }
-
-        if (
-            $request->business_license_validity == null ||
-            strlen($request->business_license_validity) < 2
-        ) {
-            return $this->error('Business license validity is missing.');
-        }
-
-        if (
             $request->business_address == null ||
             strlen($request->business_address) < 2
         ) {
@@ -139,15 +118,10 @@ class ApiResurceController extends Controller
         $u->nin = $request->campus_id;
         $u->business_name = $request->business_name;
         $u->business_license_number = $request->business_license_number;
-        $u->business_license_issue_authority = $request->business_license_issue_authority;
-        $u->business_license_issue_date = $request->business_license_issue_date;
-        $u->business_license_validity = $request->business_license_validity;
         $u->business_address = $request->business_address;
         $u->business_phone_number = $request->business_phone_number;
         $u->business_whatsapp = $request->business_whatsapp;
         $u->business_email = $request->business_email;
-        $u->business_cover_photo = $request->business_cover_photo;
-        $u->business_cover_details = $request->business_cover_details;
 
 
         if ($u->status != 'Active') {

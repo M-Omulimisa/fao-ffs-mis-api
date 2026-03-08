@@ -230,5 +230,8 @@ Route::group([
     // ========================================
     // KPI TRACKING — Facilitator & IP performance
     // ========================================
-    $router->resource('kpi-benchmarks', KpiBenchmarkController::class);
+    $router->resource('kpi-benchmarks', KpiFacilitatorController::class); // backward-compatible alias
+    $router->resource('kpi-facilitators', KpiFacilitatorController::class);
+    $router->get('kpi-ips', 'KpiIpController@index');
+    $router->get('kpi-stats', 'KpiStatsController@index');
 });

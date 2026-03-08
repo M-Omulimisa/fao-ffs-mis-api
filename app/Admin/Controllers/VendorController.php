@@ -73,15 +73,10 @@ class VendorController extends AdminController
         $grid->column('phone_number', __('Phone number'))->sortable();
         $grid->column('business_name', __('Business name'))->sortable();
         $grid->column('business_license_number', __('Business license number'))->hide();
-        $grid->column('business_license_issue_authority', __('Business license issue authority'))->hide();
-        $grid->column('business_license_issue_date', __('Business license issue date'))->hide();
-        $grid->column('business_license_validity', __('Business license validity'))->hide();
         $grid->column('business_phone_number', __('Business phone number'))->hide();
         $grid->column('business_whatsapp', __('Business whatsapp'))->hide();
         $grid->column('business_email', __('Business email'))->hide();
         $grid->column('business_logo', __('Business logo'))->hide();
-        $grid->column('business_cover_photo', __('Business cover photo'))->hide();
-        $grid->column('business_cover_details', __('Business cover details'))->hide();
 
 
         return $grid;
@@ -138,16 +133,11 @@ class VendorController extends AdminController
         $show->field('intro', __('Intro'));
         $show->field('business_name', __('Business name'));
         $show->field('business_license_number', __('Business license number'));
-        $show->field('business_license_issue_authority', __('Business license issue authority'));
-        $show->field('business_license_issue_date', __('Business license issue date'));
-        $show->field('business_license_validity', __('Business license validity'));
         $show->field('business_address', __('Business address'));
         $show->field('business_phone_number', __('Business phone number'));
         $show->field('business_whatsapp', __('Business whatsapp'));
         $show->field('business_email', __('Business email'));
         $show->field('business_logo', __('Business logo'));
-        $show->field('business_cover_photo', __('Business cover photo'));
-        $show->field('business_cover_details', __('Business cover details'));
 
         return $show;
     }
@@ -167,16 +157,11 @@ class VendorController extends AdminController
         $form->text('campus_id', __('ID Number'))->default(1);
         $form->text('business_name', __('Business name'));
         $form->text('business_license_number', __('Business license number'));
-        $form->text('business_license_issue_authority', __('Business license issue authority'));
-        $form->text('business_license_issue_date', __('Business license issue date'));
-        $form->text('business_license_validity', __('Business license validity'));
         $form->text('business_address', __('Business address'));
         $form->text('business_phone_number', __('Business phone number'));
         $form->text('business_whatsapp', __('Business whatsapp'));
         $form->text('business_email', __('Business email'));
         $form->image('business_logo', __('Business logo'));
-        $form->text('business_cover_photo', __('Business cover photo'));
-        $form->text('business_cover_details', __('Business cover details'));
         $form->radioCard('user_type', __('User type'))->default('regular')
             ->options(
                 [
