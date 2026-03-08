@@ -286,8 +286,9 @@ class UserController extends AdminController
         // ── Saving logic ──
         $form->saving(function (Form $form) {
             $form->name = trim($form->first_name . ' ' . $form->last_name);
+            $adminUser = Admin::user();
             $isSuperAdmin = $this->isSuperAdmin();
-            $adminIp = Admin::user()->ip_id ?? null;
+            $adminIp = $adminUser->ip_id ?? null;
 
             // IP control: super admins can assign/change IP; others are pinned to their own IP.
             if ($isSuperAdmin) {
@@ -299,6 +300,11 @@ class UserController extends AdminController
                     throw new \Exception('Your account has no Implementing Partner assigned. Contact super admin.');
                 }
                 $form->ip_id = $adminIp;
+            }
+
+            // Keep super-admin explicit selection intact.
+            if ($isSuperAdmin && $form->ip_id !== null && $form->ip_id !== '') {
+                $form->input('ip_id', (int) $form->ip_id);
             }
 
             if ($form->isCreating()) {

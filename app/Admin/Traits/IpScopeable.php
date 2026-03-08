@@ -45,9 +45,11 @@ trait IpScopeable
         if (!$user) {
             return false;
         }
-        // Support both FAO custom role slug and Laravel-Admin legacy slug.
+
+        // Role checks are relation-based to remain compatible with custom admin models.
         return $this->userHasRoleSlug($user, 'super_admin')
-            || $this->userHasRoleSlug($user, 'administrator');
+            || $this->userHasRoleSlug($user, 'administrator')
+            || $this->userHasRoleId($user, 1);
     }
 
     /**
@@ -59,19 +61,48 @@ trait IpScopeable
             return false;
         }
 
-        if (method_exists($user, 'isRole')) {
-            return (bool) $user->isRole($slug);
-        }
-
         if (method_exists($user, 'roles')) {
             try {
                 return $user->roles()->where('slug', $slug)->exists();
             } catch (\Throwable $e) {
-                return false;
+                // Fallback: try already-loaded roles collection.
+                try {
+                    $roles = $user->roles;
+                    if ($roles) {
+                        return $roles->contains(function ($role) use ($slug) {
+                            return isset($role->slug) && $role->slug === $slug;
+                        });
+                    }
+                } catch (\Throwable $e2) {
+                    return false;
+                }
             }
         }
 
         return false;
+    }
+
+    /**
+     * Fallback check by role ID for environments where slugs are customized.
+     */
+    protected function userHasRoleId($user, int $roleId): bool
+    {
+        if (!$user || !method_exists($user, 'roles')) {
+            return false;
+        }
+
+        try {
+            return $user->roles()->where('id', $roleId)->exists();
+        } catch (\Throwable $e) {
+            try {
+                $roles = $user->roles;
+                return $roles ? $roles->contains(function ($role) use ($roleId) {
+                    return isset($role->id) && (int) $role->id === $roleId;
+                }) : false;
+            } catch (\Throwable $e2) {
+                return false;
+            }
+        }
     }
 
     /**
@@ -109,9 +140,19 @@ trait IpScopeable
         $ipId = $user ? $user->ip_id : null;
 
         if ($this->isSuperAdmin()) {
-            // Super admins: dropdown with all IPs
+            // Super admins: dropdown with all IPs (active/inactive) so reassignment is always possible.
+            $allIpOptions = ImplementingPartner::query()
+                ->orderBy('name')
+                ->get()
+                ->mapWithKeys(function ($ip) {
+                    $status = $ip->status ? strtoupper($ip->status) : 'UNKNOWN';
+                    $short = $ip->short_name ? " ({$ip->short_name})" : '';
+                    return [$ip->id => "{$ip->name}{$short} [{$status}]"];
+                })
+                ->toArray();
+
             $form->select('ip_id', 'Implementing Partner')
-                ->options(ImplementingPartner::getDropdownOptions())
+                ->options($allIpOptions)
                 ->rules('required')
                 ->help('Assign this record to an Implementing Partner');
         } else {
