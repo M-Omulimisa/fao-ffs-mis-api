@@ -193,13 +193,6 @@ class UserController extends AdminController
         $show->field('is_group_secretary', 'Secretary')->using(['Yes' => 'Yes', 'No' => 'No']);
         $show->field('is_group_treasurer', 'Treasurer')->using(['Yes' => 'Yes', 'No' => 'No']);
 
-        $show->divider('Location');
-        $show->field('district_id', 'District')->as(function () {
-            $loc = Location::find($this->district_id);
-            return $loc ? $loc->name : 'N/A';
-        });
-        $show->field('village', 'Village');
-
         $show->divider('Account');
         $show->field('status', 'Status')->using(['1' => 'Active', '0' => 'Inactive']);
         $show->field('created_at', 'Created');
@@ -267,14 +260,7 @@ class UserController extends AdminController
                 ->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
         });
 
-        // ── Location ──
-        $form->row(function ($row) {
-            $row->width(6)->select('district_id', 'District')->options(function () {
-                return Location::where('parent', 0)->orderBy('name')->pluck('name', 'id');
-            });
-            $row->width(6)->text('village', 'Village');
-        });
-
+      
         // ── Account & Security ──
         $form->divider('Account & Security');
 
