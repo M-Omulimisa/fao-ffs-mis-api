@@ -678,21 +678,37 @@ class VslaOnboardingController extends Controller
             return $this->error('You must create a group first');
         }
 
-        // Validation
-        $validator = Validator::make($request->all(), [
-            'cycle_name' => 'required|string|min:3|max:200',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'saving_type' => 'required|in:shares,any_amount',
-            'share_value' => 'required_if:saving_type,shares|nullable|numeric|min:1000|max:100000',
-            'meeting_frequency' => 'required|in:Weekly,Bi-weekly,Monthly',
-            'loan_interest_rate' => 'required|numeric|min:0|max:100',
-            'interest_frequency' => 'required|in:Weekly,Monthly',
-            'weekly_loan_interest_rate' => 'required_if:interest_frequency,Weekly|nullable|numeric|min:0|max:100',
-            'monthly_loan_interest_rate' => 'required_if:interest_frequency,Monthly|nullable|numeric|min:0|max:100',
-            'minimum_loan_amount' => 'required|numeric|min:1000',
-            'maximum_loan_multiple' => 'required|integer|min:3|max:30',
-            'late_payment_penalty' => 'required|numeric|min:0|max:50',
+        $normalized = [
+            'cycle_name' => $request->input('cycle_name', $request->input('name')),
+            'start_date' => $request->input('start_date', $request->input('startDate')),
+            'end_date' => $request->input('end_date', $request->input('endDate')),
+            'saving_type' => $request->input('saving_type', $request->input('savingType')),
+            'share_value' => $request->input('share_value', $request->input('shareValue')),
+            'meeting_frequency' => $request->input('meeting_frequency', $request->input('meetingFrequency')),
+            'loan_interest_rate' => $request->input('loan_interest_rate', $request->input('loanInterestRate')),
+            'interest_frequency' => $request->input('interest_frequency', $request->input('interestFrequency')),
+            'weekly_loan_interest_rate' => $request->input('weekly_loan_interest_rate', $request->input('weeklyLoanInterestRate')),
+            'monthly_loan_interest_rate' => $request->input('monthly_loan_interest_rate', $request->input('monthlyLoanInterestRate')),
+            'minimum_loan_amount' => $request->input('minimum_loan_amount', $request->input('minimumLoanAmount')),
+            'maximum_loan_multiple' => $request->input('maximum_loan_multiple', $request->input('maximumLoanMultiple')),
+            'late_payment_penalty' => $request->input('late_payment_penalty', $request->input('latePaymentPenalty')),
+        ];
+
+        // Keep only essential validation and tolerate partial mobile payloads.
+        $validator = Validator::make($normalized, [
+            'cycle_name' => 'nullable|string|min:2|max:200',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'saving_type' => 'nullable|in:shares,any_amount',
+            'share_value' => 'nullable|numeric|min:0|max:1000000',
+            'meeting_frequency' => 'nullable|in:Weekly,Bi-weekly,Monthly',
+            'loan_interest_rate' => 'nullable|numeric|min:0|max:100',
+            'interest_frequency' => 'nullable|in:Weekly,Monthly',
+            'weekly_loan_interest_rate' => 'nullable|numeric|min:0|max:100',
+            'monthly_loan_interest_rate' => 'nullable|numeric|min:0|max:100',
+            'minimum_loan_amount' => 'nullable|numeric|min:0',
+            'maximum_loan_multiple' => 'nullable|integer|min:1|max:100',
+            'late_payment_penalty' => 'nullable|numeric|min:0|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -707,6 +723,25 @@ class VslaOnboardingController extends Controller
             if (!$group) {
                 return $this->error('Group not found');
             }
+
+            $startDate = $normalized['start_date'] ?? Carbon::now()->toDateString();
+            $endDate = $normalized['end_date'] ?? Carbon::parse($startDate)->addMonths(12)->toDateString();
+
+            if (Carbon::parse($endDate)->lt(Carbon::parse($startDate))) {
+                return $this->error('End date must be after start date');
+            }
+
+            $savingType = $normalized['saving_type'] ?? 'shares';
+            $cycleName = $normalized['cycle_name'] ?? ('Cycle ' . (($group->cycle_number ?? 0) + 1));
+            $meetingFrequency = $normalized['meeting_frequency'] ?? 'Weekly';
+            $interestFrequency = $normalized['interest_frequency'] ?? 'Monthly';
+            $loanInterestRate = $normalized['loan_interest_rate'] ?? 10;
+            $minimumLoanAmount = $normalized['minimum_loan_amount'] ?? 0;
+            $maximumLoanMultiple = $normalized['maximum_loan_multiple'] ?? 3;
+            $latePaymentPenalty = $normalized['late_payment_penalty'] ?? 0;
+            $shareValue = $normalized['share_value'] ?? 0;
+            $weeklyInterestRate = $normalized['weekly_loan_interest_rate'];
+            $monthlyInterestRate = $normalized['monthly_loan_interest_rate'];
 
             // ========== CHECK: UPDATE OR CREATE? ==========
             // Check if group already has an active cycle
@@ -732,32 +767,32 @@ class VslaOnboardingController extends Controller
             }
 
             // ========== UPDATE/SET CYCLE FIELDS ==========
-            $cycle->title = $request->cycle_name;
+            $cycle->title = $cycleName;
             $cycle->description = "VSLA Savings Cycle for {$group->name}";
-            $cycle->start_date = $request->start_date;
-            $cycle->end_date = $request->end_date;
+            $cycle->start_date = $startDate;
+            $cycle->end_date = $endDate;
             
             // VSLA-specific fields
-            $cycle->cycle_name = $request->cycle_name;
-            $cycle->saving_type = $request->saving_type; // 'shares' or 'any_amount'
+            $cycle->cycle_name = $cycleName;
+            $cycle->saving_type = $savingType; // 'shares' or 'any_amount'
             
             // Only set share_value if saving_type is 'shares'
-            if ($request->saving_type === 'shares') {
-                $cycle->share_value = $request->share_value;
-                $cycle->share_price = $request->share_value; // Keep consistency
+            if ($savingType === 'shares') {
+                $cycle->share_value = $shareValue;
+                $cycle->share_price = $shareValue; // Keep consistency
             } else {
                 $cycle->share_value = null;
                 $cycle->share_price = null;
             }
             
-            $cycle->meeting_frequency = $request->meeting_frequency;
-            $cycle->loan_interest_rate = $request->loan_interest_rate;
-            $cycle->interest_frequency = $request->interest_frequency;
-            $cycle->weekly_loan_interest_rate = $request->weekly_loan_interest_rate;
-            $cycle->monthly_loan_interest_rate = $request->monthly_loan_interest_rate;
-            $cycle->minimum_loan_amount = $request->minimum_loan_amount;
-            $cycle->maximum_loan_multiple = $request->maximum_loan_multiple;
-            $cycle->late_payment_penalty = $request->late_payment_penalty;
+            $cycle->meeting_frequency = $meetingFrequency;
+            $cycle->loan_interest_rate = $loanInterestRate;
+            $cycle->interest_frequency = $interestFrequency;
+            $cycle->weekly_loan_interest_rate = $weeklyInterestRate;
+            $cycle->monthly_loan_interest_rate = $monthlyInterestRate;
+            $cycle->minimum_loan_amount = $minimumLoanAmount;
+            $cycle->maximum_loan_multiple = $maximumLoanMultiple;
+            $cycle->late_payment_penalty = $latePaymentPenalty;
             
             $cycle->save();
 
@@ -766,8 +801,8 @@ class VslaOnboardingController extends Controller
                 // Only increment cycle number when creating new cycle
                 $group->cycle_number = ($group->cycle_number ?? 0) + 1;
             }
-            $group->cycle_start_date = $request->start_date;
-            $group->cycle_end_date = $request->end_date;
+            $group->cycle_start_date = $startDate;
+            $group->cycle_end_date = $endDate;
             $group->save();
 
             // ========== UPDATE USER'S ONBOARDING STEP ==========

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreateCycleRequest;
 use App\Models\FfsGroup;
 use App\Models\User;
 use App\Models\Location;
@@ -330,15 +329,10 @@ class VslaConfigurationController extends Controller
 
     /**
      * Create New Savings Cycle
-     * 
-     * Creates a new VSLA savings cycle for the user's group
-     * Only one active cycle allowed per group
-     * Only group admin can create cycles
-     * 
-     * @param  \App\Http\Requests\CreateCycleRequest  $request
-     * @return \Illuminate\Http\JsonResponse
+     *
+     * Mobile-friendly endpoint: accepts partial payload and applies defaults.
      */
-    public function createCycle(CreateCycleRequest $request)
+    public function createCycle(Request $request)
     {
         DB::beginTransaction();
         
@@ -371,7 +365,52 @@ class VslaConfigurationController extends Controller
                 return $this->error('Only group chairperson can create cycles', 403);
             }
             
-            // Validation already handled by CreateCycleRequest
+            // Mobile-friendly payload normalization (support snake_case + camelCase)
+            $payload = [
+                'cycle_name' => $request->input('cycle_name', $request->input('cycleName')),
+                'start_date' => $request->input('start_date', $request->input('startDate')),
+                'end_date' => $request->input('end_date', $request->input('endDate')),
+                'saving_type' => $request->input('saving_type', $request->input('savingType', 'shares')),
+                'share_value' => $request->input('share_value', $request->input('shareValue')),
+                'meeting_frequency' => $request->input('meeting_frequency', $request->input('meetingFrequency', 'Weekly')),
+                'loan_interest_rate' => $request->input('loan_interest_rate', $request->input('loanInterestRate', 10)),
+                'interest_frequency' => $request->input('interest_frequency', $request->input('interestFrequency', 'Monthly')),
+                'minimum_loan_amount' => $request->input('minimum_loan_amount', $request->input('minimumLoanAmount', 0)),
+                'maximum_loan_multiple' => $request->input('maximum_loan_multiple', $request->input('maximumLoanMultiple', 3)),
+                'late_payment_penalty' => $request->input('late_payment_penalty', $request->input('latePaymentPenalty', 0)),
+            ];
+
+            // Apply safe defaults for missing cycle name/dates
+            if (empty($payload['cycle_name'])) {
+                $payload['cycle_name'] = 'Cycle ' . now()->format('Y-m-d');
+            }
+            if (empty($payload['start_date'])) {
+                $payload['start_date'] = now()->toDateString();
+            }
+            if (empty($payload['end_date'])) {
+                $payload['end_date'] = now()->addMonths(12)->toDateString();
+            }
+
+            // Keep only essential validations to avoid rigid failures on mobile
+            $validator = Validator::make($payload, [
+                'cycle_name' => 'required|string|max:200',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after:start_date',
+                'saving_type' => 'nullable|in:shares,any_amount',
+                'share_value' => 'nullable|numeric|min:0',
+                'meeting_frequency' => 'nullable|in:Weekly,Bi-weekly,Monthly',
+                'loan_interest_rate' => 'nullable|numeric|min:0|max:100',
+                'interest_frequency' => 'nullable|in:Weekly,Monthly',
+                'minimum_loan_amount' => 'nullable|numeric|min:0',
+                'maximum_loan_multiple' => 'nullable|integer|min:1|max:20',
+                'late_payment_penalty' => 'nullable|numeric|min:0|max:100',
+            ]);
+
+            if ($validator->fails()) {
+                DB::rollBack();
+                return $this->error('Validation failed', 422, $validator->errors());
+            }
+
             // Double-check no active cycle exists (race condition prevention)
             // A cycle is truly active if: is_active_cycle='Yes' AND status is not 'completed'
             $activeCycle = Project::where('is_vsla_cycle', 'Yes')
@@ -397,13 +436,16 @@ class VslaConfigurationController extends Controller
             }
             
             // Calculate interest rates based on frequency
-            $loanInterestRate = $request->loan_interest_rate;
-            $weeklyRate = $request->interest_frequency === 'Weekly' ? $loanInterestRate : ($loanInterestRate / 4);
-            $monthlyRate = $request->interest_frequency === 'Monthly' ? $loanInterestRate : ($loanInterestRate * 4);
+            $loanInterestRate = (float) ($payload['loan_interest_rate'] ?? 10);
+            $interestFrequency = $payload['interest_frequency'] ?? 'Monthly';
+            $weeklyRate = $interestFrequency === 'Weekly' ? $loanInterestRate : ($loanInterestRate / 4);
+            $monthlyRate = $interestFrequency === 'Monthly' ? $loanInterestRate : ($loanInterestRate * 4);
             
             // Determine saving type and share value
-            $savingType = $request->saving_type ?? 'shares';
-            $shareValue = ($savingType === 'shares') ? $request->share_value : null;
+            $savingType = $payload['saving_type'] ?? 'shares';
+            $shareValue = ($savingType === 'shares')
+                ? (isset($payload['share_value']) ? (float) $payload['share_value'] : 100)
+                : null;
             
             // Create the new cycle
             $cycle = Project::create([
@@ -411,11 +453,11 @@ class VslaConfigurationController extends Controller
                 'is_vsla_cycle' => 'Yes',
                 'saving_type' => $savingType,
                 'group_id' => $userGroupId,
-                'cycle_name' => $request->cycle_name,
+                'cycle_name' => $payload['cycle_name'],
                 
                 // Date Range
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
+                'start_date' => $payload['start_date'],
+                'end_date' => $payload['end_date'],
                 
                 // Status
                 'status' => 'ongoing',
@@ -424,19 +466,19 @@ class VslaConfigurationController extends Controller
                 // Financial Settings
                 'share_value' => $shareValue,
                 'share_price' => $shareValue, // For compatibility
-                'meeting_frequency' => $request->meeting_frequency,
+                'meeting_frequency' => $payload['meeting_frequency'] ?? 'Weekly',
                 
                 // Loan Settings
                 'loan_interest_rate' => $loanInterestRate,
-                'interest_frequency' => $request->interest_frequency,
+                'interest_frequency' => $interestFrequency,
                 'weekly_loan_interest_rate' => $weeklyRate,
                 'monthly_loan_interest_rate' => $monthlyRate,
-                'minimum_loan_amount' => $request->minimum_loan_amount,
-                'maximum_loan_multiple' => $request->maximum_loan_multiple,
-                'late_payment_penalty' => $request->late_payment_penalty,
+                'minimum_loan_amount' => (float) ($payload['minimum_loan_amount'] ?? 0),
+                'maximum_loan_multiple' => (int) ($payload['maximum_loan_multiple'] ?? 3),
+                'late_payment_penalty' => (float) ($payload['late_payment_penalty'] ?? 0),
                 
                 // Project fields (for compatibility)
-                'title' => $request->cycle_name,
+                  'title' => $payload['cycle_name'],
                 'description' => 'VSLA Savings Cycle for ' . $group->name,
                 'created_by_id' => $user->id,
                 
@@ -524,9 +566,31 @@ class VslaConfigurationController extends Controller
                 return $this->error('Only group chairperson can update cycle settings', 403);
             }
 
-            // Validation rules
-            $validator = Validator::make($request->all(), [
-                'cycle_name' => 'nullable|string|min:3|max:200',
+            // Normalize update payload aliases from mobile clients.
+            $payload = [
+                'cycle_name' => $request->input('cycle_name', $request->input('cycleName')),
+                'start_date' => $request->input('start_date', $request->input('startDate')),
+                'end_date' => $request->input('end_date', $request->input('endDate')),
+                'saving_type' => $request->input('saving_type', $request->input('savingType')),
+                'share_value' => $request->input('share_value', $request->input('shareValue')),
+                'meeting_frequency' => $request->input('meeting_frequency', $request->input('meetingFrequency')),
+                'loan_interest_rate' => $request->input('loan_interest_rate', $request->input('loanInterestRate')),
+                'interest_frequency' => $request->input('interest_frequency', $request->input('interestFrequency')),
+                'weekly_loan_interest_rate' => $request->input('weekly_loan_interest_rate', $request->input('weeklyLoanInterestRate')),
+                'monthly_loan_interest_rate' => $request->input('monthly_loan_interest_rate', $request->input('monthlyLoanInterestRate')),
+                'minimum_loan_amount' => $request->input('minimum_loan_amount', $request->input('minimumLoanAmount')),
+                'maximum_loan_multiple' => $request->input('maximum_loan_multiple', $request->input('maximumLoanMultiple')),
+                'late_payment_penalty' => $request->input('late_payment_penalty', $request->input('latePaymentPenalty')),
+            ];
+
+            // If only end_date is supplied, validate against existing start_date.
+            if (!empty($payload['end_date']) && empty($payload['start_date'])) {
+                $payload['start_date'] = $cycle->start_date;
+            }
+
+            // Less rigid validations for mobile updates.
+            $validator = Validator::make($payload, [
+                'cycle_name' => 'nullable|string|max:200',
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date|after:start_date',
                 'saving_type' => 'nullable|in:shares,any_amount',
@@ -537,7 +601,7 @@ class VslaConfigurationController extends Controller
                 'weekly_loan_interest_rate' => 'nullable|numeric|min:0|max:100',
                 'monthly_loan_interest_rate' => 'nullable|numeric|min:0|max:100',
                 'minimum_loan_amount' => 'nullable|numeric|min:0',
-                'maximum_loan_multiple' => 'nullable|integer|min:1',
+                'maximum_loan_multiple' => 'nullable|integer|min:1|max:20',
                 'late_payment_penalty' => 'nullable|numeric|min:0|max:100',
             ]);
 
@@ -565,8 +629,8 @@ class VslaConfigurationController extends Controller
             ];
 
             foreach ($allowedFields as $field) {
-                if ($request->has($field)) {
-                    $updateData[$field] = $request->input($field);
+                if (array_key_exists($field, $payload) && $payload[$field] !== null) {
+                    $updateData[$field] = $payload[$field];
                 }
             }
             

@@ -281,28 +281,45 @@ class VslaAgentOnboardingController extends Controller
             return $this->error('Authentication required.');
         }
 
-        $validator = Validator::make($request->all(), [
+        $normalized = [
+            'group_id' => $request->input('group_id', $request->input('groupId')),
+            'cycle_name' => $request->input('cycle_name', $request->input('name')),
+            'start_date' => $request->input('start_date', $request->input('startDate')),
+            'end_date' => $request->input('end_date', $request->input('endDate')),
+            'saving_type' => $request->input('saving_type', $request->input('savingType')),
+            'share_value' => $request->input('share_value', $request->input('shareValue')),
+            'meeting_frequency' => $request->input('meeting_frequency', $request->input('meetingFrequency')),
+            'loan_interest_rate' => $request->input('loan_interest_rate', $request->input('loanInterestRate')),
+            'interest_frequency' => $request->input('interest_frequency', $request->input('interestFrequency')),
+            'weekly_loan_interest_rate' => $request->input('weekly_loan_interest_rate', $request->input('weeklyLoanInterestRate')),
+            'monthly_loan_interest_rate' => $request->input('monthly_loan_interest_rate', $request->input('monthlyLoanInterestRate')),
+            'minimum_loan_amount' => $request->input('minimum_loan_amount', $request->input('minimumLoanAmount')),
+            'maximum_loan_multiple' => $request->input('maximum_loan_multiple', $request->input('maximumLoanMultiple')),
+            'late_payment_penalty' => $request->input('late_payment_penalty', $request->input('latePaymentPenalty')),
+        ];
+
+        $validator = Validator::make($normalized, [
             'group_id'               => 'required|exists:ffs_groups,id',
-            'cycle_name'             => 'nullable|string|min:3|max:200',
+            'cycle_name'             => 'nullable|string|min:2|max:200',
             'start_date'             => 'nullable|date',
-            'end_date'               => 'nullable|date|after:start_date',
+            'end_date'               => 'nullable|date',
             'saving_type'            => 'nullable|in:shares,any_amount',
-            'share_value'            => 'nullable|numeric|min:1000|max:100000',
+            'share_value'            => 'nullable|numeric|min:0|max:1000000',
             'meeting_frequency'      => 'nullable|in:Weekly,Bi-weekly,Monthly',
             'loan_interest_rate'     => 'nullable|numeric|min:0|max:100',
             'interest_frequency'     => 'nullable|in:Weekly,Monthly',
             'weekly_loan_interest_rate'  => 'nullable|numeric|min:0|max:100',
             'monthly_loan_interest_rate' => 'nullable|numeric|min:0|max:100',
-            'minimum_loan_amount'    => 'nullable|numeric|min:1000',
-            'maximum_loan_multiple'  => 'nullable|integer|min:3|max:30',
-            'late_payment_penalty'   => 'nullable|numeric|min:0|max:50',
+            'minimum_loan_amount'    => 'nullable|numeric|min:0',
+            'maximum_loan_multiple'  => 'nullable|integer|min:1|max:100',
+            'late_payment_penalty'   => 'nullable|numeric|min:0|max:100',
         ]);
 
         if ($validator->fails()) {
             return $this->error($validator->errors()->first());
         }
 
-        $group = FfsGroup::find($request->group_id);
+        $group = FfsGroup::find($normalized['group_id']);
         if (!$group) {
             return $this->error('Group not found.');
         }
@@ -321,17 +338,21 @@ class VslaAgentOnboardingController extends Controller
 
             // Smart defaults for cycle fields
             $currentYear       = date('Y');
-            $savingType        = $request->saving_type ?? 'shares';
-            $cycleName         = $request->cycle_name ?? "Cycle 1 $currentYear";
-            $startDate         = $request->start_date ?? "$currentYear-01-01";
-            $endDate           = $request->end_date ?? ($currentYear . '-12-31');
-            $meetingFrequency  = $request->meeting_frequency ?? 'Weekly';
-            $interestFrequency = $request->interest_frequency ?? 'Monthly';
-            $loanInterestRate  = $request->loan_interest_rate ?? 10;
-            $minimumLoan       = $request->minimum_loan_amount ?? 10000;
-            $maxLoanMultiple   = $request->maximum_loan_multiple ?? 3;
-            $latePenalty       = $request->late_payment_penalty ?? 10;
-            $shareValue        = $request->share_value ?? 1000;
+            $savingType        = $normalized['saving_type'] ?? 'shares';
+            $cycleName         = $normalized['cycle_name'] ?? "Cycle 1 $currentYear";
+            $startDate         = $normalized['start_date'] ?? "$currentYear-01-01";
+            $endDate           = $normalized['end_date'] ?? ($currentYear . '-12-31');
+            $meetingFrequency  = $normalized['meeting_frequency'] ?? 'Weekly';
+            $interestFrequency = $normalized['interest_frequency'] ?? 'Monthly';
+            $loanInterestRate  = $normalized['loan_interest_rate'] ?? 10;
+            $minimumLoan       = $normalized['minimum_loan_amount'] ?? 0;
+            $maxLoanMultiple   = $normalized['maximum_loan_multiple'] ?? 3;
+            $latePenalty       = $normalized['late_payment_penalty'] ?? 0;
+            $shareValue        = $normalized['share_value'] ?? 0;
+
+            if (Carbon::parse($endDate)->lt(Carbon::parse($startDate))) {
+                return $this->error('End date must be after start date.');
+            }
 
             $cycle = new Project();
             $cycle->created_by_id          = $officer->id;
@@ -354,11 +375,11 @@ class VslaAgentOnboardingController extends Controller
 
             // Set interest rate by frequency
             if ($interestFrequency === 'Weekly') {
-                $cycle->weekly_loan_interest_rate  = $request->weekly_loan_interest_rate ?? $loanInterestRate;
-                $cycle->monthly_loan_interest_rate = $request->monthly_loan_interest_rate;
+                $cycle->weekly_loan_interest_rate  = $normalized['weekly_loan_interest_rate'] ?? $loanInterestRate;
+                $cycle->monthly_loan_interest_rate = $normalized['monthly_loan_interest_rate'];
             } else {
-                $cycle->monthly_loan_interest_rate = $request->monthly_loan_interest_rate ?? $loanInterestRate;
-                $cycle->weekly_loan_interest_rate  = $request->weekly_loan_interest_rate;
+                $cycle->monthly_loan_interest_rate = $normalized['monthly_loan_interest_rate'] ?? $loanInterestRate;
+                $cycle->weekly_loan_interest_rate  = $normalized['weekly_loan_interest_rate'];
             }
 
             if ($savingType === 'shares') {
@@ -370,8 +391,8 @@ class VslaAgentOnboardingController extends Controller
 
             // Update group cycle metadata
             $group->cycle_number     = ($group->cycle_number ?? 0) + 1;
-            $group->cycle_start_date = $request->start_date;
-            $group->cycle_end_date   = $request->end_date;
+            $group->cycle_start_date = $startDate;
+            $group->cycle_end_date   = $endDate;
             $group->save();
 
             DB::commit();
