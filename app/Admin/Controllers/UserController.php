@@ -286,6 +286,20 @@ class UserController extends AdminController
         // ── Saving logic ──
         $form->saving(function (Form $form) {
             $form->name = trim($form->first_name . ' ' . $form->last_name);
+            $isSuperAdmin = $this->isSuperAdmin();
+            $adminIp = Admin::user()->ip_id ?? null;
+
+            // IP control: super admins can assign/change IP; others are pinned to their own IP.
+            if ($isSuperAdmin) {
+                if (!empty($form->ip_id) && !ImplementingPartner::where('id', $form->ip_id)->exists()) {
+                    throw new \Exception('Selected Implementing Partner does not exist.');
+                }
+            } else {
+                if (empty($adminIp)) {
+                    throw new \Exception('Your account has no Implementing Partner assigned. Contact super admin.');
+                }
+                $form->ip_id = $adminIp;
+            }
 
             if ($form->isCreating()) {
                 if (empty($form->username) && !empty($form->phone_number)) {
@@ -316,16 +330,15 @@ class UserController extends AdminController
                     }
                 }
 
-                // Inherit ip_id from group if not set
+                // Inherit ip_id from group if not set explicitly
                 if (empty($form->ip_id) && !empty($form->group_id)) {
                     $group = FfsGroup::find($form->group_id);
                     if ($group && $group->ip_id) $form->ip_id = $group->ip_id;
                 }
 
-                // Fallback: inherit ip_id from creating admin
-                if (empty($form->ip_id)) {
-                    $adminIp = Admin::user()->ip_id ?? null;
-                    if ($adminIp) $form->ip_id = $adminIp;
+                // Fallback: inherit ip_id from creating admin for non-super-admins.
+                if (empty($form->ip_id) && !$isSuperAdmin && $adminIp) {
+                    $form->ip_id = $adminIp;
                 }
             } else {
                 if (!empty($form->password)) {

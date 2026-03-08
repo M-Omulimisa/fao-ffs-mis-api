@@ -45,7 +45,33 @@ trait IpScopeable
         if (!$user) {
             return false;
         }
-        return $user->isRole('super_admin');
+        // Support both FAO custom role slug and Laravel-Admin legacy slug.
+        return $this->userHasRoleSlug($user, 'super_admin')
+            || $this->userHasRoleSlug($user, 'administrator');
+    }
+
+    /**
+     * Check role slug in a way that is safe across custom admin user models.
+     */
+    protected function userHasRoleSlug($user, string $slug): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if (method_exists($user, 'isRole')) {
+            return (bool) $user->isRole($slug);
+        }
+
+        if (method_exists($user, 'roles')) {
+            try {
+                return $user->roles()->where('slug', $slug)->exists();
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     /**
