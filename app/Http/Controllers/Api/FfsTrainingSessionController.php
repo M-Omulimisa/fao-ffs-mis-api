@@ -750,12 +750,19 @@ class FfsTrainingSessionController extends Controller
             $session->report_status = FfsTrainingSession::REPORT_STATUS_SUBMITTED;
             $session->submitted_at = now();
             $session->submitted_by_id = $user ? $user->id : null;
+
+            // Auto-mark session as completed upon report submission
+            if ($session->status !== FfsTrainingSession::STATUS_COMPLETED) {
+                $session->status = FfsTrainingSession::STATUS_COMPLETED;
+            }
+
             $session->save();
 
             return response()->json([
                 'code' => 1,
                 'message' => 'Report submitted successfully',
                 'data' => [
+                    'status' => $session->status,
                     'report_status' => $session->report_status,
                     'submitted_at' => $session->submitted_at,
                 ],
@@ -934,6 +941,11 @@ class FfsTrainingSessionController extends Controller
                 $updateFields['submitted_at'] = now();
                 $updateFields['submitted_by_id'] = $user ? $user->id : null;
                 $updateFields['report_submitted_at'] = now();
+
+                // Auto-mark session as completed upon report submission
+                if ($session->status !== FfsTrainingSession::STATUS_COMPLETED) {
+                    $updateFields['status'] = FfsTrainingSession::STATUS_COMPLETED;
+                }
             }
 
             if (!empty($updateFields)) {
