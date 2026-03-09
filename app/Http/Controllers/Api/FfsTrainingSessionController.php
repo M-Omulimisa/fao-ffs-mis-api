@@ -289,7 +289,7 @@ class FfsTrainingSessionController extends Controller
                 'title' => 'required|string|max:255',
                 'topic' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
-                'session_date' => 'required|date|after_or_equal:today',
+                'session_date' => 'required|date',
                 'start_time' => 'nullable',
                 'end_time' => 'nullable|after:start_time',
                 'venue' => 'nullable|string|max:255',
@@ -645,6 +645,41 @@ class FfsTrainingSessionController extends Controller
             ]);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve stats: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get training sessions with pending (draft) reports for the current user.
+     * GET /api/ffs-training-sessions/pending-reports
+     */
+    public function pendingReports(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $sessions = FfsTrainingSession::withCount(['participants', 'resolutions'])
+                ->with(['targetGroups:id,name'])
+                ->where('report_status', 'draft')
+                ->whereIn('status', ['ongoing', 'completed'])
+                ->where(function ($q) use ($user) {
+                    $q->where('facilitator_id', $user->id)
+                      ->orWhere('co_facilitator_id', $user->id)
+                      ->orWhere('created_by_id', $user->id);
+                })
+                ->orderBy('session_date', 'desc')
+                ->get();
+
+            $data = $sessions->map(function ($s) {
+                return $this->serializeSession($s);
+            });
+
+            return response()->json([
+                'code' => 1,
+                'message' => 'Pending reports retrieved',
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to retrieve pending reports: ' . $e->getMessage(), 500);
         }
     }
 

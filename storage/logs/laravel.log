@@ -4483,3 +4483,20 @@
 [2026-03-05 22:33:32] local.INFO: EnsureTokenIsValid - About to check if user is null  
 [2026-03-05 22:33:32] local.INFO: EnsureTokenIsValid - Processing: GET api/users/my-roles (User: 399)  
 [2026-03-05 22:33:32] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/users/my-roles  
+[2026-03-09 16:51:43] local.INFO: EnsureTokenIsValid - User ID: 0  
+[2026-03-09 16:51:43] local.ERROR: EnsureTokenIsValid - No user ID provided  
+[2026-03-09 16:51:58] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-09 16:51:58] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-09 16:51:58] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-09 16:51:58] local.INFO: EnsureTokenIsValid - Processing: GET api/ffs-training-sessions/pending-reports (User: 1)  
+[2026-03-09 16:51:58] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/ffs-training-sessions/pending-reports  
+[2026-03-09 16:52:03] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-09 16:52:03] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-09 16:52:03] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-09 16:52:03] local.INFO: EnsureTokenIsValid - Processing: GET api/ffs-training-sessions/stats (User: 1)  
+[2026-03-09 16:52:03] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/ffs-training-sessions/stats  
+[2026-03-09 16:52:08] local.INFO: EnsureTokenIsValid - User ID: 1  
+[2026-03-09 16:52:08] local.INFO: EnsureTokenIsValid - User lookup result: Found  
+[2026-03-09 16:52:08] local.INFO: EnsureTokenIsValid - About to check if user is null  
+[2026-03-09 16:52:08] local.INFO: EnsureTokenIsValid - Processing: GET api/ffs-training-sessions/1 (User: 1)  
+[2026-03-09 16:52:08] local.INFO: EnsureTokenIsValid - Response: 200 for GET api/ffs-training-sessions/1  

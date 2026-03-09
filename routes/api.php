@@ -255,6 +255,7 @@ use App\Http\Controllers\Api\FfsTrainingSessionController;
 Route::prefix('ffs-training-sessions')->middleware(EnsureTokenIsValid::class)->group(function () {
     // Sessions CRUD
     Route::get('/stats', [FfsTrainingSessionController::class, 'stats']);
+    Route::get('/pending-reports', [FfsTrainingSessionController::class, 'pendingReports']);
     Route::get('/', [FfsTrainingSessionController::class, 'index']);
     Route::post('/', [FfsTrainingSessionController::class, 'store']);
     Route::get('/{id}', [FfsTrainingSessionController::class, 'show']);
