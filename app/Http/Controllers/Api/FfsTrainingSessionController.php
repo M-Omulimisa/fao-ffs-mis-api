@@ -747,11 +747,6 @@ class FfsTrainingSessionController extends Controller
                 return $this->error('Report has already been submitted', 422);
             }
 
-            // Ensure session is completed or ongoing before allowing report submission
-            if (!in_array($session->status, ['ongoing', 'completed'])) {
-                return $this->error('Session must be ongoing or completed to submit report', 422);
-            }
-
             $session->report_status = FfsTrainingSession::REPORT_STATUS_SUBMITTED;
             $session->submitted_at = now();
             $session->submitted_by_id = $user ? $user->id : null;
@@ -823,11 +818,6 @@ class FfsTrainingSessionController extends Controller
             $user = Auth::user();
             if (!$this->userCanAccessSession($user, $session)) {
                 return $this->error('You do not have permission to submit this report', 403);
-            }
-
-            // Ensure session is completed or ongoing before allowing report submission
-            if (!in_array($session->status, ['ongoing', 'completed'])) {
-                return $this->error('Session must be ongoing or completed to submit report', 422);
             }
 
             $validator = Validator::make($request->all(), [
