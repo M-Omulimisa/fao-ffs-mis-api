@@ -165,15 +165,24 @@ class VslaAgentOnboardingController extends Controller
 
             // Secretary
             'secretary_name'    => 'required|string|min:3|max:255',
-            'secretary_phone'   => ['required', 'string', 'regex:/^(\+256|0)[7][0-9]{8}$/',
-                                    'different:chairperson_phone'],
+            'secretary_phone'   => [
+                'required',
+                'string',
+                'regex:/^(\+256|0)[7][0-9]{8}$/',
+                'different:chairperson_phone'
+            ],
             'secretary_email'   => 'nullable|email',
             'secretary_nin'     => 'nullable|string|max:20',
 
             // Treasurer
             'treasurer_name'    => 'required|string|min:3|max:255',
-            'treasurer_phone'   => ['required', 'string', 'regex:/^(\+256|0)[7][0-9]{8}$/',
-                                    'different:chairperson_phone', 'different:secretary_phone'],
+            'treasurer_phone'   => [
+                'required',
+                'string',
+                'regex:/^(\+256|0)[7][0-9]{8}$/',
+                'different:chairperson_phone',
+                'different:secretary_phone'
+            ],
             'treasurer_email'   => 'nullable|email',
             'treasurer_nin'     => 'nullable|string|max:20',
 
@@ -206,7 +215,8 @@ class VslaAgentOnboardingController extends Controller
                 'Chairperson',
                 $group,
                 $officer,
-                $request->chairperson_nin
+                $request->chairperson_nin,
+                $request->chairperson_sex
             );
 
             $secretaryPassword = $this->generatePassword();
@@ -218,7 +228,8 @@ class VslaAgentOnboardingController extends Controller
                 'Secretary',
                 $group,
                 $officer,
-                $request->secretary_nin
+                $request->secretary_nin,
+                $request->secretary_sex
             );
 
             $treasurerPassword = $this->generatePassword();
@@ -230,7 +241,8 @@ class VslaAgentOnboardingController extends Controller
                 'Treasurer',
                 $group,
                 $officer,
-                $request->treasurer_nin
+                $request->treasurer_nin,
+                $request->treasurer_sex
             );
 
             // Assign roles on the group record
@@ -457,7 +469,8 @@ class VslaAgentOnboardingController extends Controller
         string $role,
         FfsGroup $group,
         User $officer,
-        ?string $nin = null
+        ?string $nin = null,
+        ?string $sex = null
     ): User {
         $phone = $this->normalizePhone($phoneRaw);
 
@@ -487,6 +500,10 @@ class VslaAgentOnboardingController extends Controller
 
         if ($nin) {
             $user->national_id_number = $nin;
+        }
+
+        if ($sex) {
+            $user->sex = $sex;
         }
 
         // Set appropriate role flags
