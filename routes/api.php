@@ -299,6 +299,18 @@ Route::prefix('vsla/loans')->middleware(EnsureTokenIsValid::class)->group(functi
 });
 
 // ========================================
+// VSLA OPENING BALANCE - Group chairperson records opening figures
+// ========================================
+use App\Http\Controllers\Api\VslaOpeningBalanceController;
+
+Route::prefix('vsla/opening-balance')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/members', [VslaOpeningBalanceController::class, 'getMembers']);   // List members for entry form
+    Route::get('/status',  [VslaOpeningBalanceController::class, 'getStatus']);    // Check if already submitted
+    Route::post('/submit', [VslaOpeningBalanceController::class, 'store']);        // Submit opening balances
+    Route::get('/{id}',    [VslaOpeningBalanceController::class, 'show']);         // Retrieve a record
+});
+
+// ========================================
 // VSLA SOCIAL FUND - Track contributions and withdrawals
 // ========================================
 use App\Http\Controllers\Api\SocialFundTransactionController;
