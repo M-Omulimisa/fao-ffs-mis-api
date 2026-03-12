@@ -400,7 +400,8 @@ class VslaOpeningBalanceController extends Controller
             // to avoid duplicates before re-fanning.
             AccountTransaction::where('group_id', $ob->group_id)
                 ->where('cycle_id', $cycleId)
-                ->where('source', 'opening_balance')
+                ->whereNull('meeting_id')
+                ->where('description', 'like', 'Opening balance%')
                 ->delete();
 
             $summary = $this->processOpeningBalance(
@@ -510,7 +511,7 @@ class VslaOpeningBalanceController extends Controller
                         'meeting_id'       => null,
                         'cycle_id'         => $cycle->id,
                         'account_type'     => 'share',
-                        'source'           => 'opening_balance',
+                        'source'           => 'deposit',
                         'amount'           => $totalShares,
                         'transaction_date' => $submissionDate,
                         'description'      => "Opening balance – {$memberName} opening shares ({$numShares} @ {$shareValue})",
@@ -524,7 +525,7 @@ class VslaOpeningBalanceController extends Controller
                         'meeting_id'       => null,
                         'cycle_id'         => $cycle->id,
                         'account_type'     => 'share',
-                        'source'           => 'opening_balance',
+                        'source'           => 'deposit',
                         'amount'           => $totalShares,
                         'transaction_date' => $submissionDate,
                         'description'      => "Opening balance – {$memberName} purchased {$numShares} shares",
@@ -597,7 +598,7 @@ class VslaOpeningBalanceController extends Controller
                     'meeting_id'              => null,
                     'cycle_id'                => $cycle->id,
                     'account_type'            => 'loan',
-                    'source'                  => 'opening_balance',
+                    'source'                  => 'disbursement',
                     'amount'                  => -$totalLoanAmount,
                     'transaction_date'        => $submissionDate,
                     'description'             => "Opening balance – loan carry-over disbursed to {$memberName}",
@@ -612,7 +613,7 @@ class VslaOpeningBalanceController extends Controller
                     'meeting_id'              => null,
                     'cycle_id'                => $cycle->id,
                     'account_type'            => 'loan',
-                    'source'                  => 'opening_balance',
+                    'source'                  => 'disbursement',
                     'amount'                  => -$totalLoanAmount,
                     'transaction_date'        => $submissionDate,
                     'description'             => "Opening balance – {$memberName} carry-over loan of {$totalLoanAmount}",
@@ -632,7 +633,7 @@ class VslaOpeningBalanceController extends Controller
                         'meeting_id'       => null,
                         'cycle_id'         => $cycle->id,
                         'account_type'     => 'loan_repayment',
-                        'source'           => 'opening_balance',
+                        'source'           => 'deposit',
                         'amount'           => $amountPaid,
                         'transaction_date' => $submissionDate,
                         'description'      => "Opening balance – prior repayment from {$memberName}",
@@ -646,7 +647,7 @@ class VslaOpeningBalanceController extends Controller
                         'meeting_id'       => null,
                         'cycle_id'         => $cycle->id,
                         'account_type'     => 'loan_repayment',
-                        'source'           => 'opening_balance',
+                        'source'           => 'deposit',
                         'amount'           => $amountPaid,
                         'transaction_date' => $submissionDate,
                         'description'      => "Opening balance – {$memberName} prior loan repayment",
@@ -685,7 +686,7 @@ class VslaOpeningBalanceController extends Controller
                     'meeting_id'       => null,
                     'cycle_id'         => $cycle->id,
                     'account_type'     => 'social_fund',
-                    'source'           => 'opening_balance',
+                    'source'           => 'deposit',
                     'amount'           => -$totalSocialFund,
                     'transaction_date' => $submissionDate,
                     'description'      => "Opening balance – {$memberName} social fund contribution",
@@ -699,7 +700,7 @@ class VslaOpeningBalanceController extends Controller
                     'meeting_id'       => null,
                     'cycle_id'         => $cycle->id,
                     'account_type'     => 'social_fund',
-                    'source'           => 'opening_balance',
+                    'source'           => 'deposit',
                     'amount'           => $totalSocialFund,
                     'transaction_date' => $submissionDate,
                     'description'      => "Opening balance – group received social fund from {$memberName}",
