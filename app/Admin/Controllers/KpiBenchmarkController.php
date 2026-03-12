@@ -202,35 +202,41 @@ class KpiBenchmarkController extends AdminController
                 <canvas id='facilScoresChart' height='260'></canvas>
             </div>
             <script>
-            document.addEventListener('DOMContentLoaded', function(){
-                var ctx = document.getElementById('facilScoresChart');
-                if(!ctx) return;
-                new Chart(ctx.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: {$namesJson},
-                        datasets: [{
-                            label: 'Overall Score %',
-                            data: {$scoresJson},
-                            backgroundColor: {$colorsJson},
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: { yAxes: [{ ticks: { beginAtZero: true, max: 100 } }] },
-                        legend: { display: false },
-                        annotation: {
-                            annotations: [{
-                                type: 'line', mode: 'horizontal',
-                                scaleID: 'y-axis-0', value: 80,
-                                borderColor: '#4caf50', borderWidth: 2, borderDash: [5,5],
-                                label: { content: '80% target', enabled: true, position: 'right' }
+            (function(){
+                function ensureChartJs(cb){if(typeof Chart!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=cb;document.head.appendChild(s);}
+                function run(){ensureChartJs(function(){
+                    var ctx=document.getElementById('facilScoresChart');
+                    if(!ctx)return;
+                    var ex=Chart.getChart?Chart.getChart(ctx):null;if(ex)ex.destroy();
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: {$namesJson},
+                            datasets: [{
+                                label: 'Overall Score %',
+                                data: {$scoresJson},
+                                backgroundColor: {$colorsJson},
+                                borderWidth: 0
                             }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: { yAxes: [{ ticks: { beginAtZero: true, max: 100 } }] },
+                            legend: { display: false },
+                            annotation: {
+                                annotations: [{
+                                    type: 'line', mode: 'horizontal',
+                                    scaleID: 'y-axis-0', value: 80,
+                                    borderColor: '#4caf50', borderWidth: 2, borderDash: [5,5],
+                                    label: { content: '80% target', enabled: true, position: 'right' }
+                                }]
+                            }
                         }
-                    }
-                });
-            });
+                    });
+                });}
+                if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}
+                document.addEventListener('pjax:complete',run);
+            })();
             </script>";
             $col->append($html);
         });
@@ -261,28 +267,34 @@ class KpiBenchmarkController extends AdminController
                 <canvas id='kpiRadarChart' height='260'></canvas>
             </div>
             <script>
-            document.addEventListener('DOMContentLoaded', function(){
-                var ctx = document.getElementById('kpiRadarChart');
-                if(!ctx) return;
-                new Chart(ctx.getContext('2d'), {
-                    type: 'radar',
-                    data: {
-                        labels: {$labelsJson},
-                        datasets: [{
-                            label: 'Avg Score %',
-                            data: {$dataJson},
-                            backgroundColor: 'rgba(33,150,243,0.2)',
-                            borderColor: '#2196F3',
-                            pointBackgroundColor: '#2196F3',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scale: { ticks: { beginAtZero: true, max: 100 } }
-                    }
-                });
-            });
+            (function(){
+                function ensureChartJs(cb){if(typeof Chart!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=cb;document.head.appendChild(s);}
+                function run(){ensureChartJs(function(){
+                    var ctx=document.getElementById('kpiRadarChart');
+                    if(!ctx)return;
+                    var ex=Chart.getChart?Chart.getChart(ctx):null;if(ex)ex.destroy();
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'radar',
+                        data: {
+                            labels: {$labelsJson},
+                            datasets: [{
+                                label: 'Avg Score %',
+                                data: {$dataJson},
+                                backgroundColor: 'rgba(33,150,243,0.2)',
+                                borderColor: '#2196F3',
+                                pointBackgroundColor: '#2196F3',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scale: { ticks: { beginAtZero: true, max: 100 } }
+                        }
+                    });
+                });}
+                if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}
+                document.addEventListener('pjax:complete',run);
+            })();
             </script>";
             $col->append($html);
         });
@@ -305,23 +317,29 @@ class KpiBenchmarkController extends AdminController
                 <canvas id='perfPieChart' height='260'></canvas>
             </div>
             <script>
-            document.addEventListener('DOMContentLoaded', function(){
-                var ctx = document.getElementById('perfPieChart');
-                if(!ctx) return;
-                new Chart(ctx.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Excellent (≥80%)', 'Good (60-79%)', 'Needs Improvement (40-59%)', 'Below Target (<40%)'],
-                        datasets: [{
-                            data: {$dataJson},
-                            backgroundColor: ['#4caf50','#ff9800','#ffc107','#f44336'],
-                            borderWidth: 2,
-                            borderColor: '#fff'
-                        }]
-                    },
-                    options: { responsive: true }
-                });
-            });
+            (function(){
+                function ensureChartJs(cb){if(typeof Chart!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=cb;document.head.appendChild(s);}
+                function run(){ensureChartJs(function(){
+                    var ctx=document.getElementById('perfPieChart');
+                    if(!ctx)return;
+                    var ex=Chart.getChart?Chart.getChart(ctx):null;if(ex)ex.destroy();
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Excellent (≥80%)', 'Good (60-79%)', 'Needs Improvement (40-59%)', 'Below Target (<40%)'],
+                            datasets: [{
+                                data: {$dataJson},
+                                backgroundColor: ['#4caf50','#ff9800','#ffc107','#f44336'],
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: { responsive: true }
+                    });
+                });}
+                if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}
+                document.addEventListener('pjax:complete',run);
+            })();
             </script>";
             $col->append($html);
         });
@@ -366,24 +384,30 @@ class KpiBenchmarkController extends AdminController
                 <canvas id='actualsVsTargetsChart' height='260'></canvas>
             </div>
             <script>
-            document.addEventListener('DOMContentLoaded', function(){
-                var ctx = document.getElementById('actualsVsTargetsChart');
-                if(!ctx) return;
-                new Chart(ctx.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: ['Groups','Trainings/wk','Meetings/wk','Members/grp','AESA/wk'],
-                        datasets: [
-                            { label: 'Avg Actual', data: {$actualsJson}, backgroundColor: '#2196F3' },
-                            { label: 'Target', data: {$targetsJson}, backgroundColor: '#e0e0e0' }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: { yAxes: [{ ticks: { beginAtZero: true } }] }
-                    }
-                });
-            });
+            (function(){
+                function ensureChartJs(cb){if(typeof Chart!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=cb;document.head.appendChild(s);}
+                function run(){ensureChartJs(function(){
+                    var ctx=document.getElementById('actualsVsTargetsChart');
+                    if(!ctx)return;
+                    var ex=Chart.getChart?Chart.getChart(ctx):null;if(ex)ex.destroy();
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Groups','Trainings/wk','Meetings/wk','Members/grp','AESA/wk'],
+                            datasets: [
+                                { label: 'Avg Actual', data: {$actualsJson}, backgroundColor: '#2196F3' },
+                                { label: 'Target', data: {$targetsJson}, backgroundColor: '#e0e0e0' }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: { yAxes: [{ ticks: { beginAtZero: true } }] }
+                        }
+                    });
+                });}
+                if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}
+                document.addEventListener('pjax:complete',run);
+            })();
             </script>";
             $col->append($html);
         });

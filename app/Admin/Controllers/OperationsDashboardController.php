@@ -470,35 +470,50 @@ class OperationsDashboardController extends AdminController
         $html  = $this->sectionHeader('fa-line-chart', 'Daily Group Registrations', "{$total} total &middot; Peak: {$max}/day &middot; Avg: {$avg}/day");
         $html .= "<canvas id='dailyGroupsChart' height='260'></canvas>
         <script>
-        document.addEventListener('DOMContentLoaded', function(){
-            var ctx = document.getElementById('dailyGroupsChart');
-            if(!ctx) return;
-            new Chart(ctx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: {$labels},
-                    datasets: [{
-                        label: 'Groups Created',
-                        data: {$counts},
-                        borderColor: '" . self::PRIMARY . "',
-                        backgroundColor: 'rgba(5,23,159,0.08)',
-                        borderWidth: 2,
-                        pointBackgroundColor: '" . self::PRIMARY . "',
-                        pointRadius: 3,
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                        x: { ticks: { maxRotation: 45, font: { size: 9 } } }
+        (function(){
+            function initDailyGroupsChart(){
+                var canvas = document.getElementById('dailyGroupsChart');
+                if(!canvas) return;
+                if(typeof Chart === 'undefined') return;
+                var existing = Chart.getChart ? Chart.getChart(canvas) : null;
+                if(existing) existing.destroy();
+                new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: {$labels},
+                        datasets: [{
+                            label: 'Groups Created',
+                            data: {$counts},
+                            borderColor: '" . self::PRIMARY . "',
+                            backgroundColor: 'rgba(5,23,159,0.08)',
+                            borderWidth: 2,
+                            pointBackgroundColor: '" . self::PRIMARY . "',
+                            pointRadius: 3,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                            x: { ticks: { maxRotation: 45, font: { size: 9 } } }
+                        }
                     }
-                }
-            });
-        });
+                });
+            }
+            function ensureChartJs(callback){
+                if(typeof Chart !== 'undefined'){ callback(); return; }
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+                s.onload = callback;
+                document.head.appendChild(s);
+            }
+            function run(){ ensureChartJs(initDailyGroupsChart); }
+            if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', run); } else { run(); }
+            document.addEventListener('pjax:complete', run);
+        })();
         </script></div></div>";
         return $html;
     }
@@ -631,23 +646,38 @@ class OperationsDashboardController extends AdminController
         $html  = $this->sectionHeader('fa-pie-chart', 'Loan Status Breakdown', "{$total} total loans");
         $html .= "<canvas id='loanDoughnutChart' height='220'></canvas>
         <script>
-        document.addEventListener('DOMContentLoaded', function(){
-            var ctx = document.getElementById('loanDoughnutChart');
-            if(!ctx) return;
-            new Chart(ctx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: {$labels},
-                    datasets: [{ data: {$counts}, backgroundColor: {$colors}, borderWidth: 2, borderColor: '#fff' }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } }
+        (function(){
+            function initLoanDoughnutChart(){
+                var canvas = document.getElementById('loanDoughnutChart');
+                if(!canvas) return;
+                if(typeof Chart === 'undefined') return;
+                var existing = Chart.getChart ? Chart.getChart(canvas) : null;
+                if(existing) existing.destroy();
+                new Chart(canvas.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: {$labels},
+                        datasets: [{ data: {$counts}, backgroundColor: {$colors}, borderWidth: 2, borderColor: '#fff' }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } }
+                        }
                     }
-                }
-            });
-        });
+                });
+            }
+            function ensureChartJs(callback){
+                if(typeof Chart !== 'undefined'){ callback(); return; }
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+                s.onload = callback;
+                document.head.appendChild(s);
+            }
+            function run(){ ensureChartJs(initLoanDoughnutChart); }
+            if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', run); } else { run(); }
+            document.addEventListener('pjax:complete', run);
+        })();
         </script></div></div>";
         return $html;
     }
