@@ -28,7 +28,6 @@ class UserController extends AdminController
         $grid = new Grid(new User());
         $grid->model()->orderBy('id', 'desc');
         $this->applyIpScope($grid);
-        $grid->disableBatchActions();
 
         $grid->quickSearch('name', 'first_name', 'last_name', 'phone_number', 'email')
             ->placeholder('Search name, phone, email...');
