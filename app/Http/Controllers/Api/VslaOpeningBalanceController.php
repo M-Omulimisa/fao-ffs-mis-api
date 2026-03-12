@@ -199,7 +199,7 @@ class VslaOpeningBalanceController extends Controller
 
         // ── 2. Validate ────────────────────────────────────────────────────────
         $validator = Validator::make($request->all(), [
-            'group_id'                    => 'required|integer|exists:projects,id',
+            'group_id'                    => 'required|integer|exists:ffs_groups,id',
             'cycle_id'                    => 'required|integer|exists:projects,id',
             'notes'                       => 'nullable|string|max:1000',
             'members'                     => 'required|array|min:1',

@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $group_id  References ffs_groups.id (NOT projects.id)
+ * @property int $cycle_id  References projects.id
+ */
 class VslaOpeningBalance extends Model
 {
     use SoftDeletes;
@@ -26,7 +30,7 @@ class VslaOpeningBalance extends Model
 
     public function group()
     {
-        return $this->belongsTo(Project::class, 'group_id');
+        return $this->belongsTo(FfsGroup::class, 'group_id');
     }
 
     public function cycle()
