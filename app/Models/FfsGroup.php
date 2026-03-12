@@ -201,7 +201,8 @@ class FfsGroup extends Model
 
     public function vslaLoans()
     {
-        return $this->hasMany(VslaLoan::class, 'group_id');
+        // vsla_loans has no group_id; loans belong to a cycle (project) which belongs to a group
+        return $this->hasManyThrough(VslaLoan::class, \App\Models\Project::class, 'group_id', 'cycle_id');
     }
 
     public function vslaActionPlans()
@@ -365,19 +366,20 @@ class FfsGroup extends Model
             // Unlink members (keep the user accounts, just remove group association)
             \DB::table('users')->where('group_id', $id)->update(['group_id' => null]);
 
-            // Delete loan transactions first (FK child of vsla_loans)
-            $loanIds = \DB::table('vsla_loans')->where('group_id', $id)->pluck('id');
-            if ($loanIds->isNotEmpty()) {
-                \DB::table('loan_transactions')->whereIn('loan_id', $loanIds)->delete();
-            }
-            \DB::table('vsla_loans')->where('group_id', $id)->delete();
-
             // Delete VSLA meetings
             \DB::table('vsla_meetings')->where('group_id', $id)->delete();
 
             // Delete cycles (projects) and their related data
+            // vsla_loans link to a group via cycle_id (not group_id), so handle them here
             $cycleIds = \DB::table('projects')->where('group_id', $id)->pluck('id');
             if ($cycleIds->isNotEmpty()) {
+                // Delete loan transactions first (FK child of vsla_loans)
+                $loanIds = \DB::table('vsla_loans')->whereIn('cycle_id', $cycleIds)->pluck('id');
+                if ($loanIds->isNotEmpty()) {
+                    \DB::table('loan_transactions')->whereIn('loan_id', $loanIds)->delete();
+                }
+                \DB::table('vsla_loans')->whereIn('cycle_id', $cycleIds)->delete();
+
                 \DB::table('project_transactions')->whereIn('project_id', $cycleIds)->delete();
                 \DB::table('project_shares')->whereIn('project_id', $cycleIds)->delete();
                 \DB::table('vsla_shareouts')->whereIn('cycle_id', $cycleIds)->delete();
