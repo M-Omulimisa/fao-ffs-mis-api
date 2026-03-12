@@ -32,11 +32,6 @@ class UserController extends AdminController
         $grid->quickSearch('name', 'first_name', 'last_name', 'phone_number', 'email')
             ->placeholder('Search name, phone, email...');
 
-        $grid->actions(function ($actions) {
-            $actions->disableDelete();
-        });
-
-        // ── Filters ──
         $ipId = $this->getAdminIpId();
         $isSuperAdmin = $this->isSuperAdmin();
 

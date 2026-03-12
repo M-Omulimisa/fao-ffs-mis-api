@@ -68,12 +68,6 @@ class User extends Administrator implements JWTSubject
             self::validateUniqueFields($user, true);
         });
         
-        // Prevent deletion of members
-        static::deleting(function ($user) {
-            if ($user->user_type == 'Customer') {
-                throw new \Exception('Members cannot be deleted. Please set status to Inactive instead.');
-            }
-        });
     }
     
     /**
