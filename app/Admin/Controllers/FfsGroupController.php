@@ -85,11 +85,7 @@ class FfsGroupController extends AdminController
             $grid->model()->where('facilitator_id', $adminUser->id);
         }
 
-        // Disable batch actions and deletion
         $grid->disableBatchActions();
-        $grid->actions(function ($actions) {
-            $actions->disableDelete();
-        });
         
         // Filters — variables extracted before closure to avoid $this binding issues
         $ipId = $this->getAdminIpId();

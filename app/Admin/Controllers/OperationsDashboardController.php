@@ -364,6 +364,11 @@ class OperationsDashboardController extends AdminController
                     <a href='?period=30' class='btn btn-sm btn-default' style='border-radius:0;margin-left:4px;'>
                         <i class='fa fa-refresh'></i> Reset
                     </a>
+                    <a href='https://www.youtube.com/watch?v=TFZT4LEVv8Y&list=PLOR5hj0X3WPe72-07mXzilJZ7kElNPQr2'
+                       target='_blank'
+                       style='border-radius:0;margin-left:12px;background:#FF0000;border-color:#FF0000;color:#fff;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;font-size:12px;font-weight:600;text-decoration:none;'>
+                        <i class='fa fa-youtube-play'></i> User Guide Videos
+                    </a>
                 </div>
             </div>
         </form>";

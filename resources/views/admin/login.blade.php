@@ -69,6 +69,15 @@
       </div>
     </form>
 
+    <div style="margin-top:18px;text-align:center;border-top:1px solid #f0f0f0;padding-top:14px;">
+      <a href="https://www.youtube.com/watch?v=TFZT4LEVv8Y&list=PLOR5hj0X3WPe72-07mXzilJZ7kElNPQr2"
+         target="_blank"
+         style="display:inline-flex;align-items:center;gap:8px;background:#FF0000;color:#fff;padding:8px 18px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:600;">
+        <i class="fa fa-youtube-play" style="font-size:16px;"></i>
+        User Guide Videos
+      </a>
+      <div style="font-size:11px;color:#aaa;margin-top:6px;">Watch tutorial videos to get started</div>
+    </div>
   </div>
   <!-- /.login-box-body -->
 </div>

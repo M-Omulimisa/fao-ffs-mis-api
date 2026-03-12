@@ -357,9 +357,57 @@ class FfsGroup extends Model
         //     $group->calculateMemberCounts();
         // });
         
-        // Prevent deletion of groups
+        // Cascade delete group data when a group is deleted
+        // Users/members are intentionally preserved (only unlinked)
         static::deleting(function ($group) {
-            throw new \Exception('Groups cannot be deleted. Please set status to Inactive instead.');
+            $id = $group->id;
+
+            // Unlink members (keep the user accounts, just remove group association)
+            \DB::table('users')->where('group_id', $id)->update(['group_id' => null]);
+
+            // Delete loan transactions first (FK child of vsla_loans)
+            $loanIds = \DB::table('vsla_loans')->where('group_id', $id)->pluck('id');
+            if ($loanIds->isNotEmpty()) {
+                \DB::table('loan_transactions')->whereIn('loan_id', $loanIds)->delete();
+            }
+            \DB::table('vsla_loans')->where('group_id', $id)->delete();
+
+            // Delete VSLA meetings
+            \DB::table('vsla_meetings')->where('group_id', $id)->delete();
+
+            // Delete cycles (projects) and their related data
+            $cycleIds = \DB::table('projects')->where('group_id', $id)->pluck('id');
+            if ($cycleIds->isNotEmpty()) {
+                \DB::table('project_transactions')->whereIn('project_id', $cycleIds)->delete();
+                \DB::table('project_shares')->whereIn('project_id', $cycleIds)->delete();
+                \DB::table('vsla_shareouts')->whereIn('cycle_id', $cycleIds)->delete();
+            }
+            \DB::table('projects')->where('group_id', $id)->delete();
+
+            // Delete account transactions owned by this group
+            \DB::table('account_transactions')
+                ->where('owner_type', 'group')
+                ->where('group_id', $id)
+                ->delete();
+
+            // Delete social fund transactions
+            \DB::table('social_fund_transactions')->where('group_id', $id)->delete();
+
+            // Delete VSLA profiles and opening balances
+            \DB::table('vsla_profiles')->where('group_id', $id)->delete();
+            \DB::table('vsla_opening_balances')->where('group_id', $id)->delete();
+
+            // Delete AESA sessions
+            \DB::table('aesa_sessions')->where('group_id', $id)->delete();
+
+            // Delete action plans
+            \DB::table('vsla_action_plans')->where('group_id', $id)->delete();
+
+            // Detach from training sessions pivot
+            \DB::table('ffs_session_target_groups')->where('group_id', $id)->delete();
+
+            // Delete shareouts
+            \DB::table('vsla_shareouts')->where('group_id', $id)->delete();
         });
     }
 
