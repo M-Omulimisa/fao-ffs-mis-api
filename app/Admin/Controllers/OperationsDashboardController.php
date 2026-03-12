@@ -237,6 +237,7 @@ class OperationsDashboardController extends AdminController
             ->orderByDesc('total_groups')
             ->limit(25)
             ->get()
+            ->map(fn($r) => (array) $r)
             ->toArray();
 
         // ── IP comparison ─────────────────────────────────────────────────────
