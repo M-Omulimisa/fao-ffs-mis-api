@@ -62,11 +62,13 @@ class VslaOpeningBalanceController extends Controller
                 return response()->json(['code' => 0, 'message' => 'Project not found'], 404);
             }
 
-            // Fetch members who have shares or are associated with this project
-            $members = User::whereHas('projectShares', function ($q) use ($projectId) {
-                    $q->where('project_id', $projectId);
-                })
+            // Fetch ALL active members belonging to the same group as the
+            // authenticated user.  Filtering by projectShares would return empty
+            // for a brand-new cycle (no transactions yet), so we use group_id
+            // which is set when a member is registered into the group.
+            $members = User::where('group_id', $user->group_id)
                 ->where('status', 1)
+                ->whereNotNull('group_id')
                 ->select('id', 'name', 'first_name', 'last_name', 'member_code', 'phone_number')
                 ->orderBy('name', 'asc')
                 ->get()
