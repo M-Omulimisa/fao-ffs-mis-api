@@ -25,6 +25,13 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+
+        // Sweep for submitted-but-unprocessed opening balance records every 5 minutes.
+        // This catches any records that slipped through the model hook or HTTP controller.
+        $schedule->command('opening-balance:process-pending')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**

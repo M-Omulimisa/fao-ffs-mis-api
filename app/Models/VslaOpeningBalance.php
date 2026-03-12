@@ -31,6 +31,64 @@ class VslaOpeningBalance extends Model
         'is_processed'    => 'boolean',
     ];
 
+    // ─── Automatic processing hook ─────────────────────────────────────────────
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        /**
+         * Auto-process hook: fires after any save (insert or update).
+         *
+         * Conditions to trigger automatic processing:
+         *   1. status = 'submitted'          (not yet / marked for processing)
+         *   2. is_processed = false          (not already done)
+         *   3. NOT wasRecentlyCreated        (skip the initial header create in
+         *                                      store() — members don't exist yet)
+         *   4. memberEntries exist in DB     (there is data to process)
+         *
+         * This catches:
+         *   – Records stuck in 'submitted' state due to prior errors
+         *   – Records created outside the normal store() HTTP flow
+         *   – Skipped records that were later re-saved / touched
+         */
+        static::saved(function (self $ob): void {
+            if (
+                $ob->status === 'submitted'
+                && !$ob->is_processed
+                && !$ob->wasRecentlyCreated
+                && $ob->memberEntries()->exists()
+            ) {
+                try {
+                    \Illuminate\Support\Facades\DB::transaction(function () use ($ob): void {
+                        $service   = new \App\Services\OpeningBalanceService();
+                        $summary   = $service->process($ob, $ob->submitted_by_id ?? $ob->group_id);
+
+                        // Use updateQuietly() to avoid re-triggering this hook
+                        $ob->updateQuietly([
+                            'status'           => 'processed',
+                            'is_processed'     => true,
+                            'processed_at'     => now(),
+                            'processing_notes' => json_encode($summary['log']),
+                        ]);
+
+                        \Illuminate\Support\Facades\Log::info(
+                            "OpeningBalance auto-processed id={$ob->id} "
+                            . "shares={$summary['shares_created']} "
+                            . "loans={$summary['loans_created']} "
+                            . "sf={$summary['social_fund_records']}"
+                        );
+                    });
+                } catch (\Throwable $e) {
+                    // Never throw from a model hook — log and continue
+                    \Illuminate\Support\Facades\Log::error(
+                        "OpeningBalance auto-process FAILED id={$ob->id}: " . $e->getMessage()
+                    );
+                }
+            }
+        });
+    }
+
     // ─── Relationships ─────────────────────────────────────────────────────────
 
     public function group()
