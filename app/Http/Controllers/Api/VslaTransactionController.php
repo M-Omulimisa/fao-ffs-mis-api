@@ -759,12 +759,16 @@ class VslaTransactionController extends Controller
                 ], 422);
             }
 
-            // Query the account_transactions table (where meeting-based workflow writes)
+            // Query the account_transactions table (where meeting-based workflow writes).
+            // Fine transactions on the group side are always marked is_contra_entry=true
+            // (they are the income side of the double-entry), so we must explicitly
+            // include them so that fines appear as inflow.
             $query = AccountTransaction::where('group_id', $groupId)
                 ->where('owner_type', 'group')
                 ->where(function ($q) {
                     $q->where('is_contra_entry', false)
-                      ->orWhereNull('is_contra_entry');
+                      ->orWhereNull('is_contra_entry')
+                      ->orWhere('account_type', 'fine'); // fines = income to group
                 })
                 ->orderBy('transaction_date', 'desc')
                 ->orderBy('created_at', 'desc');
@@ -869,7 +873,11 @@ class VslaTransactionController extends Controller
             $sharesTotal   = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) = ?', ['share'])->sum('amount');
             $savingsTotal  = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) IN (?, ?)', ['deposit', 'saving'])->sum('amount');
             $loansOut      = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) = ?', ['loan'])->where('amount', '<', 0)->sum('amount');
-            $finesTotal    = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) = ?', ['fine'])->sum('amount');
+            $finesTotal    = (float) AccountTransaction::where('group_id', $groupId)
+                ->where('owner_type', 'group')
+                ->whereRaw('LOWER(account_type) = ?', ['fine'])
+                ->when($cycleId, fn($q) => $q->where('cycle_id', $cycleId))
+                ->sum('amount');
             $welfareTotal  = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) LIKE ?', ['welfare%'])->sum('amount');
             $socialFund    = (float) (clone $balancesQuery)->whereRaw('LOWER(account_type) = ?', ['social_fund'])->sum('amount');
 

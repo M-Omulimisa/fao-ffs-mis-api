@@ -185,11 +185,11 @@ class ShareoutCalculationService
         $totalShareValue = ProjectShare::where('project_id', $cycleId)
             ->sum('total_amount_paid');
         
-        // Total fines collected
-        $totalFines = AccountTransaction::where('cycle_id', $cycleId)
+        // Total fines collected (member-side rows have negative amounts; abs converts to income)
+        $totalFines = abs((float) AccountTransaction::where('cycle_id', $cycleId)
             ->where('owner_type', 'member')
             ->where('account_type', 'fine')
-            ->sum('amount');
+            ->sum('amount'));
         
         // Calculate loan interest earned
         $loans = VslaLoan::where('cycle_id', $cycleId)->get();
@@ -302,12 +302,12 @@ class ShareoutCalculationService
             ->where('account_type', 'savings')
             ->sum('amount');
         
-        // Get member's fines paid
-        $memberFinesPaid = AccountTransaction::where('cycle_id', $shareout->cycle_id)
+        // Get member's fines paid (member-side rows are negative; abs gives the positive paid amount)
+        $memberFinesPaid = abs((float) AccountTransaction::where('cycle_id', $shareout->cycle_id)
             ->where('owner_type', 'member')
             ->where('user_id', $memberId)
             ->where('account_type', 'fine')
-            ->sum('amount');
+            ->sum('amount'));
         
         // Get member's welfare contributions
         $memberWelfare = AccountTransaction::where('cycle_id', $shareout->cycle_id)
