@@ -20,10 +20,15 @@ class VslaOpeningBalance extends Model
         'status',
         'submission_date',
         'notes',
+        'is_processed',
+        'processed_at',
+        'processing_notes',
     ];
 
     protected $casts = [
         'submission_date' => 'datetime',
+        'processed_at'    => 'datetime',
+        'is_processed'    => 'boolean',
     ];
 
     // ─── Relationships ─────────────────────────────────────────────────────────
