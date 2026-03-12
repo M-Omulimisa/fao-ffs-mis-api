@@ -43,7 +43,6 @@ class EnsureTokenIsValid
                         $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
                         if (isset($payload['sub'])) {
                             $user_id = (int) $payload['sub'];
-                            \Log::info('EnsureTokenIsValid - Extracted user ID from JWT: ' . $user_id);
                         }
                     }
                 } catch (\Exception $e) {
@@ -52,9 +51,6 @@ class EnsureTokenIsValid
             }
         }
 
-        // Debug logging
-        \Log::info('EnsureTokenIsValid - User ID: ' . $user_id);
-        
         // Check if user_id is provided
         if ($user_id < 1) {
             \Log::error('EnsureTokenIsValid - No user ID provided');
@@ -68,11 +64,8 @@ class EnsureTokenIsValid
 
         // Find the user in the users table (not administrators)
         $u = User::find($user_id);
-        \Log::info('EnsureTokenIsValid - User lookup result: ' . ($u ? 'Found' : 'NOT FOUND'));
-        \Log::info('EnsureTokenIsValid - About to check if user is null');
-        
+
         if ($u == null) {
-            \Log::error('INSIDE NULL CHECK - This should NOT appear if user exists!');
             \Log::error('EnsureTokenIsValid - User ' . $user_id . ' not found in users table');
             return response()->json([
                 'code' => 0,
@@ -97,11 +90,9 @@ class EnsureTokenIsValid
         auth('api')->setUser($u);
 
         $requestPath = $request->method() . ' ' . $request->path();
-        \Log::info('EnsureTokenIsValid - Processing: ' . $requestPath . ' (User: ' . $user_id . ')');
         $response = $next($request);
         $statusCode = $response->getStatusCode();
-        \Log::info('EnsureTokenIsValid - Response: ' . $statusCode . ' for ' . $requestPath);
-        
+
         // Log error details for 500 responses so we can debug
         if ($statusCode >= 500) {
             $body = method_exists($response, 'getContent') ? $response->getContent() : '';

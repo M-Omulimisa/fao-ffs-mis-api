@@ -20,27 +20,14 @@ class ManifestController extends Controller
     public function getManifest(Request $request)
     {
         try {
-            // Log manifest request
-            \Log::info('========== MANIFEST REQUEST STARTED ==========');
-            \Log::info('Request Headers:', $request->headers->all());
-            \Log::info('Request Method:', [$request->method()]);
-            \Log::info('Request URL:', [$request->fullUrl()]);
-            
             // Get authenticated user
             $userId = Utils::get_user_id($request);
-            \Log::info('Extracted User ID:', ['user_id' => $userId]);
-            
+
             if (!$userId || $userId < 1) {
-                \Log::warning('Manifest: Authentication failed - no user ID');
                 return Utils::error('Authentication required. Please log in.');
             }
 
             $user = User::findOrFail($userId);
-            \Log::info('User Found:', [
-                'id' => $user->id, 
-                'name' => $user->name,
-                'email' => $user->email
-            ]);
 
             // === USER INFORMATION ===
             $userInfo = [
@@ -57,8 +44,7 @@ class ManifestController extends Controller
 
             // === ACCOUNT BALANCE ===
             $balance = (float) AccountTransaction::where('user_id', $userId)->sum('amount');
-            \Log::info('Balance Calculated:', ['balance' => $balance, 'user_id' => $userId]);
-            
+
             // Calculate balance breakdown
             $balanceBreakdown = [
                 'total_balance' => $balance,
@@ -68,7 +54,6 @@ class ManifestController extends Controller
                 'pending_balance' => 0.0,
                 'formatted_pending' => 'UGX 0.00',
             ];
-            \Log::info('Balance Breakdown:', $balanceBreakdown);
 
             // === RECENT TRANSACTIONS (Last 10) ===
             $recentTransactions = AccountTransaction::where('user_id', $userId)
@@ -167,24 +152,13 @@ class ManifestController extends Controller
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ];
 
-            \Log::info('Manifest Compiled Successfully');
-            \Log::info('Manifest Structure:', [
-                'user' => 'included',
-                'balance' => $balanceBreakdown['total_balance'],
-                'transactions_count' => count($recentTransactions),
-                'features' => array_keys($features)
-            ]);
-            \Log::info('========== MANIFEST REQUEST COMPLETED ==========');
-
             return Utils::success(
                 $manifest,
                 'Manifest retrieved successfully'
             );
 
         } catch (\Exception $e) {
-            \Log::error('========== MANIFEST REQUEST FAILED ==========');
-            \Log::error('Error Message:', ['error' => $e->getMessage()]);
-            \Log::error('Error Trace:', ['trace' => $e->getTraceAsString()]);
+            \Log::error('ManifestController error: ' . $e->getMessage());
             return Utils::error('Failed to retrieve manifest: ' . $e->getMessage());
         }
     }
