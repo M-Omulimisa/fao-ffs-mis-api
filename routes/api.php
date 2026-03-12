@@ -304,10 +304,11 @@ Route::prefix('vsla/loans')->middleware(EnsureTokenIsValid::class)->group(functi
 use App\Http\Controllers\Api\VslaOpeningBalanceController;
 
 Route::prefix('vsla/opening-balance')->middleware(EnsureTokenIsValid::class)->group(function () {
-    Route::get('/members', [VslaOpeningBalanceController::class, 'getMembers']);   // List members for entry form
-    Route::get('/status',  [VslaOpeningBalanceController::class, 'getStatus']);    // Check if already submitted
-    Route::post('/submit', [VslaOpeningBalanceController::class, 'store']);        // Submit opening balances
-    Route::get('/{id}',    [VslaOpeningBalanceController::class, 'show']);         // Retrieve a record
+    Route::get('/members',     [VslaOpeningBalanceController::class, 'getMembers']);   // List members for entry form
+    Route::get('/status',      [VslaOpeningBalanceController::class, 'getStatus']);    // Check if already submitted
+    Route::post('/submit',     [VslaOpeningBalanceController::class, 'store']);        // Submit opening balances
+    Route::post('/reprocess',  [VslaOpeningBalanceController::class, 'reprocess']);   // Re-run processing for stuck/skipped records
+    Route::get('/{id}',        [VslaOpeningBalanceController::class, 'show']);         // Retrieve a record
 });
 
 // ========================================
