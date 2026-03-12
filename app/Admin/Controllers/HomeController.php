@@ -28,6 +28,9 @@ class HomeController extends Controller
     use IpScopeable;
     public function index(Content $content)
     {
+        // Redirect all admin users to the Operations Dashboard as default landing page
+        return redirect(admin_url('operations-dashboard'));
+
         // Add Chart.js CDN and custom styles
         Admin::js('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
         

@@ -234,4 +234,11 @@ Route::group([
     $router->resource('kpi-facilitators', KpiFacilitatorController::class);
     $router->get('kpi-ips', 'KpiIpController@index');
     $router->get('kpi-stats', 'KpiStatsController@index');
+
+    // ========================================
+    // OPERATIONS DASHBOARD — Super Admin monitoring
+    // Groups, facilitators, financial health, loan portfolio
+    // ========================================
+    $router->get('operations-dashboard', 'OperationsDashboardController@index')
+           ->name('operations-dashboard');
 });
