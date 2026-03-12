@@ -214,21 +214,26 @@ class OperationsDashboardController extends AdminController
         $weekStart  = Carbon::now()->startOfWeek();
         $monthStart = Carbon::now()->startOfMonth();
 
-        $leaderboard = FfsGroup::when($ipId, fn($q) => $q->where('ffs_groups.ip_id', $ipId))
-            ->whereNotNull('ffs_groups.facilitator_id')
-            ->join('users as fac', 'ffs_groups.facilitator_id', '=', 'fac.id')
-            ->join('implementing_partners as ip', 'ffs_groups.ip_id', '=', 'ip.id')
+        $lbQuery = DB::table('ffs_groups as g')
+            ->join('users as fac', 'g.facilitator_id', '=', 'fac.id')
+            ->join('implementing_partners as ipt', 'g.ip_id', '=', 'ipt.id')
+            ->whereNull('g.deleted_at')
+            ->whereNotNull('g.facilitator_id');
+        if ($ipId) {
+            $lbQuery->where('g.ip_id', $ipId);
+        }
+        $leaderboard = $lbQuery
             ->selectRaw("
-                ffs_groups.facilitator_id,
+                g.facilitator_id,
                 fac.name as facilitator_name,
-                ip.short_name as ip_name,
-                COUNT(ffs_groups.id) as total_groups,
-                SUM(CASE WHEN ffs_groups.created_at >= ? THEN 1 ELSE 0 END) as groups_this_week,
-                SUM(CASE WHEN ffs_groups.created_at >= ? THEN 1 ELSE 0 END) as groups_this_month,
-                SUM(ffs_groups.total_members) as total_members,
-                MAX(ffs_groups.created_at) as last_activity
+                ipt.short_name as ip_name,
+                COUNT(g.id) as total_groups,
+                SUM(CASE WHEN g.created_at >= ? THEN 1 ELSE 0 END) as groups_this_week,
+                SUM(CASE WHEN g.created_at >= ? THEN 1 ELSE 0 END) as groups_this_month,
+                SUM(g.total_members) as total_members,
+                MAX(g.created_at) as last_activity
             ", [$weekStart, $monthStart])
-            ->groupBy('ffs_groups.facilitator_id', 'fac.name', 'ip.short_name')
+            ->groupBy('g.facilitator_id', 'fac.name', 'ipt.short_name')
             ->orderByDesc('total_groups')
             ->limit(25)
             ->get()
