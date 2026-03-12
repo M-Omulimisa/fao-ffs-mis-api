@@ -1,0 +1,12 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home4/schooics/fao/
+    - /usr/local/bin/php artisan down --message="Updating..." --allow=127.0.0.1 --retry=10 || true
+    - /usr/local/bin/php artisan config:clear
+    - /usr/local/bin/php artisan route:clear
+    - /usr/local/bin/php artisan cache:clear
+    - /usr/local/bin/php artisan view:clear
+    - /usr/local/bin/php artisan migrate --force
+    - /usr/local/bin/php artisan optimize
+    - /usr/local/bin/php artisan up
