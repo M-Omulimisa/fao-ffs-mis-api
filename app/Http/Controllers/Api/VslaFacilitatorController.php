@@ -445,7 +445,7 @@ class VslaFacilitatorController extends Controller
             $validator = Validator::make($request->all(), [
                 'first_name'   => 'required|string|max:100',
                 'last_name'    => 'required|string|max:100',
-                'phone_number' => 'required|string|min:10|max:15',
+                'phone_number' => 'nullable|string|max:20',
                 'sex'          => 'nullable|string|in:Male,Female',
                 'role'         => 'nullable|string|in:Member,Chairperson,Secretary,Treasurer',
                 'password'     => 'nullable|string|min:4',
@@ -455,20 +455,27 @@ class VslaFacilitatorController extends Controller
                 return $this->error($validator->errors()->first(), 422);
             }
 
-            // Normalize phone
-            $phone = $this->normalizePhone($request->input('phone_number'));
+            // Normalize phone (only if provided)
+            $rawPhone = $request->input('phone_number');
+            $phone    = ($rawPhone && trim($rawPhone) !== '')
+                ? $this->normalizePhone(trim($rawPhone))
+                : null;
 
-            // Check if phone already exists in this group
-            $existingInGroup = User::where('group_id', $groupId)
-                ->where('phone_number', $phone)
-                ->first();
+            // Phone-based duplicate checks — only when a phone is actually supplied
+            $existingUser = null;
+            if ($phone) {
+                // Check if phone already exists in this group
+                $existingInGroup = User::where('group_id', $groupId)
+                    ->where('phone_number', $phone)
+                    ->first();
 
-            if ($existingInGroup) {
-                return $this->error('A member with this phone number already exists in this group', 422);
+                if ($existingInGroup) {
+                    return $this->error('A member with this phone number already exists in this group', 422);
+                }
+
+                // Check if user with this phone already exists in the system
+                $existingUser = User::where('phone_number', $phone)->first();
             }
-
-            // Check if user with this phone already exists in the system
-            $existingUser = User::where('phone_number', $phone)->first();
 
             DB::beginTransaction();
 
@@ -493,7 +500,8 @@ class VslaFacilitatorController extends Controller
                 $user->first_name    = $firstName;
                 $user->last_name     = $lastName;
                 $user->name          = $firstName . ' ' . $lastName;
-                $user->username      = $phone;
+                // Temporary username — replaced with member_code below if no phone
+                $user->username      = $phone ?? ('tmp_' . uniqid());
                 $user->phone_number  = $phone;
                 $user->password      = Hash::make($request->input('password', '4321'));
                 $user->sex           = $request->input('sex');
@@ -503,7 +511,7 @@ class VslaFacilitatorController extends Controller
                 $user->subcounty_id  = $group->subcounty_id;
                 $user->parish_id     = $group->parish_id;
                 $user->status        = 'active';
-                $user->user_type     = 'member';
+                $user->user_type     = 'Customer';
             }
 
             // Handle role assignment
@@ -513,6 +521,14 @@ class VslaFacilitatorController extends Controller
             $user->is_group_treasurer = ($role === 'Treasurer')   ? 'Yes' : 'No';
 
             $user->save();
+
+            // If no phone was provided, fall back to member_code as identifier
+            if (!$phone && $user->member_code) {
+                $user->updateQuietly([
+                    'phone_number' => $user->member_code,
+                    'username'     => $user->member_code,
+                ]);
+            }
 
             // Assign farmer_member role if not already assigned
             if (!$user->roles()->where('slug', 'farmer_member')->exists()) {
