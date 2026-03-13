@@ -102,6 +102,12 @@ Route::group([
     $router->resource('users', UserController::class);
 
     // ========================================
+    // FACILITATORS MANAGEMENT
+    // ========================================
+    $router->get('facilitators/{id}/send-credentials', 'FacilitatorController@sendCredentials')->name('facilitators.send-credentials');
+    $router->resource('facilitators', FacilitatorController::class);
+
+    // ========================================
     // GROUPS MANAGEMENT - All group types handled by one controller
     // The controller detects group type from URL string
     // ========================================
