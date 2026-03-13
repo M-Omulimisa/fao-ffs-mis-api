@@ -10,32 +10,21 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class FacilitatorController extends AdminController
+/**
+ * IPUserController — manages all admin-panel users across the hierarchy.
+ *
+ * Access tiers:
+ *   Super Admin  → all users (any user_type, any IP)
+ *   IP Manager   → only users whose ip_id matches their own
+ *   Facilitator  → only themselves (read +  edit own profile)
+ */
+class IPUserController extends AdminController
 {
     use IpScopeable;
 
-    protected $title = 'Facilitators';
-
-    /**
-     * Subquery that returns all user IDs who are linked to at least one
-     * group as a facilitator OR who have a facilitator_start_date set.
-     */
-    private function facilitatorIds()
-    {
-        $fromGroups = DB::table('ffs_groups')
-            ->whereNotNull('facilitator_id')
-            ->distinct()
-            ->pluck('facilitator_id');
-
-        $fromDate = DB::table('users')
-            ->whereNotNull('facilitator_start_date')
-            ->pluck('id');
-
-        return $fromGroups->merge($fromDate)->unique()->values();
-    }
+    protected $title = 'User Management';
 
     // ─────────────────────────────────────────────────────────────────────────
     // GRID
@@ -45,39 +34,28 @@ class FacilitatorController extends AdminController
     {
         $grid = new Grid(new User());
 
-        $currentAdmin  = Admin::user();
-        $isSuperAdmin  = $this->isSuperAdmin();
-        $isFacilitator = !$isSuperAdmin && $currentAdmin
+        $currentAdmin = Admin::user();
+        $isSuperAdmin = $this->isSuperAdmin();
+        $isFacilitator = !$isSuperAdmin
             && $this->userHasRoleSlug($currentAdmin, 'facilitator');
         $ipId = $this->getAdminIpId();
 
-        // ── Base scope: users who are facilitators (linked to a group OR have start date) ──
-        $ids = $this->facilitatorIds();
-        $grid->model()
-            ->whereIn('id', $ids)
-            ->orderBy('id', 'desc');
+        // ── Base scope ────────────────────────────────────────────────────
+        $grid->model()->orderBy('id', 'desc');
 
-        // ── Three-tier access ──────────────────────────────────────────────
         if ($isFacilitator) {
-            // Facilitators see only themselves
             $grid->model()->where('id', $currentAdmin->id);
-        } elseif (!$isSuperAdmin && $ipId) {
-            // IP managers see only their IP's facilitators
-            $grid->model()->where('ip_id', $ipId);
-        }
-        // Super admins see all
-
-        // ── Search ────────────────────────────────────────────────────────
-        $grid->quickSearch('name', 'first_name', 'last_name', 'phone_number', 'email')
-            ->placeholder('Search name, phone or email…');
-
-        // ── Facilitators cannot create/delete records for others ──────────
-        if ($isFacilitator) {
             $grid->disableCreateButton();
             $grid->actions(function ($actions) {
                 $actions->disableDelete();
             });
+        } elseif (!$isSuperAdmin && $ipId) {
+            $grid->model()->where('ip_id', $ipId);
         }
+
+        // ── Search ────────────────────────────────────────────────────────
+        $grid->quickSearch('name', 'first_name', 'last_name', 'phone_number', 'email')
+            ->placeholder('Search name, phone or email…');
 
         // ── Filters ───────────────────────────────────────────────────────
         $grid->filter(function ($filter) use ($isSuperAdmin) {
@@ -91,27 +69,39 @@ class FacilitatorController extends AdminController
             $filter->like('name',         'Name');
             $filter->like('phone_number', 'Phone');
             $filter->equal('sex', 'Gender')->select(['Male' => 'Male', 'Female' => 'Female']);
-
-            $filter->equal('district_name', 'District')
-                ->select($this->northernUgandaDistricts());
-
+            $filter->equal('user_type', 'User Type')->select([
+                'Admin'    => 'Admin',
+                'Customer' => 'Member / Facilitator',
+            ]);
             $filter->equal('status', 'Status')->select(['1' => 'Active', '0' => 'Inactive']);
         });
 
         // ── Columns ───────────────────────────────────────────────────────
         $grid->column('id', 'ID')->sortable();
 
-        $grid->column('name', 'Facilitator')->display(function () {
+        $grid->column('name', 'User')->display(function () {
             $name = e($this->name ?: trim("{$this->first_name} {$this->last_name}"));
             return "<strong>{$name}</strong>";
         })->sortable();
 
         $grid->column('phone_number', 'Phone');
         $grid->column('email',        'Email');
-        $grid->column('sex',          'Gender');
 
-        $grid->column('district_name', 'District')->display(function ($v) {
-            return $v ?: '—';
+        $grid->column('roles_list', 'Roles')->display(function () {
+            try {
+                $roles = $this->roles()->get(['name']);
+                if ($roles->isEmpty()) return '<span class="label label-default">—</span>';
+                return $roles->map(function ($r) {
+                    return '<span class="label label-info">' . e($r->name) . '</span>';
+                })->implode(' ');
+            } catch (\Throwable $e) {
+                return '—';
+            }
+        });
+
+        $grid->column('user_type', 'Type')->display(function ($v) {
+            $colour = $v === 'Admin' ? 'primary' : 'default';
+            return '<span class="label label-' . $colour . '">' . e($v) . '</span>';
         });
 
         if ($isSuperAdmin) {
@@ -122,17 +112,13 @@ class FacilitatorController extends AdminController
             });
         }
 
-        $grid->column('facilitator_start_date', 'Start Date')->date('d M Y')->sortable();
+        $grid->column('status', 'Status')->display(function ($v) {
+            return $v == 1
+                ? '<span class="label label-success">Active</span>'
+                : '<span class="label label-default">Inactive</span>';
+        })->sortable();
 
-        $grid->column('groups_count', 'Groups')->display(function () {
-            $count = DB::table('ffs_groups')
-                ->where('facilitator_id', $this->id)
-                ->count();
-            if (!$count) return '<span class="label label-default">0</span>';
-            return '<span class="label label-primary">' . $count . '</span>';
-        });
-
-        $grid->column('created_at', 'Registered')->date('d M Y')->sortable();
+        $grid->column('created_at', 'Created')->date('d M Y')->sortable();
 
         return $grid;
     }
@@ -143,59 +129,37 @@ class FacilitatorController extends AdminController
 
     protected function detail($id)
     {
-        $facilitator = User::findOrFail($id);
+        $user = User::findOrFail($id);
 
-        if (!$this->verifyIpAccess($facilitator)) {
-            return $this->denyIpAccess();
+        if (!$this->verifyIpAccess($user)) {
+            // Facilitators may only view themselves
+            $currentAdmin = Admin::user();
+            if (!$this->isSuperAdmin() && (int) $user->id !== (int) $currentAdmin->id) {
+                return $this->denyIpAccess();
+            }
         }
 
-        $currentAdmin = Admin::user();
-        if (
-            !$this->isSuperAdmin()
-            && $this->userHasRoleSlug($currentAdmin, 'facilitator')
-            && (int) $facilitator->id !== (int) $currentAdmin->id
-        ) {
-            return $this->denyIpAccess();
-        }
+        $show = new Show($user);
 
-        $show = new Show($facilitator);
-
-        $show->field('id',    'ID');
-
+        $show->field('id',           'ID');
         $show->divider();
-        $show->field('first_name', 'First Name');
-        $show->field('last_name',  'Last Name');
-        $show->field('name',       'Full Name');
-        $show->field('sex',        'Gender');
-        $show->field('phone_number','Phone');
-        $show->field('email',      'Email');
-        $show->field('username',   'Username');
-        $show->field('national_id_number', 'National ID');
-
-        $show->divider();
-        $show->field('district_name', 'District');
-        $show->field('village', 'Village');
+        $show->field('first_name',   'First Name');
+        $show->field('last_name',    'Last Name');
+        $show->field('name',         'Full Name');
+        $show->field('sex',          'Gender');
+        $show->field('phone_number', 'Phone');
+        $show->field('email',        'Email');
+        $show->field('username',     'Username');
+        $show->field('user_type',    'User Type');
 
         $show->divider();
         $show->field('ip_id', 'Implementing Partner')->as(function ($id) {
             $ip = ImplementingPartner::find($id);
             return $ip ? "{$ip->name} ({$ip->short_name})" : '—';
         });
+        $show->field('status', 'Status')->as(fn($v) => $v == 1 ? 'Active' : 'Inactive');
         $show->field('facilitator_start_date', 'Facilitator Since');
-        $show->field('status', 'Status')->as(function ($v) {
-            return $v == 1 ? 'Active' : 'Inactive';
-        });
-        $show->field('created_at', 'Registered At');
-
-        // Groups managed
-        $show->field('id', 'Groups Managed')->as(function ($id) {
-            $groups = DB::table('ffs_groups')
-                ->where('facilitator_id', $id)
-                ->pluck('name');
-            return $groups->isNotEmpty()
-                ? $groups->implode(', ')
-                : 'None assigned';
-        });
+        $show->field('created_at',   'Created At');
 
         return $show;
     }
@@ -208,19 +172,18 @@ class FacilitatorController extends AdminController
     {
         $form = new Form(new User());
 
+        // ── Implementing Partner ──────────────────────────────────────────
         $this->addIpFieldToForm($form);
 
-        // Facilitators are Customer-type users (they use the mobile app)
-        $form->hidden('user_type')->default('Customer');
+        // ── Personal Information ──────────────────────────────────────────
+        $form->divider('Personal Information');
 
-        // ── Personal information ──────────────────────────────────────────
         $form->row(function ($row) {
             $row->width(4)->text('first_name', 'First Name')->required();
             $row->width(4)->text('last_name',  'Last Name')->required();
             $row->width(4)->select('sex', 'Gender')
                 ->options(['Male' => 'Male', 'Female' => 'Female'])
-                ->default('Male')
-                ->required();
+                ->default('Male');
         });
 
         $form->row(function ($row) {
@@ -228,35 +191,37 @@ class FacilitatorController extends AdminController
                 ->placeholder('e.g. 0771234567')
                 ->creationRules(['required', 'unique:users,phone_number'])
                 ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
-                ->help('Used as the default login password');
+                ->required();
             $row->width(6)->email('email', 'Email Address')
-                ->placeholder('e.g. facilitator@example.com');
+                ->placeholder('e.g. user@example.com');
         });
 
-        $form->row(function ($row) {
-            $row->width(4)->text('national_id_number', 'National ID (NIN)');
-        });
-
-        // ── Location ─────────────────────────────────────────────────────
-        $form->divider('Location');
+        // ── User Type & Status ────────────────────────────────────────────
+        $form->divider('Account Settings');
 
         $form->row(function ($row) {
-            $row->width(6)->select('district_name', 'District')
-                ->options($this->northernUgandaDistricts());
-            $row->width(6)->text('village', 'Village');
-        });
-
-        // ── Work information ──────────────────────────────────────────────
-        $form->divider('Work Information');
-
-        $form->row(function ($row) {
-            $row->width(4)->date('facilitator_start_date', 'Start Date')
-                ->required()
-                ->help('Date the facilitator began field work');
+            $row->width(4)->select('user_type', 'User Type')
+                ->options(['Admin' => 'Admin', 'Customer' => 'Member / Facilitator'])
+                ->default('Admin')
+                ->required();
             $row->width(4)->select('status', 'Account Status')
                 ->options(['1' => 'Active', '0' => 'Inactive'])
                 ->default('1')
                 ->required();
+            $row->width(4)->date('facilitator_start_date', 'Facilitator Start Date')
+                ->help('Set only for facilitators');
+        });
+
+        // ── Roles ─────────────────────────────────────────────────────────
+        $form->row(function ($row) {
+            $roleModel  = config('admin.database.roles_model');
+            $rolesQuery = $roleModel::query();
+            if (!$this->isSuperAdmin()) {
+                $rolesQuery->where('slug', '!=', 'super_admin');
+            }
+            $row->width(8)->multipleSelect('roles', 'Assigned Roles')
+                ->options($rolesQuery->pluck('name', 'id'))
+                ->help('Select all roles that apply to this user');
         });
 
         // ── Account & Security ────────────────────────────────────────────
@@ -264,11 +229,11 @@ class FacilitatorController extends AdminController
 
         $form->row(function ($row) use ($form) {
             $row->width(6)->text('username', 'Username')
-                ->placeholder('Auto-filled from phone number if blank');
+                ->placeholder('Auto-filled from phone if blank');
 
             if ($form->isCreating()) {
                 $row->width(6)->password('password', 'Password')
-                    ->help('Optional — phone number digits used if left blank');
+                    ->help('Optional — phone digits used if blank');
             } else {
                 $row->width(6)->password('password', 'Change Password')
                     ->help('Leave blank to keep current password');
@@ -277,14 +242,13 @@ class FacilitatorController extends AdminController
 
         // ── Saving logic ──────────────────────────────────────────────────
         $form->saving(function (Form $form) {
-            $form->user_type = 'Customer';
-            $form->name      = trim($form->first_name . ' ' . $form->last_name);
+            $form->name = trim($form->first_name . ' ' . $form->last_name);
 
             if ($form->isCreating()) {
                 if (empty($form->username) && !empty($form->phone_number)) {
                     $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
                 } elseif (empty($form->username)) {
-                    $form->username = 'fac_' . time();
+                    $form->username = 'user_' . time();
                 }
 
                 $plain = !empty($form->phone_number)
@@ -300,10 +264,6 @@ class FacilitatorController extends AdminController
                 if (empty($form->ip_id)) {
                     $form->ip_id = Admin::user()->ip_id ?? null;
                 }
-
-                // Facilitators skip the member onboarding flow
-                $form->onboarding_step = 'step_7_complete';
-                $form->onboarding_completed_at = now();
             } else {
                 if (empty($form->username) && !empty($form->phone_number)) {
                     $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
@@ -317,46 +277,49 @@ class FacilitatorController extends AdminController
             }
         });
 
+        $form->disableViewCheck();
+        $form->disableEditingCheck();
+        $form->tools(function (Form\Tools $tools) {
+            $tools->disableView();
+        });
+
         return $form;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // CUSTOM ACTIONS
+    // SEND CREDENTIALS
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Send login credentials via SMS.
-     */
     public function sendCredentials($id)
     {
-        $facilitator = User::findOrFail($id);
+        $user = User::findOrFail($id);
 
-        if (!$this->verifyIpAccess($facilitator)) {
+        if (!$this->verifyIpAccess($user)) {
             return $this->denyIpAccess();
         }
 
-        if (empty($facilitator->phone_number)) {
-            admin_toastr('Facilitator has no phone number on file.', 'error');
+        if (empty($user->phone_number)) {
+            admin_toastr('User has no phone number on file.', 'error');
             return redirect()->back();
         }
 
-        $firstName = $facilitator->first_name ?: explode(' ', $facilitator->name)[0];
-        $username  = $facilitator->username ?: $facilitator->phone_number;
-        $password  = preg_replace('/[^0-9]/', '', $facilitator->phone_number);
+        $firstName = $user->first_name ?: explode(' ', $user->name)[0];
+        $username  = $user->username ?: $user->phone_number;
+        $password  = preg_replace('/[^0-9]/', '', $user->phone_number);
 
         $message  = "FAO FFS-MIS — Login Credentials\n\n";
         $message .= "Dear {$firstName},\n";
         $message .= "Username: {$username}\n";
         $message .= "Password: {$password}\n\n";
-        $message .= "Download the FAO FFS-MIS app from Play Store or contact your administrator.";
+        $message .= "Download the FAO FFS-MIS app or visit the web portal.";
 
         try {
-            \App\Models\Utils::send_sms($facilitator->phone_number, $message);
-            admin_toastr("Credentials sent to {$facilitator->name} ({$facilitator->phone_number})", 'success');
-            Log::info("FacilitatorController: credentials SMS sent to #{$facilitator->id}");
+            \App\Models\Utils::send_sms($user->phone_number, $message);
+            admin_toastr("Credentials sent to {$user->name} ({$user->phone_number})", 'success');
+            Log::info("IPUserController: credentials SMS sent to #{$user->id}");
         } catch (\Exception $e) {
             admin_toastr('Failed to send SMS: ' . $e->getMessage(), 'error');
-            Log::error("FacilitatorController: credentials SMS failed for #{$facilitator->id}: " . $e->getMessage());
+            Log::error("IPUserController: SMS failed #{$user->id}: " . $e->getMessage());
         }
 
         return redirect()->back();

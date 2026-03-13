@@ -102,6 +102,12 @@ Route::group([
     $router->resource('users', UserController::class);
 
     // ========================================
+    // IP USER MANAGEMENT (hierarchy-scoped: super admin / IP manager / facilitator)
+    // ========================================
+    $router->get('ip-users/{id}/send-credentials', 'IPUserController@sendCredentials')->name('ip-users.send-credentials');
+    $router->resource('ip-users', IPUserController::class);
+
+    // ========================================
     // FACILITATORS MANAGEMENT
     // ========================================
     $router->get('facilitators/{id}/send-credentials', 'FacilitatorController@sendCredentials')->name('facilitators.send-credentials');

@@ -5073,3 +5073,7 @@
 #19 /Applications/MAMP/htdocs/fao-ffs-mis-api/artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
 #20 {main}
 "} 
+[2026-03-13 22:42:58] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":760,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-13 22:46:33] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":1568,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-13 22:48:47] local.INFO: ============ USER OBSERVER: UPDATED EVENT ============ {"user_id":1568,"is_dtehm_member":"No","is_dip_member":"No","isDirty_dtehm":false,"isDirty_dip":false} 
+[2026-03-13 22:50:33] local.INFO: === UPDATE METHOD CALLED === {"id":"1920","input":{"key":"0","avatar":"_file_del_","_file_del_":null,"_token":"E1vIiVPyJvm4TljVHBv5Dro6SgJ5g6c7eUW5M8Vc","_method":"PUT"}} 

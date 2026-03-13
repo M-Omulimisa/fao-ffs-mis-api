@@ -238,4 +238,29 @@ trait IpScopeable
         admin_toastr('Access denied: this record belongs to a different Implementing Partner.', 'error');
         return redirect()->back();
     }
+
+    /**
+     * Flat key=>value list of Northern Uganda districts for select dropdowns.
+     * Values are stored directly as text in the `district` column on users.
+     */
+    protected function northernUgandaDistricts(): array
+    {
+        $districts = [
+            // Karamoja subregion (core FOSTER project area)
+            'Abim', 'Amudat', 'Kaabong', 'Karenga', 'Kotido',
+            'Moroto', 'Nakapiripirit', 'Napak', 'Nabilatuk',
+            // Acholi subregion
+            'Agago', 'Amuru', 'Gulu', 'Kitgum', 'Lamwo',
+            'Nwoya', 'Omoro', 'Pader',
+            // Lango subregion
+            'Alebtong', 'Amolatar', 'Apac', 'Dokolo', 'Kole',
+            'Lira', 'Otuke', 'Oyam',
+            // West Nile subregion
+            'Adjumani', 'Arua', 'Koboko', 'Maracha', 'Madi-Okollo',
+            'Moyo', 'Obongi', 'Terego', 'Yumbe', 'Zombo',
+        ];
+
+        sort($districts);
+        return array_combine($districts, $districts);
+    }
 }

@@ -75,12 +75,9 @@ class MemberController extends AdminController
                 'No' => 'Regular Member',
             ]);
             
-            // Location filters
-            $filter->equal('district_id', 'District')->select(function() {
-                return Location::where('parent', 0)
-                    ->orderBy('name')
-                    ->pluck('name', 'id');
-            });
+            // Location filter
+            $filter->equal('district_name', 'District')
+                ->select($this->northernUgandaDistricts());
             
             $filter->equal('subcounty_id', 'Subcounty')->select(function() {
                 return Location::where('parent', '>', 0)
@@ -105,9 +102,7 @@ class MemberController extends AdminController
         
         // Columns
         $grid->column('id', 'ID')->sortable();
-        
-        $grid->column('avatar', 'Photo')->image('', 50, 50);
-        
+
         $grid->column('name', 'Full Name')->display(function() {
             $name = $this->name ?: ($this->first_name . ' ' . $this->last_name);
             $html = "<strong>{$name}</strong><br>";
@@ -186,18 +181,7 @@ class MemberController extends AdminController
         $grid->column('location', 'Location')->display(function() {
             $parts = [];
             if ($this->village) $parts[] = $this->village;
-            if ($this->parish_id) {
-                $parish = Location::find($this->parish_id);
-                if ($parish) $parts[] = $parish->name;
-            }
-            if ($this->subcounty_id) {
-                $subcounty = Location::find($this->subcounty_id);
-                if ($subcounty) $parts[] = $subcounty->name;
-            }
-            if ($this->district_id) {
-                $district = Location::find($this->district_id);
-                if ($district) $parts[] = '<strong>' . $district->name . '</strong>';
-            }
+            if ($this->district_name) $parts[] = '<strong>' . e($this->district_name) . '</strong>';
             return implode(', ', $parts) ?: 'N/A';
         });
         
@@ -246,9 +230,6 @@ class MemberController extends AdminController
         
         $show->panel()->style('success')->title('Member Profile');
 
-        // Profile Photo
-        $show->field('avatar', 'Photo')->image('', 150, 150);
-
         // Basic Information
         $show->divider('Personal Information');
         $show->field('name', 'Full Name');
@@ -276,10 +257,7 @@ class MemberController extends AdminController
         
         // Location
         $show->divider('Location');
-        $show->field('district_id', 'District')->as(function() {
-            $location = Location::find($this->district_id);
-            return $location ? $location->name : 'N/A';
-        });
+        $show->field('district_name', 'District');
         $show->field('village', 'Village');
         
         // Account Information
@@ -442,15 +420,32 @@ class MemberController extends AdminController
     {
         $form = new Form(new User());
         $this->addIpFieldToForm($form);
-        
-        // Hidden fields
+
         $form->hidden('user_type')->default('Customer');
-        
-        // Personal Information
+
+        // ── Personal Information ──────────────────────────────────────────
+        $form->divider('Personal Information');
+
         $form->row(function ($row) {
             $row->width(4)->text('first_name', 'First Name')->required();
-            $row->width(4)->text('last_name', 'Last Name')->required();
-            $row->width(4)->select('sex', 'Gender')->options(['Male' => 'Male', 'Female' => 'Female'])->default('Male')->required();
+            $row->width(4)->text('last_name',  'Last Name')->required();
+            $row->width(4)->select('sex', 'Gender')
+                ->options(['Male' => 'Male', 'Female' => 'Female'])
+                ->default('Male')
+                ->required();
+        });
+
+        $form->row(function ($row) {
+            $row->width(3)->date('dob', 'Date of Birth')->help('Format: YYYY-MM-DD');
+            $row->width(3)->text('national_id_number', 'National ID (NIN)');
+            $row->width(3)->select('marital_status', 'Marital Status')
+                ->options([
+                    'Single'   => 'Single',
+                    'Married'  => 'Married',
+                    'Divorced' => 'Divorced',
+                    'Widowed'  => 'Widowed',
+                ]);
+            $row->width(3)->number('household_size', 'Household Size')->min(1);
         });
 
         $form->row(function ($row) {
@@ -458,119 +453,152 @@ class MemberController extends AdminController
                 ->placeholder('e.g. 0771234567')
                 ->creationRules(['required', 'unique:users,phone_number'])
                 ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
-                ->help('Used as login username & password');
+                ->help('Primary contact & default login password');
+            $row->width(4)->text('phone_number_2', 'Secondary Phone')
+                ->placeholder('e.g. 0781234567');
             $row->width(4)->email('email', 'Email Address')
                 ->placeholder('e.g. member@example.com');
-            $row->width(4)->image('avatar', 'Photo')->removable();
         });
 
         $form->row(function ($row) {
-            $row->width(6)->text('username', 'Username')
-                ->placeholder('Auto-filled from phone number')
-                ->help('Defaults to phone number if left blank');
+            $row->width(6)->select('education_level', 'Education Level')
+                ->options([
+                    'None'      => 'None',
+                    'Primary'   => 'Primary',
+                    'Secondary' => 'Secondary',
+                    'Tertiary'  => 'Tertiary',
+                ]);
+            $row->width(6)->text('occupation', 'Occupation');
         });
-        
-        // Group Assignment (IP-scoped for non-super-admins)
+
+        // ── Group & Role ─────────────────────────────────────────────────
+        $form->divider('Group & Role');
+
         $form->row(function ($row) {
             $ipId = $this->getAdminIpId();
-            $row->width(6)->select('group_id', 'Group')->options(function() use ($ipId) {
-                $query = FfsGroup::where('status', 'Active')
-                    ->orderBy('type')->orderBy('name');
-                if ($ipId !== null) {
-                    $query->where('ip_id', $ipId);
-                }
-                return $query->get()->mapWithKeys(function($group) {
-                    return [$group->id => "[{$group->type}] {$group->name}"];
-                });
-            })->help('Only active groups shown. Group determines the member\'s IP.');
-            $row->width(6)->select('status', 'Account Status')->options(['1' => 'Active', '0' => 'Inactive'])->default('1');
+            $row->width(6)->select('group_id', 'Group')
+                ->options(function () use ($ipId) {
+                    $query = FfsGroup::where('status', 'Active')
+                        ->orderBy('type')->orderBy('name');
+                    if ($ipId !== null) {
+                        $query->where('ip_id', $ipId);
+                    }
+                    return $query->get()->mapWithKeys(fn($g) => [
+                        $g->id => "[{$g->type}] {$g->name}",
+                    ]);
+                })
+                ->help('Only active groups shown. Group determines the member\'s IP.');
+            $row->width(6)->select('status', 'Account Status')
+                ->options(['1' => 'Active', '0' => 'Inactive'])
+                ->default('1');
         });
-        
+
         $form->row(function ($row) {
-            $row->width(4)->select('is_group_admin', 'Chairperson?')->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
-            $row->width(4)->select('is_group_secretary', 'Secretary?')->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
-            $row->width(4)->select('is_group_treasurer', 'Treasurer?')->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
+            $row->width(4)->select('is_group_admin',     'Chairperson?')
+                ->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
+            $row->width(4)->select('is_group_secretary', 'Secretary?')
+                ->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
+            $row->width(4)->select('is_group_treasurer', 'Treasurer?')
+                ->options(['No' => 'No', 'Yes' => 'Yes'])->default('No');
         });
-        
-        // Location
+
+        // ── Location ─────────────────────────────────────────────────────
+        $form->divider('Location');
+
         $form->row(function ($row) {
-            $row->width(6)->select('district_id', 'District')->options(function() {
-                return Location::where('parent', 0)->orderBy('name')->pluck('name', 'id');
-            });
+            $row->width(6)->select('district_name', 'District')
+                ->options($this->northernUgandaDistricts());
             $row->width(6)->text('village', 'Village');
         });
 
-        // Account & Security
+        // ── Emergency Contact ─────────────────────────────────────────────
+        $form->divider('Emergency Contact');
+
+        $form->row(function ($row) {
+            $row->width(6)->text('emergency_contact_name',  'Contact Name')
+                ->placeholder('Full name of emergency contact');
+            $row->width(6)->text('emergency_contact_phone', 'Contact Phone')
+                ->placeholder('e.g. 0771234567');
+        });
+
+        // ── Additional Information ────────────────────────────────────────
+        $form->divider('Additional Information');
+
+        $form->row(function ($row) {
+            $row->width(4)->textarea('disabilities', 'Disabilities')
+                ->rows(3)->placeholder('Any known disabilities…');
+            $row->width(4)->textarea('skills',       'Skills')
+                ->rows(3)->placeholder('Key skills or expertise…');
+            $row->width(4)->textarea('remarks',      'Remarks')
+                ->rows(3)->placeholder('Any additional notes…');
+        });
+
+        // ── Account & Security ────────────────────────────────────────────
         $form->divider('Account & Security');
 
-        // Role assignment - IP admins can only assign IP-level and below roles
         $form->row(function ($row) use ($form) {
-            $roleModel = config('admin.database.roles_model');
-            $rolesQuery = $roleModel::query();
-            if (!$this->isSuperAdmin()) {
-                $rolesQuery->where('slug', '!=', 'super_admin');
-            }
-            $row->width(6)->multipleSelect('roles', 'Roles')
-                ->options($rolesQuery->pluck('name', 'id'))
-                ->help('Assign system roles to this member (optional)');
+            $row->width(6)->text('username', 'Username')
+                ->placeholder('Auto-filled from phone number if blank')
+                ->help('Login username — defaults to phone number digits');
 
             if ($form->isCreating()) {
                 $row->width(6)->password('password', 'Password')
-                    ->help('Optional. If blank, phone number will be used as default password.');
+                    ->help('Optional — phone number digits used if left blank');
             } else {
                 $row->width(6)->password('password', 'Change Password')
                     ->help('Leave blank to keep current password');
             }
         });
-        
-        // Saving logic
+
+        $form->row(function ($row) {
+            $roleModel  = config('admin.database.roles_model');
+            $rolesQuery = $roleModel::query();
+            if (!$this->isSuperAdmin()) {
+                $rolesQuery->where('slug', '!=', 'super_admin');
+            }
+            $row->width(6)->multipleSelect('roles', 'System Roles')
+                ->options($rolesQuery->pluck('name', 'id'))
+                ->help('Optional — assign portal roles to this member');
+        });
+
+        // ── Saving logic ──────────────────────────────────────────────────
         $form->saving(function (Form $form) {
-            // Build full name
             $form->name = trim($form->first_name . ' ' . $form->last_name);
 
             if ($form->isCreating()) {
-                // Auto-generate username from phone number if not provided
                 if (empty($form->username) && !empty($form->phone_number)) {
                     $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
                 } elseif (empty($form->username)) {
                     $form->username = 'member_' . time();
                 }
-                
-                // Set default password to phone number
-                if (empty($form->password)) {
-                    $plainPassword = !empty($form->phone_number) ? 
-                        preg_replace('/[^0-9]/', '', $form->phone_number) : '123456';
-                    $form->password = bcrypt($plainPassword);
-                } else {
-                    $form->password = bcrypt($form->password);
-                }
-                
-                $form->created_by_id = \Encore\Admin\Facades\Admin::user()->id;
+
+                $plain = !empty($form->phone_number)
+                    ? preg_replace('/[^0-9]/', '', $form->phone_number)
+                    : '123456';
+                $form->password = empty($form->password)
+                    ? bcrypt($plain)
+                    : bcrypt($form->password);
+
+                $form->created_by_id    = \Encore\Admin\Facades\Admin::user()->id;
                 $form->registered_by_id = \Encore\Admin\Facades\Admin::user()->id;
 
-                // Smart onboarding: if admin creates member with group + full data,
-                // auto-advance onboarding so mobile app doesn't force them through steps
                 if ($form->onboarding_step === 'not_started' || empty($form->onboarding_step)) {
                     if (!empty($form->group_id)) {
-                        // If member has a group assigned by admin, skip to at least step_5
-                        // Check if the group already has an active cycle
                         $activeCycle = \App\Models\Project::where('group_id', $form->group_id)
                             ->where('is_vsla_cycle', 'Yes')
                             ->where('is_active_cycle', 'Yes')
                             ->first();
+                        $form->onboarding_step = $activeCycle
+                            ? 'step_7_complete'
+                            : 'step_5_members';
                         if ($activeCycle) {
-                            $form->onboarding_step = 'step_7_complete';
                             $form->onboarding_completed_at = now();
-                        } else {
-                            $form->onboarding_step = 'step_5_members';
                         }
                     } elseif (!empty($form->first_name) && !empty($form->phone_number)) {
-                        // Has basic registration data but no group
                         $form->onboarding_step = 'step_3_registration';
                     }
                 }
 
-                // Inherit ip_id from group if not set
                 if (empty($form->ip_id) && !empty($form->group_id)) {
                     $group = FfsGroup::find($form->group_id);
                     if ($group && $group->ip_id) {
@@ -578,20 +606,14 @@ class MemberController extends AdminController
                     }
                 }
 
-                // Final fallback: inherit ip_id from the creating admin user
                 if (empty($form->ip_id)) {
-                    $adminIpId = \Encore\Admin\Facades\Admin::user()->ip_id ?? null;
-                    if ($adminIpId) {
-                        $form->ip_id = $adminIpId;
-                    }
+                    $form->ip_id = \Encore\Admin\Facades\Admin::user()->ip_id ?? null;
                 }
             } else {
-                // On update: sync username to phone number if username is empty
                 if (empty($form->username) && !empty($form->phone_number)) {
                     $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
                 }
 
-                // Only hash password if provided
                 if (!empty($form->password)) {
                     $form->password = bcrypt($form->password);
                 } else {
@@ -599,10 +621,7 @@ class MemberController extends AdminController
                 }
             }
         });
-        
-        // Note: Username and password auto-generated from phone number if not provided
-        // Default password is the phone number (digits only)
-        
+
         $form->disableViewCheck();
         $form->disableEditingCheck();
         $form->tools(function (Form\Tools $tools) {
