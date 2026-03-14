@@ -188,10 +188,9 @@ class IPUserController extends AdminController
 
         $form->row(function ($row) {
             $row->width(6)->text('phone_number', 'Phone Number')
-                ->placeholder('e.g. 0771234567')
-                ->creationRules(['required', 'unique:users,phone_number'])
-                ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
-                ->required();
+                ->placeholder('e.g. 0771234567 (optional)')
+                ->creationRules(['nullable', 'unique:users,phone_number'])
+                ->updateRules(['nullable', 'unique:users,phone_number,{{id}}']);
             $row->width(6)->email('email', 'Email Address')
                 ->placeholder('e.g. user@example.com');
         });

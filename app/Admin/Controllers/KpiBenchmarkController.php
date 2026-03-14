@@ -3,430 +3,197 @@
 namespace App\Admin\Controllers;
 
 use App\Models\KpiBenchmark;
+use App\Models\FfsGroup;
+use App\Models\ImplementingPartner;
+use App\Services\KpiService;
+use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use Encore\Admin\Layout\Column;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
-use Encore\Admin\Layout\Column;
-use Encore\Admin\Facades\Admin;
-use App\Services\KpiService;
-use App\Models\FfsGroup;
-use App\Models\ImplementingPartner;
 
 /**
- * KpiBenchmarkController — manage the single-record facilitator KPI
- * benchmark table and display a live KPI dashboard.
+ * KpiBenchmarkController — KPI Overview Hub + benchmark settings editor.
+ *
+ * index()  → Overview dashboard (benchmark cards + quick summary tables + navigation links)
+ * edit()   → Edit the benchmark targets
+ *
+ * Detailed per-facilitator KPIs → KpiFacilitatorController (kpi-facilitators)
+ * Detailed per-IP KPIs          → KpiIpController          (kpi-ips)
+ * Visual charts                 → KpiStatsController       (kpi-stats)
  */
 class KpiBenchmarkController extends AdminController
 {
-    protected $title = 'KPI Benchmarks';
+    use IpScopeable;
 
-    // ─── Dashboard landing ────────────────────────────────
+    protected $title = 'KPI Overview';
+
+    // ─── Overview dashboard ───────────────────────────────────────────────
+
     public function index(Content $content)
     {
         return $content
-            ->title('KPI Dashboard')
-            ->description('Facilitator & IP performance tracking')
+            ->title('KPI Overview')
+            ->description('Benchmark targets & performance snapshot')
             ->row(function (Row $row) {
-                $this->renderDashboard($row);
+                $this->renderOverview($row);
             });
     }
 
-    private function renderDashboard(Row $row)
+    private function renderOverview(Row $row)
     {
-        $bench = KpiBenchmark::current();
-        $user  = Admin::user();
-        $isSuperAdmin = $user && $user->isRole('super_admin');
-        $ipId  = $isSuperAdmin ? null : ($user->ip_id ?? null);
+        $bench        = KpiBenchmark::current();
+        $isSuperAdmin = $this->isSuperAdmin();
+        $ipId         = $this->getAdminIpId();
+        $editUrl      = admin_url("kpi-benchmarks/{$bench->id}/edit");
 
-        // ── Benchmark summary card ───────────────────────────
-        $row->column(12, function (Column $col) use ($bench) {
-            $html = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;'>";
-            $html .= "<h4 style='margin:0 0 12px;'><i class='fa fa-sliders'></i> Facilitator KPI Benchmarks</h4>";
-            $html .= "<div style='display:flex;gap:12px;flex-wrap:wrap;'>";
-            $items = [
-                ['Min Groups', $bench->min_groups_per_facilitator, 'fa-users', '#2196F3'],
-                ['Trainings/Week', $bench->min_trainings_per_week, 'fa-graduation-cap', '#4caf50'],
-                ['Meetings/Group/Week', $bench->min_meetings_per_group_per_week, 'fa-calendar-check-o', '#ff9800'],
-                ['Members/Group', $bench->min_members_per_group, 'fa-user', '#9c27b0'],
-                ['AESA/Week', $bench->min_aesa_sessions_per_week, 'fa-leaf', '#009688'],
-                ['Attendance %', $bench->min_meeting_attendance_pct . '%', 'fa-check-circle', '#e91e63'],
-            ];
-            foreach ($items as $i) {
-                $html .= "<div style='flex:1;min-width:140px;text-align:center;padding:12px;border:1px solid #eee;'>
-                    <i class='fa {$i[2]}' style='font-size:18px;color:{$i[3]};'></i>
-                    <div style='font-size:24px;font-weight:700;color:{$i[3]};margin:4px 0;'>{$i[1]}</div>
-                    <div style='font-size:11px;text-transform:uppercase;color:#666;'>{$i[0]}</div>
-                </div>";
+        // ── Navigation links ───────────────────────────────────────────
+        $row->column(12, function (Column $col) use ($isSuperAdmin) {
+            $html  = "<div style='background:#fff;border:1px solid #ddd;padding:14px 16px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;'>";
+            $html .= "<span style='font-size:13px;color:#666;margin-right:4px;'>Quick links:</span>";
+            $html .= "<a href='" . admin_url('kpi-facilitators') . "' class='btn btn-sm btn-primary'><i class='fa fa-user'></i> Facilitator KPIs</a>";
+            if ($isSuperAdmin) {
+                $html .= "<a href='" . admin_url('kpi-ips') . "' class='btn btn-sm btn-info'><i class='fa fa-building'></i> IP KPIs</a>";
             }
+            $html .= "<a href='" . admin_url('kpi-stats') . "' class='btn btn-sm btn-default'><i class='fa fa-bar-chart'></i> Charts &amp; Analytics</a>";
             $html .= "</div>";
-            $html .= "<div style='margin-top:8px;text-align:right;'>";
-            $html .= "<a href='" . admin_url('kpi-benchmarks/1/edit') . "' class='btn btn-sm btn-primary'><i class='fa fa-pencil'></i> Edit Benchmarks</a>";
-            $html .= "</div></div>";
             $col->append($html);
         });
 
-        // ── Facilitator scorecards ───────────────────────────
+        // ── Benchmark targets card ─────────────────────────────────────
+        $row->column(12, function (Column $col) use ($bench, $editUrl) {
+            $html  = "<div style='background:#fff;border:1px solid #ddd;border-left:4px solid #2196F3;padding:16px;margin-bottom:16px;border-radius:2px;'>";
+            $html .= "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;'>";
+            $html .= "<h4 style='margin:0;'><i class='fa fa-sliders' style='color:#2196F3;'></i>&nbsp; Facilitator KPI Benchmarks</h4>";
+            $html .= "<a href='{$editUrl}' class='btn btn-sm btn-primary'><i class='fa fa-pencil'></i> Edit</a>";
+            $html .= "</div>";
+            $html .= "<div style='display:flex;gap:10px;flex-wrap:wrap;'>";
+            $items = [
+                ['Min Groups / Facilitator',     $bench->min_groups_per_facilitator,                  'fa-users',            '#2196F3'],
+                ['Min Trainings / Week',          $bench->min_trainings_per_week,                      'fa-graduation-cap',   '#4caf50'],
+                ['Min Meetings / Group / Week',   $bench->min_meetings_per_group_per_week,             'fa-calendar-check-o', '#ff9800'],
+                ['Min Members / Group',           $bench->min_members_per_group,                       'fa-user',             '#9c27b0'],
+                ['Min AESA / Week',               $bench->min_aesa_sessions_per_week,                  'fa-leaf',             '#009688'],
+                ['Min Attendance %',              $bench->min_meeting_attendance_pct . '%',            'fa-check-circle',     '#e91e63'],
+            ];
+            foreach ($items as $i) {
+                $html .= "<div style='flex:1;min-width:130px;text-align:center;padding:10px 8px;border:1px solid #eee;border-radius:2px;background:#fafafa;'>
+                    <i class='fa {$i[2]}' style='font-size:16px;color:{$i[3]};'></i>
+                    <div style='font-size:22px;font-weight:700;color:{$i[3]};margin:4px 0;line-height:1;'>{$i[1]}</div>
+                    <div style='font-size:10px;text-transform:uppercase;color:#888;letter-spacing:.5px;'>{$i[0]}</div>
+                </div>";
+            }
+            $html .= "</div>";
+            $html .= "<p style='margin:10px 0 0;font-size:12px;color:#999;'>Last updated: {$bench->updated_at}</p>";
+            $html .= "</div>";
+            $col->append($html);
+        });
+
+        // ── Facilitator quick scorecard ────────────────────────────────
         $facilitatorIds = FfsGroup::where('status', 'Active')
             ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
             ->whereNotNull('facilitator_id')
             ->distinct()
             ->pluck('facilitator_id');
 
-        $row->column(12, function (Column $col) use ($facilitatorIds, $bench) {
-            $html = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;'>";
-            $html .= "<h4 style='margin:0 0 12px;'><i class='fa fa-bar-chart'></i> Facilitator Performance This Week</h4>";
+        $row->column($isSuperAdmin ? 6 : 12, function (Column $col) use ($facilitatorIds) {
+            $html  = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;'>";
+            $html .= "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;'>";
+            $html .= "<h4 style='margin:0;'><i class='fa fa-user' style='color:#2196F3;'></i>&nbsp; Facilitators — This Week</h4>";
+            $html .= "<a href='" . admin_url('kpi-facilitators') . "' class='btn btn-xs btn-default'>View All &rarr;</a>";
+            $html .= "</div>";
 
             if ($facilitatorIds->isEmpty()) {
-                $html .= "<p class='text-muted'>No facilitators with active groups found.</p></div>";
-                $col->append($html);
-                return;
+                $html .= "<p class='text-muted' style='padding:8px 0;'><i class='fa fa-info-circle'></i> No facilitators with active groups.</p>";
+            } else {
+                $scorecards = [];
+                foreach ($facilitatorIds as $fId) {
+                    $scorecards[] = KpiService::facilitatorScorecard($fId);
+                }
+                $count      = count($scorecards);
+                $avgOverall = $count > 0 ? round(array_sum(array_column($scorecards, 'overall_score')) / $count, 1) : 0;
+                $excellent  = count(array_filter($scorecards, fn($c) => $c['overall_score'] >= 80));
+                $avgColor   = $avgOverall >= 80 ? '#4caf50' : ($avgOverall >= 50 ? '#ff9800' : '#f44336');
+
+                $html .= "<div style='display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;'>";
+                $html .= self::miniStat($count, 'Total', '#607d8b');
+                $html .= self::miniStat($avgOverall . '%', 'Avg Score', $avgColor);
+                $html .= self::miniStat($excellent, 'Excellent (≥80%)', '#4caf50');
+                $html .= "</div>";
+
+                $html .= "<table class='table table-condensed' style='margin:0;font-size:12px;'>";
+                $html .= "<thead><tr><th>Facilitator</th><th style='text-align:center;'>Score</th><th style='text-align:center;'>Status</th></tr></thead><tbody>";
+                foreach ($scorecards as $card) {
+                    $overall = $card['overall_score'];
+                    $color   = $overall >= 80 ? '#4caf50' : ($overall >= 50 ? '#ff9800' : '#f44336');
+                    $bg      = $overall >= 80 ? '#e8f5e9' : ($overall >= 50 ? '#fff3e0' : '#ffebee');
+                    $label   = $overall >= 80 ? 'Excellent' : ($overall >= 60 ? 'Good' : ($overall >= 40 ? 'Fair' : 'Below'));
+                    $name    = e($card['facilitator_name'] ?? "User #{$card['facilitator_id']}");
+                    $html .= "<tr>
+                        <td>{$name}</td>
+                        <td style='text-align:center;background:{$bg};font-weight:700;color:{$color};'>{$overall}%</td>
+                        <td style='text-align:center;'><span style='font-size:10px;color:{$color};font-weight:600;'>{$label}</span></td>
+                    </tr>";
+                }
+                $html .= "</tbody></table>";
             }
 
-            $html .= "<table class='table table-bordered table-striped' style='margin:0;'>";
-            $html .= "<thead><tr style='background:#f5f5f5;'>
-                <th>Facilitator</th>
-                <th style='text-align:center;'>Groups<br><small class='text-muted'>/{$bench->min_groups_per_facilitator}</small></th>
-                <th style='text-align:center;'>Trainings<br><small class='text-muted'>/{$bench->min_trainings_per_week}/wk</small></th>
-                <th style='text-align:center;'>Meetings<br><small class='text-muted'>/{$bench->min_meetings_per_group_per_week}/grp/wk</small></th>
-                <th style='text-align:center;'>Members<br><small class='text-muted'>/{$bench->min_members_per_group}/grp</small></th>
-                <th style='text-align:center;'>AESA<br><small class='text-muted'>/{$bench->min_aesa_sessions_per_week}/wk</small></th>
-                <th style='text-align:center;'>Attendance<br><small class='text-muted'>/{$bench->min_meeting_attendance_pct}%</small></th>
-                <th style='text-align:center;'>Overall</th>
-            </tr></thead><tbody>";
-
-            foreach ($facilitatorIds as $fId) {
-                $card = KpiService::facilitatorScorecard($fId);
-                $fac  = \App\Models\User::find($fId);
-                $name = $fac ? ($fac->name ?: $fac->first_name . ' ' . $fac->last_name) : "User #{$fId}";
-                $a    = $card['actuals'];
-                $s    = $card['scores'];
-                $overall = $card['overall_score'];
-
-                $overallColor = $overall >= 80 ? '#4caf50' : ($overall >= 50 ? '#ff9800' : '#f44336');
-
-                $html .= "<tr>";
-                $html .= "<td><strong>{$name}</strong></td>";
-                $html .= self::scoreCell($a['total_groups'], $s['groups']);
-                $html .= self::scoreCell($a['trainings_this_week'], $s['trainings']);
-                $html .= self::scoreCell($a['meetings_per_group'], $s['meetings']);
-                $html .= self::scoreCell($a['avg_members_per_group'], $s['members']);
-                $html .= self::scoreCell($a['aesa_this_week'], $s['aesa']);
-                $html .= self::scoreCell($a['attendance_pct'] . '%', $s['attendance']);
-                $html .= "<td style='text-align:center;font-weight:bold;color:{$overallColor};font-size:16px;'>{$overall}%</td>";
-                $html .= "</tr>";
-            }
-
-            $html .= "</tbody></table></div>";
+            $html .= "</div>";
             $col->append($html);
         });
 
-        // ── IP scorecards (super admin only) ─────────────────
+        // ── IP quick scorecard (super admin only) ──────────────────────
         if ($isSuperAdmin) {
-            $row->column(12, function (Column $col) {
-                $ips = ImplementingPartner::active()->get();
+            $row->column(6, function (Column $col) {
+                $ips  = ImplementingPartner::active()->get();
                 $html = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;'>";
-                $html .= "<h4 style='margin:0 0 12px;'><i class='fa fa-building'></i> IP Performance Summary This Week</h4>";
+                $html .= "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;'>";
+                $html .= "<h4 style='margin:0;'><i class='fa fa-building' style='color:#4caf50;'></i>&nbsp; IPs — This Week</h4>";
+                $html .= "<a href='" . admin_url('kpi-ips') . "' class='btn btn-xs btn-default'>View All &rarr;</a>";
+                $html .= "</div>";
 
                 if ($ips->isEmpty()) {
-                    $html .= "<p class='text-muted'>No active IPs.</p></div>";
-                    $col->append($html);
-                    return;
+                    $html .= "<p class='text-muted'><i class='fa fa-info-circle'></i> No active IPs.</p>";
+                } else {
+                    $html .= "<table class='table table-condensed' style='margin:0;font-size:12px;'>";
+                    $html .= "<thead><tr><th>IP</th><th style='text-align:center;'>Score</th><th style='text-align:center;'>Facilitators</th></tr></thead><tbody>";
+                    foreach ($ips as $ip) {
+                        $card    = KpiService::ipScorecard($ip->id);
+                        $overall = $card['overall_score'];
+                        $color   = $overall >= 80 ? '#4caf50' : ($overall >= 50 ? '#ff9800' : '#f44336');
+                        $bg      = $overall >= 80 ? '#e8f5e9' : ($overall >= 50 ? '#fff3e0' : '#ffebee');
+                        $facMet  = $card['facilitator_performance']['pct_meeting_kpi'];
+                        $html .= "<tr>
+                            <td><strong>" . e($ip->short_name ?: $ip->name) . "</strong></td>
+                            <td style='text-align:center;background:{$bg};font-weight:700;color:{$color};'>{$overall}%</td>
+                            <td style='text-align:center;'><small>{$facMet}% met KPI</small></td>
+                        </tr>";
+                    }
+                    $html .= "</tbody></table>";
                 }
 
-                $html .= "<table class='table table-bordered table-striped' style='margin:0;'>";
-                $html .= "<thead><tr style='background:#f5f5f5;'>
-                    <th>IP</th>
-                    <th style='text-align:center;'>Facilitators</th>
-                    <th style='text-align:center;'>Groups</th>
-                    <th style='text-align:center;'>Members</th>
-                    <th style='text-align:center;'>Trainings/wk</th>
-                    <th style='text-align:center;'>Meetings/wk</th>
-                    <th style='text-align:center;'>Avg Fac Score</th>
-                    <th style='text-align:center;'>% Facs Met</th>
-                    <th style='text-align:center;'>Overall</th>
-                </tr></thead><tbody>";
-
-                foreach ($ips as $ip) {
-                    $card  = KpiService::ipScorecard($ip->id);
-                    $a     = $card['actuals'];
-                    $t     = $card['targets'];
-                    $s     = $card['scores'];
-                    $fp    = $card['facilitator_performance'];
-                    $overall = $card['overall_score'];
-                    $overallColor = $overall >= 80 ? '#4caf50' : ($overall >= 50 ? '#ff9800' : '#f44336');
-
-                    $html .= "<tr>";
-                    $html .= "<td><strong>{$ip->name}</strong><br><small class='text-muted'>{$ip->short_name}</small></td>";
-                    $html .= self::scoreCell("{$a['total_facilitators']}/{$t['facilitators']}", $s['facilitators']);
-                    $html .= self::scoreCell("{$a['total_groups']}/{$t['groups']}", $s['groups']);
-                    $html .= self::scoreCell("{$a['total_members']}/{$t['members']}", $s['members']);
-                    $html .= self::scoreCell("{$a['trainings_this_week']}/{$t['trainings_per_week']}", $s['trainings']);
-                    $html .= self::scoreCell("{$a['meetings_this_week']}/{$t['meetings_per_week']}", $s['meetings']);
-                    $html .= "<td style='text-align:center;'>{$fp['avg_score']}%</td>";
-                    $html .= "<td style='text-align:center;'>{$fp['pct_meeting_kpi']}%</td>";
-                    $html .= "<td style='text-align:center;font-weight:bold;color:{$overallColor};font-size:16px;'>{$overall}%</td>";
-                    $html .= "</tr>";
-                }
-
-                $html .= "</tbody></table></div>";
+                $html .= "</div>";
                 $col->append($html);
             });
         }
-
-        // ══════════════════════════════════════════════════════
-        // CHARTS
-        // ══════════════════════════════════════════════════════
-
-        // ── Chart 1: Facilitator overall scores bar chart ────
-        $row->column(6, function (Column $col) use ($facilitatorIds) {
-            $names = [];
-            $scores = [];
-            $colors = [];
-            foreach ($facilitatorIds as $fId) {
-                $card = KpiService::facilitatorScorecard($fId);
-                $fac  = \App\Models\User::find($fId);
-                $name = $fac ? ($fac->first_name ?: 'User') : "#{$fId}";
-                $names[] = $name;
-                $scores[] = $card['overall_score'];
-                $colors[] = $card['overall_score'] >= 80 ? '#4caf50' : ($card['overall_score'] >= 50 ? '#ff9800' : '#f44336');
-            }
-            $namesJson  = json_encode($names);
-            $scoresJson = json_encode($scores);
-            $colorsJson = json_encode($colors);
-
-            $html = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;'>
-                <h4 style='margin:0 0 12px;'><i class='fa fa-bar-chart'></i> Facilitator Overall Scores</h4>
-                <canvas id='facilScoresChart' height='260'></canvas>
-            </div>
-            <script>
-            (function(){
-                function ensureChartJs(cb){if(typeof Chart!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=cb;document.head.appendChild(s);}
-                function run(){ensureChartJs(function(){
-                    var ctx=document.getElementById('facilScoresChart');
-                    if(!ctx)return;
-                    var ex=Chart.getChart?Chart.getChart(ctx):null;if(ex)ex.destroy();
-                    new Chart(ctx.getContext('2d'), {
-                        type: 'bar',
-                        data: {
-                            labels: {$namesJson},
-                            datasets: [{
-                                label: 'Overall Score %',
-                                data: {$scoresJson},
-                                backgroundColor: {$colorsJson},
-                                borderWidth: 0
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: { yAxes: [{ ticks: { beginAtZero: true, max: 100 } }] },
-                            legend: { display: false },
-                            annotation: {
-                                annotations: [{
-                                    type: 'line', mode: 'horizontal',
-                                    scaleID: 'y-axis-0', value: 80,
-                                    borderColor: '#4caf50', borderWidth: 2, borderDash: [5,5],
-                                    label: { content: '80% target', enabled: true, position: 'right' }
-                                }]
-                            }
-                        }
-                    });
-                });}
-                if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}
-                document.addEventListener('pjax:complete',run);
-            })();
-            </script>";
-            $col->append($html);
-        });
-
-        // ── Chart 2: KPI distribution radar (avg across all facilitators) ──
-        $row->column(6, function (Column $col) use ($facilitatorIds) {
-            $kpiLabels = ['Groups', 'Trainings', 'Meetings', 'Members', 'AESA', 'Attendance'];
-            $avgScores = ['groups' => 0, 'trainings' => 0, 'meetings' => 0, 'members' => 0, 'aesa' => 0, 'attendance' => 0];
-            $count = $facilitatorIds->count();
-            foreach ($facilitatorIds as $fId) {
-                $card = KpiService::facilitatorScorecard($fId);
-                foreach ($avgScores as $key => &$val) {
-                    $val += $card['scores'][$key] ?? 0;
-                }
-            }
-            unset($val);
-            if ($count > 0) {
-                foreach ($avgScores as &$val) {
-                    $val = round($val / $count, 1);
-                }
-                unset($val);
-            }
-            $labelsJson = json_encode($kpiLabels);
-            $dataJson   = json_encode(array_values($avgScores));
-
-            $html = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;'>
-                <h4 style='margin:0 0 12px;'><i class='fa fa-bullseye'></i> Avg KPI Performance (All Facilitators)</h4>
-                <canvas id='kpiRadarChart' height='260'></canvas>
-            </div>
-            <script>
-            (function(){
-                function ensureChartJs(cb){if(typeof Chart!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=cb;document.head.appendChild(s);}
-                function run(){ensureChartJs(function(){
-                    var ctx=document.getElementById('kpiRadarChart');
-                    if(!ctx)return;
-                    var ex=Chart.getChart?Chart.getChart(ctx):null;if(ex)ex.destroy();
-                    new Chart(ctx.getContext('2d'), {
-                        type: 'radar',
-                        data: {
-                            labels: {$labelsJson},
-                            datasets: [{
-                                label: 'Avg Score %',
-                                data: {$dataJson},
-                                backgroundColor: 'rgba(33,150,243,0.2)',
-                                borderColor: '#2196F3',
-                                pointBackgroundColor: '#2196F3',
-                                borderWidth: 2
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scale: { ticks: { beginAtZero: true, max: 100 } }
-                        }
-                    });
-                });}
-                if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}
-                document.addEventListener('pjax:complete',run);
-            })();
-            </script>";
-            $col->append($html);
-        });
-
-        // ── Chart 3: Score distribution pie ──────────────────
-        $row->column(6, function (Column $col) use ($facilitatorIds) {
-            $excellent = 0; $good = 0; $needs = 0; $below = 0;
-            foreach ($facilitatorIds as $fId) {
-                $card = KpiService::facilitatorScorecard($fId);
-                $s = $card['overall_score'];
-                if ($s >= 80) $excellent++;
-                elseif ($s >= 60) $good++;
-                elseif ($s >= 40) $needs++;
-                else $below++;
-            }
-            $dataJson = json_encode([$excellent, $good, $needs, $below]);
-
-            $html = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;'>
-                <h4 style='margin:0 0 12px;'><i class='fa fa-pie-chart'></i> Performance Distribution</h4>
-                <canvas id='perfPieChart' height='260'></canvas>
-            </div>
-            <script>
-            (function(){
-                function ensureChartJs(cb){if(typeof Chart!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=cb;document.head.appendChild(s);}
-                function run(){ensureChartJs(function(){
-                    var ctx=document.getElementById('perfPieChart');
-                    if(!ctx)return;
-                    var ex=Chart.getChart?Chart.getChart(ctx):null;if(ex)ex.destroy();
-                    new Chart(ctx.getContext('2d'), {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Excellent (≥80%)', 'Good (60-79%)', 'Needs Improvement (40-59%)', 'Below Target (<40%)'],
-                            datasets: [{
-                                data: {$dataJson},
-                                backgroundColor: ['#4caf50','#ff9800','#ffc107','#f44336'],
-                                borderWidth: 2,
-                                borderColor: '#fff'
-                            }]
-                        },
-                        options: { responsive: true }
-                    });
-                });}
-                if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}
-                document.addEventListener('pjax:complete',run);
-            })();
-            </script>";
-            $col->append($html);
-        });
-
-        // ── Chart 4: Actuals vs Targets grouped bar (aggregated) ──
-        $row->column(6, function (Column $col) use ($facilitatorIds, $bench) {
-            $totalActuals = ['groups' => 0, 'trainings' => 0, 'meetings' => 0, 'members' => 0, 'aesa' => 0];
-            $count = $facilitatorIds->count();
-            foreach ($facilitatorIds as $fId) {
-                $card = KpiService::facilitatorScorecard($fId);
-                $a = $card['actuals'];
-                $totalActuals['groups']    += $a['total_groups'];
-                $totalActuals['trainings'] += $a['trainings_this_week'];
-                $totalActuals['meetings']  += $a['meetings_this_week'];
-                $totalActuals['members']   += $a['total_members'];
-                $totalActuals['aesa']      += $a['aesa_this_week'];
-            }
-            // Per-facilitator average
-            if ($count > 0) {
-                $avgActuals = [
-                    round($totalActuals['groups'] / $count, 1),
-                    round($totalActuals['trainings'] / $count, 1),
-                    round($totalActuals['meetings'] / $count, 1),
-                    round($totalActuals['members'] / $count, 1),
-                    round($totalActuals['aesa'] / $count, 1),
-                ];
-            } else {
-                $avgActuals = [0,0,0,0,0];
-            }
-            $targets = [
-                $bench->min_groups_per_facilitator,
-                $bench->min_trainings_per_week,
-                $bench->min_meetings_per_group_per_week,
-                $bench->min_members_per_group,
-                $bench->min_aesa_sessions_per_week,
-            ];
-            $actualsJson = json_encode($avgActuals);
-            $targetsJson = json_encode($targets);
-
-            $html = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;'>
-                <h4 style='margin:0 0 12px;'><i class='fa fa-balance-scale'></i> Avg Actuals vs Targets (Per Facilitator)</h4>
-                <canvas id='actualsVsTargetsChart' height='260'></canvas>
-            </div>
-            <script>
-            (function(){
-                function ensureChartJs(cb){if(typeof Chart!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=cb;document.head.appendChild(s);}
-                function run(){ensureChartJs(function(){
-                    var ctx=document.getElementById('actualsVsTargetsChart');
-                    if(!ctx)return;
-                    var ex=Chart.getChart?Chart.getChart(ctx):null;if(ex)ex.destroy();
-                    new Chart(ctx.getContext('2d'), {
-                        type: 'bar',
-                        data: {
-                            labels: ['Groups','Trainings/wk','Meetings/wk','Members/grp','AESA/wk'],
-                            datasets: [
-                                { label: 'Avg Actual', data: {$actualsJson}, backgroundColor: '#2196F3' },
-                                { label: 'Target', data: {$targetsJson}, backgroundColor: '#e0e0e0' }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: { yAxes: [{ ticks: { beginAtZero: true } }] }
-                        }
-                    });
-                });}
-                if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}
-                document.addEventListener('pjax:complete',run);
-            })();
-            </script>";
-            $col->append($html);
-        });
     }
 
-    /**
-     * Helper: render a table cell with color-coded score.
-     */
-    private static function scoreCell(string $value, float $score): string
+    // ─── Helpers ─────────────────────────────────────────────────────────
+
+    private static function miniStat($value, string $label, string $color): string
     {
-        $color = $score >= 80 ? '#4caf50' : ($score >= 50 ? '#ff9800' : '#f44336');
-        $bg    = $score >= 80 ? '#e8f5e9' : ($score >= 50 ? '#fff3e0' : '#ffebee');
-        return "<td style='text-align:center;background:{$bg};'>
-            <div style='font-weight:600;'>{$value}</div>
-            <small style='color:{$color};font-weight:600;'>{$score}%</small>
-        </td>";
+        return "<div style='flex:1;min-width:80px;text-align:center;padding:8px;border:1px solid #eee;border-radius:2px;'>
+            <div style='font-size:20px;font-weight:700;color:{$color};'>{$value}</div>
+            <div style='font-size:10px;color:#888;text-transform:uppercase;'>{$label}</div>
+        </div>";
     }
 
-    // ─── Grid (fallback list — only 1 record) ────────────
+    // ─── Grid (fallback — only used internally by AdminController resource) ──
+
     protected function grid()
     {
         $grid = new Grid(new KpiBenchmark());
@@ -438,51 +205,52 @@ class KpiBenchmarkController extends AdminController
         });
 
         $grid->column('id', 'ID');
-        $grid->column('min_groups_per_facilitator', 'Min Groups');
-        $grid->column('min_trainings_per_week', 'Trainings/Week');
-        $grid->column('min_meetings_per_group_per_week', 'Meetings/Group/Week');
-        $grid->column('min_members_per_group', 'Members/Group');
-        $grid->column('min_aesa_sessions_per_week', 'AESA/Week');
-        $grid->column('min_meeting_attendance_pct', 'Attendance %');
-        $grid->column('updated_at', 'Last Updated');
+        $grid->column('min_groups_per_facilitator',      'Min Groups / Facilitator');
+        $grid->column('min_trainings_per_week',          'Trainings / Week');
+        $grid->column('min_meetings_per_group_per_week', 'Meetings / Group / Week');
+        $grid->column('min_members_per_group',           'Members / Group');
+        $grid->column('min_aesa_sessions_per_week',      'AESA / Week');
+        $grid->column('min_meeting_attendance_pct',      'Attendance %');
+        $grid->column('updated_at',                      'Last Updated');
 
         return $grid;
     }
 
-    // ─── Form ────────────────────────────────────────────
+    // ─── Form (edit benchmark targets) ───────────────────────────────────
+
     protected function form()
     {
         $form = new Form(new KpiBenchmark());
 
         $form->display('id', 'ID');
+        $form->divider('Facilitator KPI Benchmark Targets');
+        $form->html('<div class="alert alert-info"><i class="fa fa-info-circle"></i> These benchmarks define the minimum weekly targets used to score each facilitator (0–100 %).</div>');
 
-        $form->divider('Facilitator KPI Targets');
+        $form->row(function ($row) {
+            $row->width(4)->number('min_groups_per_facilitator', 'Min Groups / Facilitator')
+                ->default(3)->min(1)->max(50)
+                ->help('Minimum active groups each facilitator must manage');
+            $row->width(4)->number('min_trainings_per_week', 'Min Trainings / Week')
+                ->default(2)->min(0)->max(20)
+                ->help('Minimum FFS sessions per facilitator per week');
+            $row->width(4)->number('min_meetings_per_group_per_week', 'Min Meetings / Group / Week')
+                ->default(1)->min(0)->max(7)
+                ->help('Minimum VSLA meeting submissions per group per week');
+        });
 
-        $form->number('min_groups_per_facilitator', 'Min Groups per Facilitator')
-            ->default(3)->min(1)->max(50)
-            ->help('Minimum number of active groups each facilitator should manage');
+        $form->row(function ($row) {
+            $row->width(4)->number('min_members_per_group', 'Min Members / Group')
+                ->default(30)->min(5)->max(100)
+                ->help('Minimum registered members per group');
+            $row->width(4)->number('min_aesa_sessions_per_week', 'Min AESA / Week')
+                ->default(1)->min(0)->max(10)
+                ->help('Minimum AESA observation sessions per facilitator per week');
+            $row->width(4)->decimal('min_meeting_attendance_pct', 'Min Attendance %')
+                ->default(75)
+                ->help('Target meeting attendance percentage (0–100)');
+        });
 
-        $form->number('min_trainings_per_week', 'Min Trainings per Week')
-            ->default(2)->min(0)->max(20)
-            ->help('Minimum training sessions a facilitator should conduct per week');
-
-        $form->number('min_meetings_per_group_per_week', 'Min Meetings per Group per Week')
-            ->default(1)->min(0)->max(7)
-            ->help('Minimum VSLA meetings submitted per group per week');
-
-        $form->number('min_members_per_group', 'Min Members per Group')
-            ->default(30)->min(5)->max(100)
-            ->help('Minimum registered members each group should have');
-
-        $form->number('min_aesa_sessions_per_week', 'Min AESA Sessions per Week')
-            ->default(1)->min(0)->max(10)
-            ->help('Minimum AESA observation sessions per facilitator per week');
-
-        $form->decimal('min_meeting_attendance_pct', 'Min Meeting Attendance %')
-            ->default(75)->help('Target meeting attendance percentage (0-100)');
-
-        $form->hidden('updated_by_id')->default(Admin::user()->id ?? null);
-
+        $form->hidden('updated_by_id');
         $form->saving(function (Form $form) {
             $form->updated_by_id = Admin::user()->id ?? null;
         });
@@ -499,16 +267,18 @@ class KpiBenchmarkController extends AdminController
         return $form;
     }
 
-    // ─── Detail view (not really needed) ─────────────────
+    // ─── Detail view ─────────────────────────────────────────────────────
+
     protected function detail($id)
     {
         $show = new Show(KpiBenchmark::findOrFail($id));
-        $show->field('min_groups_per_facilitator', 'Min Groups per Facilitator');
-        $show->field('min_trainings_per_week', 'Min Trainings per Week');
-        $show->field('min_meetings_per_group_per_week', 'Min Meetings/Group/Week');
-        $show->field('min_members_per_group', 'Min Members per Group');
-        $show->field('min_aesa_sessions_per_week', 'Min AESA/Week');
-        $show->field('min_meeting_attendance_pct', 'Min Attendance %');
+        $show->panel()->style('primary')->title('KPI Benchmark Settings');
+        $show->field('min_groups_per_facilitator',      'Min Groups / Facilitator');
+        $show->field('min_trainings_per_week',          'Min Trainings / Week');
+        $show->field('min_meetings_per_group_per_week', 'Min Meetings / Group / Week');
+        $show->field('min_members_per_group',           'Min Members / Group');
+        $show->field('min_aesa_sessions_per_week',      'Min AESA / Week');
+        $show->field('min_meeting_attendance_pct',      'Min Attendance %');
         $show->field('updated_at', 'Last Updated');
         return $show;
     }

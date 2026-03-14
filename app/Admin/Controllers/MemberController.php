@@ -450,10 +450,10 @@ class MemberController extends AdminController
 
         $form->row(function ($row) {
             $row->width(4)->text('phone_number', 'Phone Number')
-                ->placeholder('e.g. 0771234567')
-                ->creationRules(['required', 'unique:users,phone_number'])
-                ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
-                ->help('Primary contact & default login password');
+                ->placeholder('e.g. 0771234567 (optional)')
+                ->creationRules(['nullable', 'unique:users,phone_number'])
+                ->updateRules(['nullable', 'unique:users,phone_number,{{id}}'])
+                ->help('Primary contact — leave blank if member has no phone; member code will be used as identifier');
             $row->width(4)->text('phone_number_2', 'Secondary Phone')
                 ->placeholder('e.g. 0781234567');
             $row->width(4)->email('email', 'Email Address')

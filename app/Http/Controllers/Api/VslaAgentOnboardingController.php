@@ -158,31 +158,20 @@ class VslaAgentOnboardingController extends Controller
 
             // Chairperson
             'chairperson_name'  => 'required|string|min:3|max:255',
-            'chairperson_phone' => ['required', 'string', 'regex:/^(\+256|0)[7][0-9]{8}$/'],
+            'chairperson_phone' => ['nullable', 'string', 'regex:/^(\+256|0)[7][0-9]{8}$/'],
             'chairperson_email' => 'nullable|email',
             'chairperson_nin'   => 'nullable|string|max:20',
             'chairperson_password' => 'nullable|string|min:4|max:50',
 
             // Secretary
             'secretary_name'    => 'required|string|min:3|max:255',
-            'secretary_phone'   => [
-                'required',
-                'string',
-                'regex:/^(\+256|0)[7][0-9]{8}$/',
-                'different:chairperson_phone'
-            ],
+            'secretary_phone'   => ['nullable', 'string', 'regex:/^(\+256|0)[7][0-9]{8}$/'],
             'secretary_email'   => 'nullable|email',
             'secretary_nin'     => 'nullable|string|max:20',
 
             // Treasurer
             'treasurer_name'    => 'required|string|min:3|max:255',
-            'treasurer_phone'   => [
-                'required',
-                'string',
-                'regex:/^(\+256|0)[7][0-9]{8}$/',
-                'different:chairperson_phone',
-                'different:secretary_phone'
-            ],
+            'treasurer_phone'   => ['nullable', 'string', 'regex:/^(\+256|0)[7][0-9]{8}$/'],
             'treasurer_email'   => 'nullable|email',
             'treasurer_nin'     => 'nullable|string|max:20',
 
@@ -191,6 +180,20 @@ class VslaAgentOnboardingController extends Controller
 
         if ($validator->fails()) {
             return $this->error($validator->errors()->first());
+        }
+
+        // Cross-field phone uniqueness — only enforced when both phones are non-empty
+        $chairPhone = trim($request->chairperson_phone ?? '');
+        $secPhone   = trim($request->secretary_phone ?? '');
+        $trePhone   = trim($request->treasurer_phone ?? '');
+        if ($chairPhone && $secPhone && $chairPhone === $secPhone) {
+            return $this->error('Chairperson and Secretary cannot have the same phone number.');
+        }
+        if ($chairPhone && $trePhone && $chairPhone === $trePhone) {
+            return $this->error('Chairperson and Treasurer cannot have the same phone number.');
+        }
+        if ($secPhone && $trePhone && $secPhone === $trePhone) {
+            return $this->error('Secretary and Treasurer cannot have the same phone number.');
         }
 
         $group = FfsGroup::find($request->group_id);
@@ -463,7 +466,7 @@ class VslaAgentOnboardingController extends Controller
      */
     private function createOrUpdateOfficer(
         string $name,
-        string $phoneRaw,
+        ?string $phoneRaw,
         ?string $email,
         string $password,
         string $role,
@@ -472,10 +475,10 @@ class VslaAgentOnboardingController extends Controller
         ?string $nin = null,
         ?string $sex = null
     ): User {
-        $phone = $this->normalizePhone($phoneRaw);
+        $phone = $phoneRaw ? $this->normalizePhone($phoneRaw) : null;
 
-        // Try to find existing user
-        $user = $this->findUserByPhone($phoneRaw, User::class);
+        // Try to find existing user by phone (only when phone is provided)
+        $user = $phone ? $this->findUserByPhone($phoneRaw, User::class) : null;
 
         if (!$user) {
             $user = new Administrator();
@@ -487,9 +490,11 @@ class VslaAgentOnboardingController extends Controller
         $user->name       = $name;
 
         $user->phone_number  = $phone;
-        $user->username      = $phone;
+        $user->username      = $phone ?? ('tmp_' . uniqid());
         $user->reg_number    = $phone;
-        $user->email         = $email ?: (preg_replace('/[^\d]/', '', $phone) . '@faoffsmis.org');
+        $user->email         = $email ?: ($phone
+            ? (preg_replace('/[^\d]/', '', $phone) . '@faoffsmis.org')
+            : (strtolower(preg_replace('/\s+/', '.', trim($name))) . '.' . uniqid() . '@faoffsmis.org'));
         $user->password      = Hash::make($password);
         $user->country       = 'Uganda';
         $user->user_type     = 'Customer';
@@ -528,6 +533,18 @@ class VslaAgentOnboardingController extends Controller
         $user->occupation          = $user->occupation ?? '';
 
         $user->saveQuietly();
+
+        // If no phone was provided, fall back to member_code as the unique identifier
+        if (!$phone) {
+            $saved = User::find($user->id);
+            if ($saved && $saved->member_code) {
+                $saved->updateQuietly([
+                    'phone_number' => $saved->member_code,
+                    'username'     => $saved->member_code,
+                    'reg_number'   => $saved->member_code,
+                ]);
+            }
+        }
 
         return User::find($user->id);
     }

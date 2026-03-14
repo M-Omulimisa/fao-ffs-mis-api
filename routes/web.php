@@ -23,11 +23,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Root: landing page or redirect to dashboard if already logged in
+// Root: always show the landing page
 Route::get('/', function () {
-    if (auth(config('admin.auth.guard', 'admin'))->check()) {
-        return redirect(admin_url('vsla-groups'));
-    }
     return view('landing');
 });
 

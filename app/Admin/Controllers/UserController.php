@@ -220,10 +220,10 @@ class UserController extends AdminController
 
         $form->row(function ($row) {
             $row->width(4)->text('phone_number', 'Phone Number')
-                ->placeholder('e.g. 0771234567')
-                ->creationRules(['required', 'unique:users,phone_number'])
-                ->updateRules(['required', 'unique:users,phone_number,{{id}}'])
-                ->help('Used as login username & default password');
+                ->placeholder('e.g. 0771234567 (optional)')
+                ->creationRules(['nullable', 'unique:users,phone_number'])
+                ->updateRules(['nullable', 'unique:users,phone_number,{{id}}'])
+                ->help('Used as login username & default password — leave blank if member has no phone');
             $row->width(4)->date('facilitator_start_date', 'Facilitator Start Date')
                 ->help('Date when facilitator started working (for KPI tracking)');
             $row->width(4)->image('avatar', 'Photo')->removable();
