@@ -81,21 +81,23 @@ class Administrator extends Model implements AuthenticatableContract, JWTSubject
      */
     public function getAvatarAttribute($avatar)
     {
-        if ($avatar != null && strlen($avatar) > 5) {
-            return $avatar;
+        $default = config('admin.default_avatar') ?: '/assets/images/user.jpg';
+
+        // No avatar stored — use default
+        if (empty($avatar)) {
+            return admin_asset($default);
         }
-        
+
+        // Already a full URL — return as-is
         if (url()->isValidUrl($avatar)) {
             return $avatar;
         }
 
+        // Relative path — resolve via configured Storage disk
         $disk = config('admin.upload.disk');
-
-        if ($avatar && array_key_exists($disk, config('filesystems.disks'))) {
-            return Storage::disk(config('admin.upload.disk'))->url($avatar);
+        if ($disk && array_key_exists($disk, config('filesystems.disks'))) {
+            return Storage::disk($disk)->url($avatar);
         }
-
-        $default = config('admin.default_avatar') ?: '/assets/images/user.jpg';
 
         return admin_asset($default);
     }

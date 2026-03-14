@@ -4,8 +4,7 @@ namespace App\Admin\Controllers;
 
 use App\Models\MarketPrice;
 use App\Models\MarketPriceProduct;
-use App\Models\District;
-use App\Models\SubCounty;
+use App\Models\Location;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -38,7 +37,9 @@ class MarketPriceController extends AdminController
             return date('M d, Y', strtotime($date));
         })->sortable();
         $grid->column('product.name', __('Product'))->sortable();
-        $grid->column('product.category.name', __('Category'));
+        $grid->column('product.category', __('Category'))->display(function ($category) {
+            return $category ? e($category->name ?? '—') : '—';
+        });
         $grid->column('market_name', __('Market'))->sortable();
         $grid->column('district.name', __('District'));
         $grid->column('sub_county.name', __('Sub County'));
@@ -65,7 +66,7 @@ class MarketPriceController extends AdminController
             return date('M d, Y H:i', strtotime($created_at));
         })->sortable();
 
-        $grid->model()->with(['product.category', 'district', 'subCounty'])->orderBy('date', 'desc')->orderBy('id', 'desc');
+        $grid->model()->with(['product.category', 'district', 'sub_county'])->orderBy('date', 'desc')->orderBy('id', 'desc');
 
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
@@ -75,7 +76,7 @@ class MarketPriceController extends AdminController
             });
             
             $filter->equal('district_id', __('District'))->select(function () {
-                return District::orderBy('name')->pluck('name', 'id');
+                return Location::get_districts()->pluck('name', 'id');
             });
             
             $filter->between('date', __('Date Range'))->date();
@@ -155,7 +156,7 @@ class MarketPriceController extends AdminController
         $form->divider('Location Information');
         
         $form->select('district_id', __('District'))
-            ->options(District::orderBy('name')->pluck('name', 'id'))
+            ->options(Location::get_districts()->pluck('name', 'id'))
             ->load('sub_county_id', '/admin/api/sub-counties')
             ->help('Select district');
         

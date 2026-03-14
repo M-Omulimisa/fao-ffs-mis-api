@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\DB;
  */
 class KpiService
 {
+    /**
+     * Programme default start date.
+     * Used as the fallback when a facilitator or IP has no explicit start date set.
+     */
+    const DEFAULT_START_DATE = '2026-03-16';
     // =====================================================================
     // FACILITATOR KPI
     // =====================================================================
@@ -39,22 +44,22 @@ class KpiService
 
         // ── facilitator start date ───────────────────────────────
         $facilitator = User::find($facilitatorId);
-        $facilitatorStartDate = null;
-        $weeksActive = null;
-        if ($facilitator && $facilitator->facilitator_start_date) {
-            $facilitatorStartDate = Carbon::parse($facilitator->facilitator_start_date)->toDateString();
-            $start = Carbon::parse($facilitatorStartDate);
-            $weeksActive = max(1, (int) $start->diffInWeeks(Carbon::now()));
+        $rawStartDate = ($facilitator && $facilitator->facilitator_start_date)
+            ? $facilitator->facilitator_start_date
+            : self::DEFAULT_START_DATE;
 
-            // Prorate weekly targets if facilitator started during the selected week.
-            if ($start->greaterThan($weekStart)) {
-                if ($start->greaterThan($weekEnd)) {
-                    $activeDaysInWeek = 0;
-                    $effectiveWeekStart = $weekEnd->copy()->addSecond();
-                } else {
-                    $effectiveWeekStart = $start->copy()->startOfDay();
-                    $activeDaysInWeek = max(1, $effectiveWeekStart->diffInDays($weekEnd) + 1);
-                }
+        $facilitatorStartDate = Carbon::parse($rawStartDate)->toDateString();
+        $start = Carbon::parse($facilitatorStartDate);
+        $weeksActive = max(1, (int) $start->diffInWeeks(Carbon::now()));
+
+        // Prorate weekly targets if facilitator started during the selected week.
+        if ($start->greaterThan($weekStart)) {
+            if ($start->greaterThan($weekEnd)) {
+                $activeDaysInWeek = 0;
+                $effectiveWeekStart = $weekEnd->copy()->addSecond();
+            } else {
+                $effectiveWeekStart = $start->copy()->startOfDay();
+                $activeDaysInWeek = max(1, $effectiveWeekStart->diffInDays($weekEnd) + 1);
             }
         }
 
@@ -171,16 +176,14 @@ class KpiService
         $effectiveWeekStart = $weekStart->copy();
         $activeDaysInWeek = 7;
 
-        if ($ip->start_date) {
-            $ipStart = Carbon::parse($ip->start_date)->startOfDay();
-            if ($ipStart->greaterThan($weekStart)) {
-                if ($ipStart->greaterThan($weekEnd)) {
-                    $activeDaysInWeek = 0;
-                    $effectiveWeekStart = $weekEnd->copy()->addSecond();
-                } else {
-                    $effectiveWeekStart = $ipStart;
-                    $activeDaysInWeek = max(1, $effectiveWeekStart->diffInDays($weekEnd) + 1);
-                }
+        $ipStart = Carbon::parse($ip->start_date ?? self::DEFAULT_START_DATE)->startOfDay();
+        if ($ipStart->greaterThan($weekStart)) {
+            if ($ipStart->greaterThan($weekEnd)) {
+                $activeDaysInWeek = 0;
+                $effectiveWeekStart = $weekEnd->copy()->addSecond();
+            } else {
+                $effectiveWeekStart = $ipStart;
+                $activeDaysInWeek = max(1, $effectiveWeekStart->diffInDays($weekEnd) + 1);
             }
         }
 
@@ -275,7 +278,9 @@ class KpiService
         return [
             'ip_id'      => $ipId,
             'ip_name'    => $ip->name,
-            'start_date' => $ip->start_date ? Carbon::parse($ip->start_date)->toDateString() : null,
+            'start_date' => $ip->start_date
+                ? Carbon::parse($ip->start_date)->toDateString()
+                : self::DEFAULT_START_DATE,
             'week_start' => $weekStart->toDateString(),
             'week_end'   => $weekEnd->toDateString(),
             'active_days_in_week' => $activeDaysInWeek,

@@ -23,6 +23,14 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// Root: landing page or redirect to dashboard if already logged in
+Route::get('/', function () {
+    if (auth(config('admin.auth.guard', 'admin'))->check()) {
+        return redirect(admin_url('vsla-groups'));
+    }
+    return view('landing');
+});
+
 Route::get('/auth/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/auth/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('logout');
