@@ -5,6 +5,7 @@ namespace App\Admin\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\AesaSession;
 use App\Models\AesaObservation;
+use App\Models\AesaCropObservation;
 use App\Models\FfsGroup;
 use App\Admin\Traits\IpScopeable;
 use Carbon\Carbon;
@@ -42,8 +43,8 @@ class AesaStatsController extends Controller
         $ipId = $this->getAdminIpId();
 
         return $content
-            ->title('🐄 AESA Analytics Dashboard')
-            ->description('Agro-Ecosystem Analysis — Animal Health & Field Observation Insights')
+            ->title('🌿 AESA Analytics Dashboard')
+            ->description('Agro-Ecosystem Analysis — Animal Health & Crop Field Observation Insights')
             ->row(function (Row $row) use ($ipId) {
                 $this->addKPICards($row, $ipId);
             })
@@ -62,6 +63,14 @@ class AesaStatsController extends Controller
             ->row(function (Row $row) use ($ipId) {
                 $this->addEcosystemConditionsChart($row, $ipId);
                 $this->addBodyConditionTrendChart($row, $ipId);
+            })
+            ->row(function (Row $row) use ($ipId) {
+                $this->addCropTypeChart($row, $ipId);
+                $this->addCropVigorChart($row, $ipId);
+            })
+            ->row(function (Row $row) use ($ipId) {
+                $this->addCropPestPrevalenceChart($row, $ipId);
+                $this->addCropDiseasePrevalenceChart($row, $ipId);
             })
             ->row(function (Row $row) use ($ipId) {
                 $this->addTopGroupsTable($row, $ipId);
@@ -119,6 +128,21 @@ class AesaStatsController extends Controller
         $uniqueGroups = AesaSession::when($ipId, fn($q) => $q->where('ip_id', $ipId))
             ->whereNotNull('group_id')->distinct('group_id')->count('group_id');
 
+        // Crop KPI data
+        $totalCropObs   = AesaCropObservation::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+        $avgCropScore   = $totalCropObs > 0 ? $this->computeAverageCropHealthScore($ipId) : 0;
+        $cropHighRisk   = AesaCropObservation::where('risk_level', 'High')
+            ->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+        $cropHighRiskPct = $totalCropObs > 0 ? round(($cropHighRisk / $totalCropObs) * 100, 1) : 0;
+        $cropGoodVigor  = AesaCropObservation::whereIn('crop_vigor', ['Good', 'Excellent'])
+            ->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+        $cropGoodVigorPct = $totalCropObs > 0 ? round(($cropGoodVigor / $totalCropObs) * 100, 1) : 0;
+
+        $cropScoreColor = '#f44336'; $cropScoreLabel = 'Critical';
+        if ($avgCropScore >= 75) { $cropScoreColor = '#4caf50'; $cropScoreLabel = 'Good'; }
+        elseif ($avgCropScore >= 50) { $cropScoreColor = '#ff9800'; $cropScoreLabel = 'Fair'; }
+        elseif ($avgCropScore >= 30) { $cropScoreColor = '#ff5722'; $cropScoreLabel = 'Poor'; }
+
         $sessionTrend = $lastMonthSessions > 0
             ? round((($thisMonthSessions - $lastMonthSessions) / $lastMonthSessions) * 100)
             : ($thisMonthSessions > 0 ? 100 : 0);
@@ -155,7 +179,7 @@ class AesaStatsController extends Controller
                     <div class='aesa-kpi-icon' style='background:#2196f3;'><i class='fa fa-eye'></i></div>
                     <div class='aesa-kpi-body'>
                         <div class='aesa-kpi-number'>{$totalObs}</div>
-                        <div class='aesa-kpi-label'>Animals Observed</div>
+                        <div class='aesa-kpi-label'>Animal Observations</div>
                         <div class='aesa-kpi-detail'>Avg. {$avgObsPerSession} per session</div>
                     </div>
                 </div>";
@@ -229,6 +253,49 @@ class AesaStatsController extends Controller
                 </div>";
             $column->append(new Box('', $content));
         });
+
+        // Row 3: Crop KPI mini-cards
+        $row->column(3, function (Column $column) use ($totalCropObs) {
+            $color = $totalCropObs > 0 ? '#388e3c' : '#999';
+            $content = "
+                <div class='aesa-kpi-mini'>
+                    <i class='fa fa-leaf' style='color:{$color};'></i>
+                    <span class='aesa-kpi-mini-number'>{$totalCropObs}</span>
+                    <span class='aesa-kpi-mini-label'>Crop Observations</span>
+                </div>";
+            $column->append(new Box('', $content));
+        });
+
+        $row->column(3, function (Column $column) use ($avgCropScore, $cropScoreColor, $cropScoreLabel) {
+            $content = "
+                <div class='aesa-kpi-mini'>
+                    <i class='fa fa-seedling' style='color:{$cropScoreColor};'></i>
+                    <span class='aesa-kpi-mini-number' style='color:{$cropScoreColor};'>{$avgCropScore}</span>
+                    <span class='aesa-kpi-mini-label'>Avg. Crop Score ({$cropScoreLabel})</span>
+                </div>";
+            $column->append(new Box('', $content));
+        });
+
+        $row->column(3, function (Column $column) use ($cropGoodVigorPct, $cropGoodVigor) {
+            $content = "
+                <div class='aesa-kpi-mini'>
+                    <i class='fa fa-check-circle' style='color:#4caf50;'></i>
+                    <span class='aesa-kpi-mini-number'>{$cropGoodVigorPct}%</span>
+                    <span class='aesa-kpi-mini-label'>Good/Excellent Vigor ({$cropGoodVigor})</span>
+                </div>";
+            $column->append(new Box('', $content));
+        });
+
+        $row->column(3, function (Column $column) use ($cropHighRisk, $cropHighRiskPct) {
+            $alertColor = $cropHighRiskPct > 25 ? '#f44336' : ($cropHighRiskPct > 10 ? '#ff9800' : '#4caf50');
+            $content = "
+                <div class='aesa-kpi-mini'>
+                    <i class='fa fa-exclamation-circle' style='color:{$alertColor};'></i>
+                    <span class='aesa-kpi-mini-number' style='color:{$alertColor};'>{$cropHighRisk}</span>
+                    <span class='aesa-kpi-mini-label'>High-Risk Crops ({$cropHighRiskPct}%)</span>
+                </div>";
+            $column->append(new Box('', $content));
+        });
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -241,6 +308,7 @@ class AesaStatsController extends Controller
             $months = [];
             $sessionData = [];
             $obsData = [];
+            $cropData = [];
 
             for ($i = 11; $i >= 0; $i--) {
                 $date = now()->subMonths($i);
@@ -250,6 +318,11 @@ class AesaStatsController extends Controller
                     ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
                     ->count();
                 $obsData[] = AesaObservation::whereHas('session', function ($q) use ($date, $ipId) {
+                    $q->whereYear('observation_date', $date->year)
+                      ->whereMonth('observation_date', $date->month);
+                    if ($ipId) $q->where('ip_id', $ipId);
+                })->count();
+                $cropData[] = AesaCropObservation::whereHas('session', function ($q) use ($date, $ipId) {
                     $q->whereYear('observation_date', $date->year)
                       ->whereMonth('observation_date', $date->month);
                     if ($ipId) $q->where('ip_id', $ipId);
@@ -281,6 +354,13 @@ class AesaStatsController extends Controller
                                     backgroundColor: 'rgba(76,175,80,0.08)',
                                     borderWidth: 3, fill: true, tension: 0.4,
                                     pointRadius: 4, pointBackgroundColor: '#4caf50'
+                                }, {
+                                    label: 'Crop Plots Observed',
+                                    data: " . json_encode($cropData) . ",
+                                    borderColor: '#ff9800',
+                                    backgroundColor: 'rgba(255,152,0,0.08)',
+                                    borderWidth: 3, fill: true, tension: 0.4,
+                                    pointRadius: 4, pointBackgroundColor: '#ff9800'
                                 }]
                             },
                             options: {
@@ -759,6 +839,10 @@ class AesaStatsController extends Controller
                     $q->where('group_id', $g->group_id);
                 })->count();
 
+                $cropCount = AesaCropObservation::whereHas('session', function ($q) use ($g) {
+                    $q->where('group_id', $g->group_id);
+                })->count();
+
                 $medal = $rank <= 3
                     ? "<span style='display:inline-block;width:24px;height:24px;background:" . ['', '#ffd700', '#c0c0c0', '#cd7f32'][$rank] . ";color:#fff;text-align:center;line-height:24px;font-weight:700;font-size:12px;'>{$rank}</span>"
                     : "<span style='display:inline-block;width:24px;text-align:center;font-weight:600;color:#999;'>{$rank}</span>";
@@ -770,6 +854,7 @@ class AesaStatsController extends Controller
                         <td style='padding:8px;color:#666;'>{$district}</td>
                         <td style='padding:8px;text-align:center;font-weight:700;color:#05179F;'>{$g->session_count}</td>
                         <td style='padding:8px;text-align:center;'>{$obsCount}</td>
+                        <td style='padding:8px;text-align:center;color:#388e3c;font-weight:600;'>{$cropCount}</td>
                     </tr>";
             }
 
@@ -784,6 +869,7 @@ class AesaStatsController extends Controller
                                 <th style='padding:8px;'>District</th>
                                 <th style='padding:8px;text-align:center;'>Sessions</th>
                                 <th style='padding:8px;text-align:center;'>Animals</th>
+                                <th style='padding:8px;text-align:center;'>Crops</th>
                             </tr>
                         </thead>
                         <tbody>{$rows}</tbody>
@@ -868,7 +954,8 @@ class AesaStatsController extends Controller
                 $facilitator = $s->facilitator
                     ? trim(($s->facilitator->first_name ?? '') . ' ' . ($s->facilitator->last_name ?? ''))
                     : ($s->facilitator_name ?: '—');
-                $obsCount = $s->observations()->count();
+                $obsCount  = $s->observations()->count();
+                $cropCount = $s->cropObservations()->count();
                 $url = admin_url('aesa-admin-sessions/' . $s->id);
 
                 $rows .= "
@@ -878,6 +965,7 @@ class AesaStatsController extends Controller
                         <td style='padding:8px;'>{$date}</td>
                         <td style='padding:8px;'>{$facilitator}</td>
                         <td style='padding:8px;text-align:center;font-weight:700;color:#05179F;'>{$obsCount}</td>
+                        <td style='padding:8px;text-align:center;font-weight:700;color:#388e3c;'>{$cropCount}</td>
                         <td style='padding:8px;'>
                             <span style='display:inline-block;padding:2px 10px;background:{$statusColor};color:#fff;font-size:11px;font-weight:600;text-transform:uppercase;'>{$statusLabel}</span>
                         </td>
@@ -896,6 +984,7 @@ class AesaStatsController extends Controller
                                     <th style='padding:8px;'>Date</th>
                                     <th style='padding:8px;'>Facilitator</th>
                                     <th style='padding:8px;text-align:center;'>Animals</th>
+                                    <th style='padding:8px;text-align:center;'>Crops</th>
                                     <th style='padding:8px;'>Status</th>
                                 </tr>
                             </thead>
@@ -937,6 +1026,215 @@ class AesaStatsController extends Controller
         }
 
         return $count > 0 ? round($totalScore / $count) : 0;
+    }
+
+    /**
+     * Compute average crop health score across all crop observations
+     */
+    private function computeAverageCropHealthScore($ipId): int
+    {
+        $observations = AesaCropObservation::when($ipId, fn($q) => $q->where('ip_id', $ipId))
+            ->select('crop_vigor', 'leaf_condition', 'stem_condition', 'root_condition',
+                'aphids_level', 'caterpillars_armyworms_level', 'beetles_level',
+                'grasshoppers_level', 'whiteflies_level', 'other_insect_pests_level',
+                'leaf_spot_level', 'blight_level', 'rust_level', 'wilt_level', 'mosaic_virus_level')
+            ->limit(2000)
+            ->get();
+
+        if ($observations->isEmpty()) return 0;
+
+        $totalScore = 0;
+        $count = 0;
+        foreach ($observations as $obs) {
+            $score = $obs->crop_health_score;
+            if (is_numeric($score)) {
+                $totalScore += $score;
+                $count++;
+            }
+        }
+        return $count > 0 ? round($totalScore / $count) : 0;
+    }
+
+    // ── Crop Charts ──────────────────────────────────────────────────────────
+
+    private function addCropTypeChart(Row $row, $ipId)
+    {
+        $row->column(4, function (Column $column) use ($ipId) {
+            $types = AesaCropObservation::select('crop_type', DB::raw('COUNT(*) as cnt'))
+                ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                ->whereNotNull('crop_type')
+                ->groupBy('crop_type')
+                ->orderByDesc('cnt')
+                ->limit(8)
+                ->get();
+
+            $labels = $types->pluck('crop_type')->toArray();
+            $counts = $types->pluck('cnt')->toArray();
+            $colors = ['#388e3c', '#ffa000', '#1976d2', '#e64a19', '#7b1fa2', '#00838f', '#f57f17', '#5d4037'];
+
+            $content = "
+                <canvas id='cropTypeChart' height='220'></canvas>
+                <script>
+                (function() {
+                    var wait = setInterval(function() {
+                        if (typeof Chart === 'undefined' || !document.getElementById('cropTypeChart')) return;
+                        clearInterval(wait);
+                        new Chart(document.getElementById('cropTypeChart').getContext('2d'), {
+                            type: 'doughnut',
+                            data: {
+                                labels: " . json_encode($labels) . ",
+                                datasets: [{ data: " . json_encode($counts) . ", backgroundColor: " . json_encode(array_slice($colors, 0, count($labels))) . ", borderWidth: 2, borderColor: '#fff' }]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: true,
+                                plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 8, usePointStyle: true } } }
+                            }
+                        });
+                    }, 100);
+                })();
+                </script>";
+            $column->append(new Box('🌿 Crop Types', $content));
+        });
+    }
+
+    private function addCropVigorChart(Row $row, $ipId)
+    {
+        $row->column(8, function (Column $column) use ($ipId) {
+            $vigors = ['Excellent', 'Good', 'Moderate', 'Poor'];
+            $counts = [];
+            foreach ($vigors as $v) {
+                $counts[] = AesaCropObservation::where('crop_vigor', $v)
+                    ->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            }
+            $colors = ['rgba(25,118,210,0.8)', 'rgba(56,142,60,0.8)', 'rgba(255,160,0,0.8)', 'rgba(244,67,54,0.8)'];
+
+            $content = "
+                <canvas id='cropVigorChart' height='110'></canvas>
+                <script>
+                (function() {
+                    var wait = setInterval(function() {
+                        if (typeof Chart === 'undefined' || !document.getElementById('cropVigorChart')) return;
+                        clearInterval(wait);
+                        new Chart(document.getElementById('cropVigorChart').getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: " . json_encode($vigors) . ",
+                                datasets: [{
+                                    label: 'Crop Plots',
+                                    data: " . json_encode($counts) . ",
+                                    backgroundColor: " . json_encode($colors) . ",
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: true,
+                                plugins: { legend: { display: false } },
+                                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                            }
+                        });
+                    }, 100);
+                })();
+                </script>";
+            $column->append(new Box('🌱 Crop Vigor Distribution', $content));
+        });
+    }
+
+    private function addCropPestPrevalenceChart(Row $row, $ipId)
+    {
+        $row->column(6, function (Column $column) use ($ipId) {
+            $pestFields = [
+                'aphids_level'                => 'Aphids',
+                'caterpillars_armyworms_level' => 'Caterpillars/Armyworms',
+                'beetles_level'               => 'Beetles',
+                'grasshoppers_level'          => 'Grasshoppers',
+                'whiteflies_level'            => 'Whiteflies',
+            ];
+
+            $labels = array_values($pestFields);
+            $lowCounts = $medCounts = $highCounts = [];
+            foreach (array_keys($pestFields) as $field) {
+                $lowCounts[]  = AesaCropObservation::where($field, 'Low')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+                $medCounts[]  = AesaCropObservation::where($field, 'Medium')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+                $highCounts[] = AesaCropObservation::where($field, 'High')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            }
+
+            $content = "
+                <canvas id='cropPestChart' height='120'></canvas>
+                <script>
+                (function() {
+                    var wait = setInterval(function() {
+                        if (typeof Chart === 'undefined' || !document.getElementById('cropPestChart')) return;
+                        clearInterval(wait);
+                        new Chart(document.getElementById('cropPestChart').getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: " . json_encode($labels) . ",
+                                datasets: [
+                                    { label: 'Low', data: " . json_encode($lowCounts) . ", backgroundColor: 'rgba(139,195,74,0.8)' },
+                                    { label: 'Medium', data: " . json_encode($medCounts) . ", backgroundColor: 'rgba(255,152,0,0.8)' },
+                                    { label: 'High', data: " . json_encode($highCounts) . ", backgroundColor: 'rgba(244,67,54,0.8)' }
+                                ]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: true,
+                                plugins: { legend: { position: 'top', labels: { usePointStyle: true, font: { size: 11 } } } },
+                                scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
+                            }
+                        });
+                    }, 100);
+                })();
+                </script>";
+            $column->append(new Box('🐛 Pest Prevalence (Crop)', $content));
+        });
+    }
+
+    private function addCropDiseasePrevalenceChart(Row $row, $ipId)
+    {
+        $row->column(6, function (Column $column) use ($ipId) {
+            $diseaseFields = [
+                'leaf_spot_level'   => 'Leaf Spot',
+                'blight_level'      => 'Blight',
+                'rust_level'        => 'Rust',
+                'wilt_level'        => 'Wilt',
+                'mosaic_virus_level' => 'Mosaic Virus',
+            ];
+
+            $labels = array_values($diseaseFields);
+            $lowCounts = $medCounts = $highCounts = [];
+            foreach (array_keys($diseaseFields) as $field) {
+                $lowCounts[]  = AesaCropObservation::where($field, 'Low')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+                $medCounts[]  = AesaCropObservation::where($field, 'Medium')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+                $highCounts[] = AesaCropObservation::where($field, 'High')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            }
+
+            $content = "
+                <canvas id='cropDiseaseChart' height='120'></canvas>
+                <script>
+                (function() {
+                    var wait = setInterval(function() {
+                        if (typeof Chart === 'undefined' || !document.getElementById('cropDiseaseChart')) return;
+                        clearInterval(wait);
+                        new Chart(document.getElementById('cropDiseaseChart').getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: " . json_encode($labels) . ",
+                                datasets: [
+                                    { label: 'Low', data: " . json_encode($lowCounts) . ", backgroundColor: 'rgba(139,195,74,0.8)' },
+                                    { label: 'Medium', data: " . json_encode($medCounts) . ", backgroundColor: 'rgba(255,152,0,0.8)' },
+                                    { label: 'High', data: " . json_encode($highCounts) . ", backgroundColor: 'rgba(244,67,54,0.8)' }
+                                ]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: true,
+                                plugins: { legend: { position: 'top', labels: { usePointStyle: true, font: { size: 11 } } } },
+                                scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
+                            }
+                        });
+                    }, 100);
+                })();
+                </script>";
+            $column->append(new Box('🦠 Disease Prevalence (Crop)', $content));
+        });
     }
 
     /**

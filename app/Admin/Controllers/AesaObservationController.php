@@ -29,7 +29,6 @@ class AesaObservationController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new AesaObservation());
-        $this->applyIpScope($grid);
 
         $grid->model()->with(['session'])->orderBy('id', 'desc');
 

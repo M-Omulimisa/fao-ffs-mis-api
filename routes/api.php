@@ -1063,6 +1063,9 @@ Route::prefix('aesa-sessions')->middleware(EnsureTokenIsValid::class)->group(fun
     // Observations nested under sessions
     Route::get('/{sessionId}/observations', [\App\Http\Controllers\Api\AesaController::class, 'observations']);
     Route::post('/{sessionId}/observations', [\App\Http\Controllers\Api\AesaController::class, 'storeObservation']);
+    // Crop observations nested under sessions
+    Route::get('/{sessionId}/crop-observations', [\App\Http\Controllers\Api\AesaController::class, 'cropObservations']);
+    Route::post('/{sessionId}/crop-observations', [\App\Http\Controllers\Api\AesaController::class, 'storeCropObservation']);
 });
 
 // AESA Observation direct routes
@@ -1070,6 +1073,13 @@ Route::prefix('aesa-observations')->middleware(EnsureTokenIsValid::class)->group
     Route::get('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'showObservation']);
     Route::put('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'updateObservation']);
     Route::delete('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'destroyObservation']);
+});
+
+// AESA Crop Observation direct routes
+Route::prefix('aesa-crop-observations')->middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::get('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'showCropObservation']);
+    Route::put('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'updateCropObservation']);
+    Route::delete('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'destroyCropObservation']);
 });
 
 // ========================================

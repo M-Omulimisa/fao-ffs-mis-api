@@ -52,6 +52,7 @@ class AesaSession extends Model
         'village_name_display',
         'location_display',
         'observations_count',
+        'crop_observations_count',
         'formatted_date',
         'formatted_time',
     ];
@@ -208,6 +209,11 @@ class AesaSession extends Model
         return $this->hasMany(AesaObservation::class, 'aesa_session_id');
     }
 
+    public function cropObservations()
+    {
+        return $this->hasMany(AesaCropObservation::class, 'aesa_session_id');
+    }
+
     public function group()
     {
         return $this->belongsTo(FfsGroup::class, 'group_id');
@@ -302,6 +308,11 @@ class AesaSession extends Model
     public function getObservationsCountAttribute(): int
     {
         return $this->observations()->count();
+    }
+
+    public function getCropObservationsCountAttribute(): int
+    {
+        return $this->cropObservations()->count();
     }
 
     public function getFormattedDateAttribute(): ?string

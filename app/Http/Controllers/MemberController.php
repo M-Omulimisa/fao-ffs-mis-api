@@ -42,7 +42,7 @@ class MemberController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
-            'phone_number' => 'required|string|unique:users,phone_number|max:50',
+            'phone_number' => 'nullable|string|unique:users,phone_number|max:50',
             'sex' => 'required|in:Male,Female',
             'dob' => 'nullable|date',
             'district_id' => 'nullable|integer|exists:locations,id',
@@ -84,18 +84,18 @@ class MemberController extends Controller
             $member->first_name = $request->first_name;
             $member->last_name = $request->last_name;
             $member->name = $request->first_name . ' ' . $request->last_name;
-            $member->phone_number = $request->phone_number;
+            $member->phone_number = $request->filled('phone_number') ? $request->phone_number : null;
             $member->sex = $request->sex;
             $member->member_code = $memberCode;
-            
-            // Set username to phone number (always)
-            $member->username = $request->phone_number;
-            
-            // Set password: use custom password if provided, otherwise use phone number
+
+            // Set username: use phone if provided, otherwise fall back to member code
+            $member->username = $request->filled('phone_number') ? $request->phone_number : $memberCode;
+
+            // Set password: use custom password if provided, otherwise use phone or member code
             if ($request->filled('password')) {
                 $member->password = Hash::make($request->password);
             } else {
-                $member->password = Hash::make($request->phone_number);
+                $member->password = Hash::make($request->filled('phone_number') ? $request->phone_number : $memberCode);
             }
             
             // Set user_type as Customer (member)
@@ -140,7 +140,7 @@ class MemberController extends Controller
             // Handle avatar upload
             if ($request->hasFile('avatar')) {
                 $avatar = $request->file('avatar');
-                $avatarName = time() . '_' . $member->phone_number . '.' . $avatar->getClientOriginalExtension();
+                $avatarName = time() . '_' . ($member->phone_number ?? $member->member_code) . '.' . $avatar->getClientOriginalExtension();
                 $avatarPath = $avatar->move(public_path('storage/images'), $avatarName);
                 $member->avatar = 'storage/images/' . $avatarName;
             }
@@ -472,7 +472,7 @@ class MemberController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'sometimes|required|string|max:100',
             'last_name' => 'sometimes|required|string|max:100',
-            'phone_number' => 'sometimes|required|string|max:50|unique:users,phone_number,' . $id,
+            'phone_number' => 'nullable|string|max:50|unique:users,phone_number,' . $id,
             'sex' => 'sometimes|required|in:Male,Female',
             'dob' => 'nullable|date',
             'district_id' => 'nullable|integer',
@@ -506,9 +506,11 @@ class MemberController extends Controller
                 $member->name = ($request->first_name ?? $member->first_name) . ' ' . ($request->last_name ?? $member->last_name);
             }
             if ($request->has('phone_number')) {
-                $member->phone_number = $request->phone_number;
-                // Update username to match phone number
-                $member->username = $request->phone_number;
+                $member->phone_number = $request->filled('phone_number') ? $request->phone_number : null;
+                // Only update username when a real phone number is provided
+                if ($request->filled('phone_number')) {
+                    $member->username = $request->phone_number;
+                }
             }
             if ($request->filled('password')) {
                 // Update password if provided
@@ -660,11 +662,12 @@ class MemberController extends Controller
                         $member->first_name = $data['first_name'] ?? '';
                         $member->last_name = $data['last_name'] ?? '';
                         $member->name = ($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '');
-                        $member->phone_number = $data['phone_number'];
+                        $phone = isset($data['phone_number']) && $data['phone_number'] !== '' ? $data['phone_number'] : null;
+                        $member->phone_number = $phone;
                         $member->sex = $data['sex'] ?? 'Male';
                         $member->member_code = $memberCode;
-                        $member->username = $data['phone_number'];
-                        $member->password = Hash::make($data['phone_number']);
+                        $member->username = $phone ?? $memberCode;
+                        $member->password = Hash::make($phone ?? $memberCode);
                         $member->user_type = 'Customer';
                         
                         // Optional fields

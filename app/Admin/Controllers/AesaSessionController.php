@@ -4,6 +4,7 @@ namespace App\Admin\Controllers;
 
 use App\Models\AesaSession;
 use App\Models\AesaObservation;
+use App\Models\AesaCropObservation;
 use App\Models\FfsGroup;
 use App\Models\User;
 use App\Admin\Traits\IpScopeable;
@@ -90,7 +91,13 @@ class AesaSessionController extends AdminController
             $count = $this->observations()->count();
             $color = $count > 0 ? '#05179F' : '#999';
             return "<span style='color:{$color};font-weight:700;'>{$count}</span>";
-        })->sortable();
+        });
+
+        $grid->column('crop_observations_count', 'Crops')->display(function () {
+            $count = $this->cropObservations()->count();
+            $color = $count > 0 ? '#388e3c' : '#999';
+            return "<span style='color:{$color};font-weight:700;'>{$count}</span>";
+        });
 
         $grid->column('status', 'Status')->display(function ($status) {
             $colors = [
@@ -151,10 +158,16 @@ class AesaSessionController extends AdminController
      */
     protected function detail($id)
     {
-        $session = AesaSession::with(['observations', 'group', 'facilitator'])->findOrFail($id);
+        $session = AesaSession::with(['observations', 'cropObservations', 'group', 'facilitator'])->findOrFail($id);
+
+        $animalCount = $session->observations->count();
+        $cropCount   = $session->cropObservations->count();
 
         $show = new Show($session);
-        $show->panel()->style('primary')->title('AESA Session — ' . $session->data_sheet_number);
+        $show->panel()->style('primary')->title(
+            'AESA Session — ' . $session->data_sheet_number .
+            '  (' . $animalCount . ' animal obs · ' . $cropCount . ' crop obs)'
+        );
 
         // Session Identification
         $show->divider('Session Identification');
@@ -192,14 +205,14 @@ class AesaSessionController extends AdminController
             return $d ? date('d M Y h:i A', strtotime($d)) : '—';
         });
 
-        // ── Observations Table ───────────────────────────────
+        // ── Animal Observations Table ────────────────────────
 
-        $show->divider('Animal Observations (' . $session->observations->count() . ')');
+        $show->divider('🐄 Animal Observations (' . $animalCount . ')');
 
-        $show->field('observations_html', ' ')->unescape()->as(function () {
-            $observations = $this->observations;
+        $show->field('observations_html', ' ')->unescape()->as(function () use ($session) {
+            $observations = $session->observations;
             if ($observations->isEmpty()) {
-                return '<div style="padding:20px;text-align:center;color:#999;">No observations recorded for this session.</div>';
+                return '<div style="padding:20px;text-align:center;color:#999;">No animal observations recorded for this session.</div>';
             }
 
             $rows = '';
@@ -267,6 +280,91 @@ class AesaSessionController extends AdminController
                                 <th style='padding:8px;'>Body</th>
                                 <th style='padding:8px;'>Risk</th>
                                 <th style='padding:8px;'>Score</th>
+                                <th style='padding:8px;'>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>{$rows}</tbody>
+                    </table>
+                </div>";
+        });
+
+        // ── Crop Observations Table ──────────────────────────
+
+        $show->divider('🌱 Crop Observations (' . $cropCount . ')');
+
+        $show->field('crop_obs_html', ' ')->unescape()->as(function () use ($session) {
+            $cropObs = $session->cropObservations;
+            if ($cropObs->isEmpty()) {
+                return '<div style="padding:20px;text-align:center;color:#999;">No crop observations recorded for this session.</div>';
+            }
+
+            $cropIcons = [
+                'Maize' => '🌽', 'Sorghum' => '🌾', 'Millet' => '🌾',
+                'Cassava' => '🥔', 'Beans' => '🫘', 'Groundnuts' => '🥜',
+                'Sweet Potato' => '🍠',
+            ];
+            $vigorColors = [
+                'Excellent' => '#1976d2', 'Good' => '#4caf50',
+                'Moderate' => '#ff9800', 'Poor' => '#f44336',
+            ];
+            $riskColors = ['Low' => '#4caf50', 'Medium' => '#ff9800', 'High' => '#f44336'];
+            $pressureColors = ['None' => '#4caf50', 'Low' => '#8bc34a', 'Medium' => '#ff9800', 'High' => '#f44336'];
+
+            $rows = '';
+            foreach ($cropObs as $i => $obs) {
+                $num    = $i + 1;
+                $icon   = $cropIcons[$obs->crop_type] ?? '🌱';
+                $crop   = $icon . ' ' . ($obs->crop_type ?: '—');
+                $plot   = $obs->plot_id ?: '—';
+                $stage  = $obs->growth_stage ?: '—';
+                $vigor  = $obs->crop_vigor ?: '—';
+                $risk   = $obs->risk_level ?: '—';
+                $score  = $obs->crop_health_score ?? '—';
+                $pest   = $obs->pest_pressure_level ?: 'None';
+                $disease = $obs->disease_pressure_level ?: 'None';
+
+                $vigorColor   = $vigorColors[$vigor] ?? '#999';
+                $riskColor    = $riskColors[$risk] ?? '#999';
+                $pestColor    = $pressureColors[$pest] ?? '#999';
+                $diseaseColor = $pressureColors[$disease] ?? '#999';
+
+                $scoreColor = '#f44336';
+                if (is_numeric($score)) {
+                    if ($score >= 75) $scoreColor = '#4caf50';
+                    elseif ($score >= 50) $scoreColor = '#ff9800';
+                }
+
+                $viewUrl = admin_url('aesa-admin-crop-observations/' . $obs->id);
+
+                $rows .= "
+                    <tr>
+                        <td style='padding:8px;'>{$num}</td>
+                        <td style='padding:8px;font-weight:600;'>{$plot}</td>
+                        <td style='padding:8px;'>{$crop}</td>
+                        <td style='padding:8px;color:#666;'>{$stage}</td>
+                        <td style='padding:8px;'><span style='background:{$vigorColor};color:#fff;padding:2px 8px;font-size:11px;font-weight:600;'>{$vigor}</span></td>
+                        <td style='padding:8px;'><span style='color:{$riskColor};font-weight:600;'>{$risk}</span></td>
+                        <td style='padding:8px;'><span style='color:{$scoreColor};font-weight:700;'>{$score}/100</span></td>
+                        <td style='padding:8px;'><span style='color:{$pestColor};font-weight:600;'>{$pest}</span></td>
+                        <td style='padding:8px;'><span style='color:{$diseaseColor};font-weight:600;'>{$disease}</span></td>
+                        <td style='padding:8px;'><a href='{$viewUrl}' class='btn btn-xs btn-success' style='border-radius:0;'>View</a></td>
+                    </tr>";
+            }
+
+            return "
+                <div style='overflow-x:auto;'>
+                    <table class='table table-bordered' style='margin:0;font-size:12px;'>
+                        <thead style='background:#388e3c;color:#fff;'>
+                            <tr>
+                                <th style='padding:8px;'>#</th>
+                                <th style='padding:8px;'>Plot ID</th>
+                                <th style='padding:8px;'>Crop</th>
+                                <th style='padding:8px;'>Growth Stage</th>
+                                <th style='padding:8px;'>Vigor</th>
+                                <th style='padding:8px;'>Risk</th>
+                                <th style='padding:8px;'>Score</th>
+                                <th style='padding:8px;'>Pest Pressure</th>
+                                <th style='padding:8px;'>Disease Pressure</th>
                                 <th style='padding:8px;'>Action</th>
                             </tr>
                         </thead>

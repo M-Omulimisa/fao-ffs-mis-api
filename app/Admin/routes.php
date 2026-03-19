@@ -238,6 +238,7 @@ Route::group([
     $router->get('aesa-stats', 'AesaStatsController@index');
     $router->resource('aesa-admin-sessions', AesaSessionController::class);
     $router->resource('aesa-admin-observations', AesaObservationController::class);
+    $router->resource('aesa-admin-crop-observations', AesaCropObservationController::class);
 
     // ========================================
     // KPI TRACKING — Facilitator & IP performance
@@ -246,6 +247,13 @@ Route::group([
     $router->resource('kpi-facilitators', KpiFacilitatorController::class);
     $router->get('kpi-ips', 'KpiIpController@index');
     $router->get('kpi-stats', 'KpiStatsController@index');
+
+    // ========================================
+    // FFS KPI MANUAL ENTRY — Monthly tracking against project targets
+    // ========================================
+    $router->get('ffs-kpi-dashboard', 'FfsKpiDashboardController@index');
+    $router->resource('ffs-kpi-ip-entries', 'FfsKpiIpController');
+    $router->resource('ffs-kpi-facilitator-entries', 'FfsKpiFacilitatorEntryController');
 
     // ========================================
     // OPERATIONS DASHBOARD — Super Admin monitoring
