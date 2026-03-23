@@ -512,7 +512,13 @@ class FfsKpiDashboardController extends Controller
         </tr></thead><tbody>';
 
         foreach ($ips as $ip) {
-            $districts = $ip->districts ?? [];
+            $raw = $ip->districts ?? [];
+            if (is_string($raw)) {
+                $decoded = json_decode($raw, true);
+                $districts = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode(',', $raw)));
+            } else {
+                $districts = is_array($raw) ? $raw : [];
+            }
             $distText  = !empty($districts)
                 ? implode(', ', $districts)
                 : '<em style="color:#bdbdbd;">Not configured</em>';
