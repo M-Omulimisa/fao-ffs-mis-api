@@ -392,6 +392,18 @@ class ApiAuthController extends Controller
             }
         }
 
+        // 4) Fallback: user is a facilitator assigned to one or more groups
+        if (!$group) {
+            $group = \App\Models\FfsGroup::where('facilitator_id', $user->id)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            if ($group) {
+                \Log::info('enrichUserWithGroup: user ' . $user->id . ' resolved via facilitator_id on group ' . $group->id);
+                // Do not overwrite group_id — facilitators may manage multiple groups
+            }
+        }
+
         if ($group) {
             $user->group_name = $group->name;
             $user->group_code = $group->code ?? '';
