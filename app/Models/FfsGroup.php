@@ -366,6 +366,12 @@ class FfsGroup extends Model
             // Unlink members (keep the user accounts, just remove group association)
             \DB::table('users')->where('group_id', $id)->update(['group_id' => null]);
 
+            // Delete action plans linked to meetings before meetings are removed
+            $meetingIds = \DB::table('vsla_meetings')->where('group_id', $id)->pluck('id');
+            if ($meetingIds->isNotEmpty()) {
+                \DB::table('vsla_action_plans')->whereIn('meeting_id', $meetingIds)->delete();
+            }
+
             // Delete VSLA meetings
             \DB::table('vsla_meetings')->where('group_id', $id)->delete();
 
@@ -383,6 +389,9 @@ class FfsGroup extends Model
                 \DB::table('project_transactions')->whereIn('project_id', $cycleIds)->delete();
                 \DB::table('project_shares')->whereIn('project_id', $cycleIds)->delete();
                 \DB::table('vsla_shareouts')->whereIn('cycle_id', $cycleIds)->delete();
+
+                // Delete action plans linked to cycles
+                \DB::table('vsla_action_plans')->whereIn('cycle_id', $cycleIds)->delete();
             }
             \DB::table('projects')->where('group_id', $id)->delete();
 
@@ -401,9 +410,6 @@ class FfsGroup extends Model
 
             // Delete AESA sessions
             \DB::table('aesa_sessions')->where('group_id', $id)->delete();
-
-            // Delete action plans
-            \DB::table('vsla_action_plans')->where('group_id', $id)->delete();
 
             // Detach from training sessions pivot
             \DB::table('ffs_session_target_groups')->where('group_id', $id)->delete();
