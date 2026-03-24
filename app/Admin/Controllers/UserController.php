@@ -341,6 +341,12 @@ class UserController extends AdminController
                     $form->ip_id = $adminIp;
                 }
             } else {
+                if (empty($form->username) && !empty($form->phone_number)) {
+                    $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
+                } elseif (empty($form->username)) {
+                    unset($form->username); // keep existing DB value, don't blank it
+                }
+
                 if (!empty($form->password)) {
                     $form->password = Hash::make($form->password);
                 } else {

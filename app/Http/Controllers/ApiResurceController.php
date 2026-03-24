@@ -465,16 +465,6 @@ class ApiResurceController extends Controller
                 $childrenData['child_4'] = trim($request->phd_university_year_graduated);
             }
 
-            // Store children data as JSON in remember_token or another text field
-            if (!empty($childrenData)) {
-                $u->remember_token = json_encode($childrenData);
-            }
-
-            // Update sponsor ID
-            if ($request->phd_university_name != null) {
-                $u->username = trim($request->phd_university_name); // Store sponsor ID in username backup
-            }
-
             // Handle password change if provided
             if ($request->password != null && strlen($request->password) >= 6) {
                 $u->password = password_hash($request->password, PASSWORD_DEFAULT);

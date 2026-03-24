@@ -512,12 +512,16 @@ class FfsKpiDashboardController extends Controller
         </tr></thead><tbody>';
 
         foreach ($ips as $ip) {
-            $raw = $ip->districts ?? [];
-            if (is_string($raw)) {
-                $decoded = json_decode($raw, true);
-                $districts = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode(',', $raw)));
-            } else {
-                $districts = is_array($raw) ? $raw : [];
+            // Normalise the districts value regardless of how the array cast stores it
+            $raw = $ip->districts;
+            $districts = [];
+            if (is_array($raw)) {
+                $districts = $raw;
+            } elseif (is_string($raw) && $raw !== '') {
+                $decoded   = json_decode($raw, true);
+                $districts = is_array($decoded)
+                    ? $decoded
+                    : array_values(array_filter(array_map('trim', explode(',', $raw))));
             }
             $distText  = !empty($districts)
                 ? implode(', ', $districts)
