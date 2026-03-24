@@ -457,7 +457,10 @@ class MemberController extends AdminController
             $row->width(4)->text('phone_number_2', 'Secondary Phone')
                 ->placeholder('e.g. 0781234567');
             $row->width(4)->email('email', 'Email Address')
-                ->placeholder('e.g. member@example.com');
+                ->placeholder('e.g. member@example.com')
+                ->creationRules(['nullable', 'email'])
+                ->updateRules(['nullable', 'email'])
+                ->help('Optional — for notifications and password recovery');
         });
 
         $form->row(function ($row) {

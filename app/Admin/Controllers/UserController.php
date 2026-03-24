@@ -219,14 +219,19 @@ class UserController extends AdminController
         });
 
         $form->row(function ($row) {
-            $row->width(4)->text('phone_number', 'Phone Number')
+            $row->width(3)->text('phone_number', 'Phone Number')
                 ->placeholder('e.g. 0771234567 (optional)')
                 ->creationRules(['nullable', 'unique:users,phone_number'])
                 ->updateRules(['nullable', 'unique:users,phone_number,{{id}}'])
                 ->help('Used as login username & default password — leave blank if member has no phone');
-            $row->width(4)->date('facilitator_start_date', 'Facilitator Start Date')
+            $row->width(3)->email('email', 'Email Address')
+                ->placeholder('e.g. user@example.com')
+                ->creationRules(['nullable', 'unique:users,email'])
+                ->updateRules(['nullable', 'unique:users,email,{{id}}'])
+                ->help('Optional — for notifications and password recovery');
+            $row->width(3)->date('facilitator_start_date', 'Facilitator Start Date')
                 ->help('Date when facilitator started working (for KPI tracking)');
-            $row->width(4)->image('avatar', 'Photo')->removable();
+            $row->width(3)->image('avatar', 'Photo')->removable();
         });
 
         // ── Group & Role ──
@@ -259,14 +264,16 @@ class UserController extends AdminController
         $form->divider('Account & Security');
 
         $form->row(function ($row) use ($form) {
-            $roleModel = config('admin.database.roles_model');
-            $rolesQuery = $roleModel::query();
-            if (!$this->isSuperAdmin()) {
-                $rolesQuery->where('slug', '!=', 'super_admin');
+            $roleModel  = config('admin.database.roles_model', \Encore\Admin\Auth\Database\Role::class);
+            $rolesQuery = $roleModel && class_exists($roleModel) ? $roleModel::query() : null;
+            if ($rolesQuery) {
+                if (!$this->isSuperAdmin()) {
+                    $rolesQuery->where('slug', '!=', 'super_admin');
+                }
+                $row->width(6)->multipleSelect('roles', 'Roles')
+                    ->options($rolesQuery->pluck('name', 'id'))
+                    ->help('Assign system roles (optional)');
             }
-            $row->width(6)->multipleSelect('roles', 'Roles')
-                ->options($rolesQuery->pluck('name', 'id'))
-                ->help('Assign system roles (optional)');
 
             if ($form->isCreating()) {
                 $row->width(6)->password('password', 'Password')
