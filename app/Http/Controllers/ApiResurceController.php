@@ -1492,7 +1492,8 @@ class ApiResurceController extends Controller
                 ];
             }
         } catch (\Throwable $e) {
-            // Table might not exist in some environments
+            // Table might not exist in some environments — log but don't crash
+            \Log::warning('my_roles: failed to fetch admin roles for user ' . ($u->id ?? '?') . ': ' . $e->getMessage());
         }
 
         return $this->success('User roles retrieved.', [

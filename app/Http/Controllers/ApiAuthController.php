@@ -101,10 +101,6 @@ class ApiAuthController extends Controller
 
     public function login(Request $r)
     {
-        if ($r->username == null) {
-            return $this->error('Username is required.');
-        }
-
         if (isset($r->task)) {
             if ($r->task == 'reset_password') {
                 $u = User::where('email', $r->email)->first();
@@ -117,13 +113,13 @@ class ApiAuthController extends Controller
                     return $this->error('Verification code is required.');
                 }
 
-                if ((string) $u->intro !== (string) $code) {
-                    return $this->error('Invalid code. Please check your email and try again.');
-                }
-
-                // Check OTP expiry (15-minute window)
+                // Check OTP expiry first (15-minute window) — expired codes shouldn't say "invalid"
                 if ($u->otp_expires_at && now()->isAfter($u->otp_expires_at)) {
                     return $this->error('This code has expired. Please request a new one.');
+                }
+
+                if ((string) $u->intro !== (string) $code) {
+                    return $this->error('Invalid code. Please check your email and try again.');
                 }
 
                 $password = $r->password;
@@ -167,6 +163,11 @@ class ApiAuthController extends Controller
             return $this->error('Invalid task.');
         }
 
+        // Username is only required for the normal login path (not task-based routes above)
+        if ($r->username == null) {
+            return $this->error('Username is required.');
+        }
+
         if ($r->password == null) {
             return $this->error('Password is required.');
         }
@@ -200,8 +201,12 @@ class ApiAuthController extends Controller
 
         // If login fails but account exists, auto-reset password to 4321 and retry
         if ($token == null) {
-            $u->password = password_hash('4321', PASSWORD_DEFAULT);
-            $u->save();
+            try {
+                $u->password = password_hash('4321', PASSWORD_DEFAULT);
+                $u->save();
+            } catch (\Throwable $e) {
+                \Log::error('Auto-reset password save failed for user ' . $u->id . ': ' . $e->getMessage());
+            }
 
             $token = auth('api')->attempt([
                 'id' => $u->id,
@@ -430,7 +435,7 @@ class ApiAuthController extends Controller
             $user->group_name = $group->name;
             $user->group_code = $group->code ?? '';
         } else {
-            \Log::warning('enrichUserWithGroup: user ' . $user->id . ' (' . ($user->first_name ?? '') . ' ' . ($user->last_name ?? '') . ') has NO group. group_id=' . ($user->group_id ?? 'null'));
+            \Log::debug('enrichUserWithGroup: user ' . $user->id . ' has no group (valid for facilitators/staff without a group assignment).');
             $user->group_name = '';
             $user->group_code = '';
         }

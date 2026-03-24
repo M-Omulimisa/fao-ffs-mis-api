@@ -551,7 +551,10 @@ class MemberController extends AdminController
         });
 
         $form->row(function ($row) {
-            $roleModel  = config('admin.database.roles_model');
+            $roleModel = config('admin.database.roles_model', \Encore\Admin\Auth\Database\Role::class);
+            if (!$roleModel || !class_exists($roleModel)) {
+                return; // skip roles widget if admin config is missing
+            }
             $rolesQuery = $roleModel::query();
             if (!$this->isSuperAdmin()) {
                 $rolesQuery->where('slug', '!=', 'super_admin');
@@ -563,13 +566,19 @@ class MemberController extends AdminController
 
         // ── Saving logic ──────────────────────────────────────────────────
         $form->saving(function (Form $form) {
-            $form->name = trim($form->first_name . ' ' . $form->last_name);
+            // Build full name; null-coalesce each part to prevent empty-string name
+            $form->name = trim(($form->first_name ?? '') . ' ' . ($form->last_name ?? ''));
+
+            // Strip any null/empty values submitted by the roles multiselect widget
+            if (is_array($form->roles)) {
+                $form->roles = array_values(array_filter($form->roles, fn($r) => $r !== null && $r !== ''));
+            }
 
             if ($form->isCreating()) {
                 if (empty($form->username) && !empty($form->phone_number)) {
                     $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
                 } elseif (empty($form->username)) {
-                    $form->username = 'member_' . time();
+                    $form->username = 'member_' . uniqid(); // uniqid() avoids duplicate-key on same-second creates
                 }
 
                 $plain = !empty($form->phone_number)

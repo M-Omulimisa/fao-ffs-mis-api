@@ -40,7 +40,9 @@ class EnsureTokenIsValid
                     // Decode JWT token to get user ID from 'sub' claim
                     $parts = explode('.', $token);
                     if (count($parts) === 3) {
-                        $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+                        $b64     = str_replace(['-', '_'], ['+', '/'], $parts[1]);
+                        $b64     = str_pad($b64, strlen($b64) + (4 - strlen($b64) % 4) % 4, '=');
+                        $payload = json_decode(base64_decode($b64), true);
                         if (isset($payload['sub'])) {
                             $user_id = (int) $payload['sub'];
                         }
@@ -53,7 +55,6 @@ class EnsureTokenIsValid
 
         // Check if user_id is provided
         if ($user_id < 1) {
-            \Log::error('EnsureTokenIsValid - No user ID provided');
             return response()->json([
                 'code' => 0,
                 'status' => 0,
@@ -68,14 +69,10 @@ class EnsureTokenIsValid
         if ($u == null) {
             \Log::error('EnsureTokenIsValid - User ' . $user_id . ' not found in users table');
             return response()->json([
-                'code' => 0,
-                'status' => 0,
-                'message' => 'User not found. [MW v2.1]',
-                'data' => null,
-                'debug' => [
-                    'user_id_from_header' => $user_id,
-                    'middleware_version' => 'v2.1'
-                ]
+                'code'    => 0,
+                'status'  => 0,
+                'message' => 'User not found.',
+                'data'    => null,
             ], 401);
         }
 
