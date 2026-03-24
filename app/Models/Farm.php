@@ -234,4 +234,18 @@ class Farm extends Model
             $farm->generateActivitiesFromProtocols();
         });
     }
+
+    use \App\Traits\TitleCase;
+
+    // ── Title Case accessors & mutators ──────────────────────────────────────
+
+    public function getNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
 }

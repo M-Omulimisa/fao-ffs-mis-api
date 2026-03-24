@@ -660,27 +660,57 @@ class User extends Administrator implements JWTSubject
 
     public function send_password_reset()
     {
-        $u = $this;
-        $u->intro = rand(100000, 999999);
-        $u->save();
-        $data['email'] = $u->email;
-        if ($u->email == null || $u->email == "") {
-            $data['email'] = $u->username;
-        }
-        $data['name'] = $u->name;
-        $data['subject'] = env('APP_NAME') . " - Password Reset";
-        $data['body'] = "<br>Dear " . $u->name . ",<br>";
-        $data['body'] .= "<br>Please use the code below to reset your password.<br><br>";
-        $data['body'] .= "CODE: <b>" . $u->intro . "</b><br>";
-        $data['body'] .= "<br>Thank you.<br><br>";
-        $data['body'] .= "<br><small>This is an automated message, please do not reply.</small><br>";
+        $u    = $this;
+        $otp  = rand(100000, 999999);
+        $expires = now()->addMinutes(15);
+
+        // Use direct DB update to avoid triggering model boot events
+        \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $u->id)
+            ->update([
+                'intro'          => $otp,
+                'otp_expires_at' => $expires,
+            ]);
+
+        $toEmail  = ($u->email && $u->email !== '') ? $u->email : $u->username;
+        $fullName = $u->name ?: ($u->first_name . ' ' . $u->last_name);
+        $expTime  = $expires->format('H:i T');
+
+        $data['email']   = $toEmail;
+        $data['name']    = $fullName;
+        $data['subject'] = 'Your password reset code - ' . env('APP_NAME');
+        $data['title']   = 'Password Reset';
+        $data['body']    = "
+            <p style='font-size:15px;'>Dear <strong>" . e($fullName) . "</strong>,</p>
+            <p>We received a request to reset the password for your <strong>" . env('APP_NAME') . "</strong> account.</p>
+            <p>Use the one-time code (OTP) below to set a new password.
+               This code is valid for <strong>15 minutes</strong> and can only be used once.</p>
+
+            <div style='text-align:center; margin:30px 0;'>
+              <div style='display:inline-block; background:#114786; color:#fff;
+                          font-size:40px; font-weight:700; letter-spacing:14px;
+                          padding:22px 44px; border-radius:10px;
+                          box-shadow: 0 4px 15px rgba(17,71,134,0.35);'>
+                {$otp}
+              </div>
+            </div>
+
+            <p style='text-align:center; color:#666; font-size:13px;'>
+              ⏰ Expires at <strong>{$expTime}</strong>
+            </p>
+
+            <p>If you did not request a password reset, you can safely ignore this email.
+               Your account remains secure.</p>
+
+            <hr style='border:none; border-top:1px solid #eee; margin:24px 0;'>
+            <p style='color:#999; font-size:12px;'>
+              This is an automated message — please do not reply directly to this email.
+            </p>
+        ";
         $data['view'] = 'mail-1';
         $data['data'] = $data['body'];
-        try {
-            Utils::mail_sender($data);
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+
+        Utils::mail_sender($data);
     }
 
     public function send_verification_code($email)
@@ -1097,8 +1127,52 @@ class User extends Administrator implements JWTSubject
      */
     public function isVslaGroupAdmin()
     {
-        return $this->is_group_admin === 'Yes' 
-            || $this->is_group_secretary === 'Yes' 
+        return $this->is_group_admin === 'Yes'
+            || $this->is_group_secretary === 'Yes'
             || $this->is_group_treasurer === 'Yes';
+    }
+
+    use \App\Traits\TitleCase;
+
+    // ── Title Case accessors & mutators ──────────────────────────────────────
+
+    public function getNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getFirstNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setFirstNameAttribute($value): void
+    {
+        $this->attributes['first_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getLastNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setLastNameAttribute($value): void
+    {
+        $this->attributes['last_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getEmergencyContactNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setEmergencyContactNameAttribute($value): void
+    {
+        $this->attributes['emergency_contact_name'] = $value !== null ? $this->toTitleCase($value) : null;
     }
 }

@@ -288,4 +288,18 @@ class FfsTrainingSession extends Model
         $allowed = self::getAllowedTransitions()[$this->status] ?? [];
         return in_array($newStatus, $allowed);
     }
+
+    use \App\Traits\TitleCase;
+
+    // ── Title Case accessors & mutators ──────────────────────────────────────
+
+    public function getTitleAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setTitleAttribute($value): void
+    {
+        $this->attributes['title'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
 }

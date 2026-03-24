@@ -143,7 +143,7 @@ class FarmerQuestion extends Model
     public function updateStatus()
     {
         $approvedCount = $this->answers()->where('is_approved', 'Yes')->count();
-        
+
         if ($approvedCount > 0 && $this->status != 'Closed') {
             $this->status = 'Answered';
             $this->save();

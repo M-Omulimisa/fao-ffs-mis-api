@@ -132,4 +132,48 @@ class VslaProfile extends Model
             }
         });
     }
+
+    use \App\Traits\TitleCase;
+
+    // ── Title Case accessors & mutators ──────────────────────────────────────
+
+    public function getGroupNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setGroupNameAttribute($value): void
+    {
+        $this->attributes['group_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getCycleNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setCycleNameAttribute($value): void
+    {
+        $this->attributes['cycle_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getChairFirstNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setChairFirstNameAttribute($value): void
+    {
+        $this->attributes['chair_first_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getChairLastNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setChairLastNameAttribute($value): void
+    {
+        $this->attributes['chair_last_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
 }

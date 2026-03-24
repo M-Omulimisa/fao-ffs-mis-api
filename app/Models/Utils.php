@@ -214,7 +214,6 @@ class Utils extends Model
     //mail sender
     public static function mail_sender($data)
     {
-        return true;
         $template = 'mail-1';
         try {
             if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
@@ -225,6 +224,7 @@ class Utils extends Model
                 $MAIL_FROM_ADDRESS = "skills@comfarnet.org";
             }
             $data['from_mail'] = $MAIL_FROM_ADDRESS;
+            $fromName = env('MAIL_FROM_NAME', env('APP_NAME', 'FAO FFS MIS'));
             Mail::send(
                 $template,
                 [
@@ -232,10 +232,10 @@ class Utils extends Model
                     'title' => $data['subject'],
                     'subject' => $data['subject']
                 ],
-                function ($m) use ($data) {
+                function ($m) use ($data, $fromName) {
                     $m->to($data['email'], $data['name'])
-                        ->subject($data['subject'] . ' - ' . date('Y-m-d'));
-                    $m->from($data['from_mail'], $data['subject']);
+                        ->subject($data['subject']);
+                    $m->from($data['from_mail'], $fromName);
                 }
             );
         } catch (\Throwable $th) {

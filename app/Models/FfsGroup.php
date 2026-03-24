@@ -456,4 +456,38 @@ class FfsGroup extends Model
     //     $this->youth_members = $this->members()->where('is_youth', true)->count();
     //     $this->pwd_members = $this->members()->where('has_disability', true)->count();
     // }
+
+    use \App\Traits\TitleCase;
+
+    // ── Title Case accessors & mutators ──────────────────────────────────────
+
+    public function getNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getContactPersonNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setContactPersonNameAttribute($value): void
+    {
+        $this->attributes['contact_person_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getIpNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setIpNameAttribute($value): void
+    {
+        $this->attributes['ip_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
 }

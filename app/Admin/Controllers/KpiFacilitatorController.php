@@ -14,6 +14,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Layout\Column;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
+use Illuminate\Support\Facades\DB;
 
 /**
  * KpiFacilitatorController — facilitator KPI benchmarks & live scorecard.
@@ -49,21 +50,25 @@ class KpiFacilitatorController extends AdminController
         $isSuperAdmin = $this->isSuperAdmin();
         $currentAdmin = Admin::user();
         $isFacilitator = !$isSuperAdmin && $currentAdmin
-            && $this->userHasRoleSlug($currentAdmin, 'facilitator');
+            && $this->userHasRoleSlug($currentAdmin, 'field_facilitator');
         $ipId = $this->getAdminIpId();
 
-        // ── Collect facilitator IDs scoped to tier ─────────────────────────
-        $facilitatorQuery = FfsGroup::where('status', 'Active')
-            ->whereNotNull('facilitator_id');
+        // ── Collect facilitator IDs: only users with the 'field_facilitator' role ──
+        $roleQuery = DB::table('admin_role_users as aru')
+            ->join('admin_roles as ar', 'aru.role_id', '=', 'ar.id')
+            ->join('users as u', 'u.id', '=', 'aru.user_id')
+            ->where('ar.slug', 'field_facilitator')
+            ->select('aru.user_id');
 
         if ($isFacilitator) {
-            // Facilitators see only themselves
-            $facilitatorQuery->where('facilitator_id', $currentAdmin->id);
+            // Facilitators see only their own scorecard
+            $roleQuery->where('aru.user_id', $currentAdmin->id);
         } elseif ($ipId) {
-            $facilitatorQuery->where('ip_id', $ipId);
+            // IP managers see only their IP's facilitators
+            $roleQuery->where('u.ip_id', $ipId);
         }
 
-        $facilitatorIds = $facilitatorQuery->distinct()->pluck('facilitator_id');
+        $facilitatorIds = $roleQuery->pluck('user_id')->unique()->values();
 
         // ── Precompute ALL scorecards once (avoids repeated DB queries) ────
         $scorecards = [];

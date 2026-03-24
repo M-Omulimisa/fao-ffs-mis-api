@@ -130,4 +130,28 @@ class ImplementingPartner extends Model
             ])
             ->toArray();
     }
+
+    use \App\Traits\TitleCase;
+
+    // ── Title Case accessors & mutators ──────────────────────────────────────
+
+    public function getNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getContactPersonAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setContactPersonAttribute($value): void
+    {
+        $this->attributes['contact_person'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
 }

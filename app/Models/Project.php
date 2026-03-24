@@ -307,4 +307,28 @@ class Project extends Model
     {
         return $query->where('status', 'ongoing');
     }
+
+    use \App\Traits\TitleCase;
+
+    // ── Title Case accessors & mutators ──────────────────────────────────────
+
+    public function getTitleAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setTitleAttribute($value): void
+    {
+        $this->attributes['title'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getCycleNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setCycleNameAttribute($value): void
+    {
+        $this->attributes['cycle_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
 }

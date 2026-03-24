@@ -113,34 +113,56 @@ class ApiAuthController extends Controller
                 }
 
                 $code = $r->code;
-                if ($code == null || strlen($code) < 3) {
-                    return $this->error('Code is required.');
+                if ($code == null || strlen(trim($code)) < 4) {
+                    return $this->error('Verification code is required.');
                 }
-                if ($u->intro != $code) {
-                    return $this->error('Invalid code.');
+
+                if ((string) $u->intro !== (string) $code) {
+                    return $this->error('Invalid code. Please check your email and try again.');
                 }
+
+                // Check OTP expiry (15-minute window)
+                if ($u->otp_expires_at && now()->isAfter($u->otp_expires_at)) {
+                    return $this->error('This code has expired. Please request a new one.');
+                }
+
                 $password = $r->password;
-                if ($password == null || strlen($password) < 3) {
-                    return $this->error('Password is required.');
+                if ($password == null || strlen($password) < 6) {
+                    return $this->error('Password must be at least 6 characters.');
                 }
-                $u->password = password_hash($password, PASSWORD_DEFAULT);
-                try {
-                    $u->save();
-                } catch (\Throwable $th) {
-                    return $this->error('Failed to reset password because ' . $th->getMessage() . '.');
-                }
-                return $this->success('Password reset successfully.', $u);
+
+                // Use DB update to skip model events; invalidate OTP after use
+                \Illuminate\Support\Facades\DB::table('users')
+                    ->where('id', $u->id)
+                    ->update([
+                        'password'       => password_hash($password, PASSWORD_DEFAULT),
+                        'intro'          => null,
+                        'otp_expires_at' => null,
+                    ]);
+
+                return $this->success('Password reset successfully. You can now log in with your new password.', []);
             } else if ($r->task == 'request_password_reset') {
-                $u = User::where('email', $r->username)->first();
+                $identifier = trim($r->username ?? $r->email ?? '');
+                if ($identifier === '') {
+                    return $this->error('Email address is required.');
+                }
+                $u = User::where('email', $identifier)->orWhere('username', $identifier)->first();
                 if ($u == null) {
-                    return $this->error('User account not found.');
+                    return $this->error('No account found with that email address.');
+                }
+                if (!$u->email) {
+                    return $this->error('This account has no email address on file. Contact your administrator.');
                 }
                 try {
                     $u->send_password_reset();
                 } catch (\Throwable $th) {
-                    return $this->error('Failed to send password reset email because ' . $th->getMessage() . '.');
+                    return $this->error('Failed to send reset email: ' . $th->getMessage());
                 }
-                return $this->success('Password reset CODE sent to your email address ' . $u->email . '.', $u);
+                // Mask email for privacy: jo***@example.com
+                $parts  = explode('@', $u->email);
+                $masked = substr($parts[0], 0, 2) . str_repeat('*', max(strlen($parts[0]) - 2, 3));
+                $masked .= '@' . ($parts[1] ?? '');
+                return $this->success("A 6-digit reset code has been sent to {$masked}. It expires in 15 minutes.", []);
             }
             return $this->error('Invalid task.');
         }

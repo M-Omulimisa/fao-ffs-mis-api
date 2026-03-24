@@ -28,9 +28,17 @@ Route::get('/', function () {
     return view('landing');
 });
 
+use App\Http\Controllers\WebForgotPasswordController;
+
 Route::get('/auth/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/auth/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Forgot / reset password (web portal)
+Route::get('/auth/forgot-password',  [WebForgotPasswordController::class, 'showForm'])->name('forgot-password');
+Route::post('/auth/forgot-password', [WebForgotPasswordController::class, 'sendOtp'])->name('forgot-password.send');
+Route::get('/auth/reset-password',   [WebForgotPasswordController::class, 'showResetForm'])->name('reset-password');
+Route::post('/auth/reset-password',  [WebForgotPasswordController::class, 'resetPassword'])->name('reset-password.post');
 
 /*
 |--------------------------------------------------------------------------

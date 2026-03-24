@@ -197,6 +197,18 @@
         .remember input  { width: 14px; height: 14px; accent-color: var(--blue); cursor: pointer; }
         .remember label  { font-size: .82rem; color: #475569; cursor: pointer; user-select: none; }
 
+        /* Password field label row with forgot link */
+        .label-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .label-row .form-label { margin-bottom: 0; }
+        .forgot-link {
+            font-size: .76rem; font-weight: 600; color: var(--blue);
+            text-decoration: none; transition: color .2s;
+        }
+        .forgot-link:hover { color: var(--blue-dk); text-decoration: underline; }
+
         /* Submit */
         .btn-submit {
             width: 100%; padding: 13px;
@@ -335,7 +347,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
+                    <div class="label-row">
+                        <label for="password" class="form-label">Password</label>
+                        <a href="{{ route('forgot-password') }}" class="forgot-link">Forgot password?</a>
+                    </div>
                     <div class="field-wrap">
                         <i class="fa fa-lock field-icon"></i>
                         <input

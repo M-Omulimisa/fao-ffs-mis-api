@@ -171,6 +171,12 @@ Route::group([
     // VSLA Meeting Attendance - View attendance records
     $router->resource('vsla-meeting-attendance', VslaMeetingAttendanceController::class);
 
+    // VSLA Opening Balances — cycle opening balances with per-member financial fan-out
+    // NOTE: Custom routes MUST be registered BEFORE the resource to avoid parameter conflicts
+    $router->get('vsla-opening-balance-cycles', 'VslaOpeningBalanceController@apiCyclesForGroup');
+    $router->get('vsla-opening-balances/{id}/reprocess', 'VslaOpeningBalanceController@reprocess');
+    $router->resource('vsla-opening-balances', VslaOpeningBalanceController::class);
+
     // ========================================
     // FFS MODULE - Training Sessions, Participants & Resolutions
     // ========================================
