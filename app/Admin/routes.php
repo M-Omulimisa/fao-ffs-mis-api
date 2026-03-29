@@ -102,6 +102,18 @@ Route::group([
     $router->resource('users', UserController::class);
 
     // ========================================
+    // ADMIN USER MANAGEMENT — 360° portal account management
+    // NOTE: Custom action routes MUST come before the resource to avoid conflicts
+    // ========================================
+    $router->get('admin-users/{id}/activate',         'AdminUserController@activate')->name('admin-users.activate');
+    $router->get('admin-users/{id}/deactivate',       'AdminUserController@deactivate')->name('admin-users.deactivate');
+    $router->get('admin-users/{id}/reset-password',   'AdminUserController@resetPassword')->name('admin-users.reset-password');
+    $router->get('admin-users/{id}/send-credentials', 'AdminUserController@sendCredentials')->name('admin-users.send-credentials');
+    $router->get('admin-users/{id}/change-password',  'AdminUserController@changePassword')->name('admin-users.change-password');
+    $router->post('admin-users/{id}/change-password', 'AdminUserController@updatePassword')->name('admin-users.update-password');
+    $router->resource('admin-users', AdminUserController::class);
+
+    // ========================================
     // IP USER MANAGEMENT (hierarchy-scoped: super admin / IP manager / facilitator)
     // ========================================
     $router->get('ip-users/{id}/send-credentials', 'IPUserController@sendCredentials')->name('ip-users.send-credentials');

@@ -245,23 +245,25 @@ class FfsKpiIpController extends AdminController
 
     protected function form()
     {
-        $form  = new Form(new FfsKpiIpEntry());
-        $ipId  = $this->getAdminIpId();
+        $form = new Form(new FfsKpiIpEntry());
+        $ipId = $this->getAdminIpId();
 
-        // IP field
+        // ── KPI Identification ────────────────────────────────────────────
+
+        // Implementing Partner (standalone — handled by trait)
         $this->addIpFieldToForm($form);
 
-        // ── KPI Indicator ─────────────────────────────────────────────────
-        $indicators = FfsKpiIndicator::where('type', 'ip')->orderBy('sort_order')->get();
+        // KPI Indicator
+        $indicators       = FfsKpiIndicator::where('type', 'ip')->orderBy('sort_order')->get();
         $indicatorOptions = $indicators->mapWithKeys(fn($i) => [
-            $i->id => "Output {$i->output_number} — {$i->indicator_name}"
+            $i->id => "Output {$i->output_number} — {$i->indicator_name}",
         ])->toArray();
 
         $form->select('indicator_id', 'KPI Indicator')
             ->options($indicatorOptions)
             ->rules('required');
 
-        // ── Disaggregation — all possible values pre-loaded; JS shows a hint ─
+        // Disaggregation
         $form->select('disaggregation', 'Disaggregation')
             ->options([
                 'Total'  => 'Total',
@@ -277,97 +279,109 @@ class FfsKpiIpController extends AdminController
             ->rules('required')
             ->help('<span id="kpi-disagg-hint" style="color:#1565c0;font-weight:600;font-size:12px;"></span>');
 
-        // ── Location Fields ───────────────────────────────────────────────
+        // Reporting Year
+        $form->number('year', 'Reporting Year')
+            ->default(date('Y'))
+            ->rules('required|integer|min:2020|max:2050');
+
+        // Annual Target
+        $form->decimal('target', 'Annual Target')
+            ->default(0)
+            ->rules('required|numeric|min:0');
+
+        // ── Location ──────────────────────────────────────────────────────
+        $form->divider('Location');
+
         $form->select('district', 'District')
-            ->options($this->northernUgandaDistricts())
-            ->help('Select the district (required for all outputs)');
+            ->options($this->northernUgandaDistricts());
 
+        // Sub-County — conditionally shown/hidden by JS
         $form->text('sub_county', 'Sub-County')
-            ->help('Required for Output 1 and Output 2');
+            ->placeholder('e.g. Katikekile');
 
-        // FFS Group — Output 1 (group location_config)
+        // FFS Group — shown for Output 1 (group location_config)
         $groupOptions = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))
             ->where('status', 'Active')
             ->orderBy('name')
             ->pluck('name', 'id')
             ->toArray();
         $form->select('group_id', 'FFS Group')
-            ->options($groupOptions)
-            ->help('Used for Output 1 indicators');
+            ->options($groupOptions);
 
-        // Institution — Output 2 (institution location_config)
+        // Institution — shown for Output 2 (institution location_config)
         $form->text('institution', 'Institution')
-            ->help('Used for Output 2 indicators (training institution or partner name)');
+            ->placeholder('e.g. Training college or partner name');
 
-        // Location Type — Output 3 (location_type config)
+        // Location Type — shown for Output 3 (location_type config)
         $form->select('location_type', 'Location Type')
             ->options([
-                'Watershed'   => 'Watershed',
-                'Rangeland'   => 'Rangeland',
-                'Nursery Site'=> 'Nursery Site',
-                'Household'   => 'Household',
-                'Village'     => 'Village',
-                'Field'       => 'Field',
-                'Other'       => 'Other',
-            ])
-            ->help('Used for Output 3 indicators');
+                'Watershed'    => 'Watershed',
+                'Rangeland'    => 'Rangeland',
+                'Nursery Site' => 'Nursery Site',
+                'Household'    => 'Household',
+                'Village'      => 'Village',
+                'Field'        => 'Field',
+                'Other'        => 'Other',
+            ]);
 
-        // ── Reporting Year & Target ───────────────────────────────────────
-        $form->number('year', 'Reporting Year')
-            ->default(date('Y'))
-            ->rules('required|integer|min:2020|max:2050')
-            ->help('Enter the 4-digit reporting year, e.g. ' . date('Y'));
+        // ── Monthly Actuals ───────────────────────────────────────────────
+        $form->divider('Monthly Actuals (Jan – Dec)');
 
-        $form->decimal('target', 'Annual Target')
-            ->default(0)
-            ->rules('required|numeric|min:0')
-            ->help('The target value for this indicator (set by project plan)');
+        // Compact 6-per-row HTML grid.
+        // Uses existing model values for edit pre-fill; old() covers validation re-submit.
+        $model  = $form->model();
+        $months = [
+            'jan' => 'Jan', 'feb' => 'Feb', 'mar' => 'Mar',
+            'apr' => 'Apr', 'may' => 'May', 'jun' => 'Jun',
+            'jul' => 'Jul', 'aug' => 'Aug', 'sep' => 'Sep',
+            'oct' => 'Oct', 'nov' => 'Nov', 'dec' => 'Dec',
+        ];
 
-        // ── Monthly Actuals — 6 per row ───────────────────────────────────
-        $form->divider('Monthly Actuals');
-
-        $row1 = ['jan' => 'Jan', 'feb' => 'Feb', 'mar' => 'Mar', 'apr' => 'Apr', 'may' => 'May', 'jun' => 'Jun'];
-        $row2 = ['jul' => 'Jul', 'aug' => 'Aug', 'sep' => 'Sep', 'oct' => 'Oct', 'nov' => 'Nov', 'dec' => 'Dec'];
-
-        foreach (array_merge($row1, $row2) as $col => $label) {
-            $form->column(2, function ($form) use ($col, $label) {
-                $form->decimal($col, $label);
-            });
+        $monthsHtml = '<div class="row" style="margin:0 -4px 4px;">';
+        foreach ($months as $col => $label) {
+            $val         = old($col, $model->{$col} ?? 0);
+            $monthsHtml .= '<div class="col-md-2" style="padding:0 4px;margin-bottom:8px;">'
+                         . "<label style='display:block;text-align:center;font-size:11px;"
+                         .         "font-weight:700;color:#666;margin:0 0 4px;"
+                         .         "text-transform:uppercase;letter-spacing:0.5px;'>{$label}</label>"
+                         . "<input type='number' name='{$col}' value='" . e((string) ($val ?? 0)) . "'"
+                         .        " class='form-control' style='text-align:center;padding:5px 4px;"
+                         .        "font-size:13px;' min='0' step='any' placeholder='0'>"
+                         . '</div>';
         }
+        $monthsHtml .= '</div>';
 
+        $form->html($monthsHtml, '&nbsp;');
+
+        // ── Notes ─────────────────────────────────────────────────────────
         $form->textarea('comments', 'Comments / Notes')
-            ->help('Any additional context, challenges, or remarks for this entry');
+            ->rows(3)
+            ->placeholder('Any additional context, challenges, or remarks for this entry');
 
-        // ── Saving Hooks ──────────────────────────────────────────────────
+        // ── Saving ────────────────────────────────────────────────────────
         $form->saving(function (Form $form) {
-            // Default year if empty
             if (empty($form->year)) {
                 $form->year = date('Y');
             }
-            // Record creator on new entries
             if (!$form->model()->exists) {
                 $form->model()->created_by = Admin::user()->id ?? null;
             }
         });
 
-        // ── JavaScript: Dynamic Disaggregation + Location Field Visibility ─
+        // ── JS: Disaggregation hint + conditional location field visibility ─
         $indicatorJsonData = FfsKpiIndicator::asJsData('ip');
-
         Admin::script("window._kpiIpIndicators = {$indicatorJsonData};");
         Admin::script(<<<'JS'
-$(function() {
-    // ── Helpers ────────────────────────────────────────────────────────────
-    function getFormGroup(fieldName) {
-        var $el = $('[name="' + fieldName + '"]');
-        if (!$el.length) $el = $('#' + fieldName);
-        return $el.closest('.form-group');
+$(function () {
+
+    function fieldGroup(name) {
+        return $('[name="' + name + '"]').closest('.form-group');
     }
 
     function updateHint(indicatorId) {
         var data = window._kpiIpIndicators[indicatorId];
         if (data && data.disaggregations && data.disaggregations.length) {
-            var hint = '✔ Valid for this indicator: ' + data.disaggregations.join(' · ');
-            $('#kpi-disagg-hint').text(hint);
+            $('#kpi-disagg-hint').text('✔ Valid for this indicator: ' + data.disaggregations.join(' · '));
         } else {
             $('#kpi-disagg-hint').text('');
         }
@@ -375,41 +389,36 @@ $(function() {
 
     function updateLocationFields(indicatorId) {
         var data = window._kpiIpIndicators[indicatorId];
-        var lc = data ? data.location_config : null;
+        var lc   = data ? data.location_config : null;
 
-        var $group     = getFormGroup('group_id');
-        var $inst      = getFormGroup('institution');
-        var $locType   = getFormGroup('location_type');
-        var $subCounty = getFormGroup('sub_county');
+        var $group     = fieldGroup('group_id');
+        var $inst      = fieldGroup('institution');
+        var $locType   = fieldGroup('location_type');
+        var $subCounty = fieldGroup('sub_county');
 
         $group.hide(); $inst.hide(); $locType.hide();
 
         if (!lc) return;
 
-        if (lc === 'group') {
-            $group.show(); $subCounty.show();
-        } else if (lc === 'institution') {
-            $inst.show(); $subCounty.show();
-        } else if (lc === 'location_type') {
-            $locType.show(); $subCounty.hide();
-        } else if (lc === 'district_only') {
-            $subCounty.hide();
-        }
+        if (lc === 'group')          { $group.show();   $subCounty.show(); }
+        else if (lc === 'institution')    { $inst.show();   $subCounty.show(); }
+        else if (lc === 'location_type') { $locType.show(); $subCounty.hide(); }
+        else if (lc === 'district_only') {                  $subCounty.hide(); }
     }
 
-    // ── Initial state ──────────────────────────────────────────────────────
+    // Initialise on page load
     var initId = $('[name="indicator_id"]').val();
     if (initId) {
         updateHint(initId);
         updateLocationFields(initId);
     } else {
-        getFormGroup('group_id').hide();
-        getFormGroup('institution').hide();
-        getFormGroup('location_type').hide();
+        fieldGroup('group_id').hide();
+        fieldGroup('institution').hide();
+        fieldGroup('location_type').hide();
     }
 
-    // ── On indicator change ────────────────────────────────────────────────
-    $(document).on('change', '[name="indicator_id"]', function() {
+    // React to indicator change
+    $(document).on('change', '[name="indicator_id"]', function () {
         var id = $(this).val();
         updateHint(id);
         updateLocationFields(id);
