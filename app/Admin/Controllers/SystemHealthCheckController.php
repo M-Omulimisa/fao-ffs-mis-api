@@ -412,6 +412,7 @@ class SystemHealthCheckController extends AdminController
                 'name' => $g->name,
                 'type' => $g->type,
                 'status' => $g->status,
+                'members' => $g->members_count,
                 'registration_date' => $g->registration_date?->format('Y-m-d'),
                 'ip' => $g->ip_name,
             ])->values()->toArray();
@@ -628,13 +629,13 @@ class SystemHealthCheckController extends AdminController
     {
         $query = FfsGroup::query()
             ->withCount('members')
-            ->where('status', '!=', 'Active')
-            ->having('members_count', '>', 0)
-            ->orderBy('name');
+            ->where('status', '!=', 'Active');
 
         $query = $this->scopeQuery($query);
 
         $items = $query->get()
+            ->filter(fn($g) => $g->members_count > 0)
+            ->sortBy('name')
             ->map(fn($g) => [
                 'id' => $g->id,
                 'name' => $g->name,
@@ -642,7 +643,7 @@ class SystemHealthCheckController extends AdminController
                 'status' => $g->status,
                 'members' => $g->members_count,
                 'ip' => $g->ip_name,
-            ])->toArray();
+            ])->values()->toArray();
 
         return [
             'title' => 'Inactive Groups with Members',

@@ -296,131 +296,147 @@ class FfsGroupController extends AdminController
         }
 
         $show = new Show($record);
-        
-        $show->panel()->style('primary')->title('Group Details');
 
-        // Basic Information
-        $show->divider('Basic Information');
-        $show->field('code', 'Group Code')->label('primary');
+        $show->panel()->style('primary')->title($record->name);
+
+        // ── Basic Information ──
+        $show->field('code', 'Group Code');
         $show->field('name', 'Group Name');
-        $show->field('type_text', 'Type');
-        $show->field('status_text', 'Status');
-        $show->field('establishment_date', 'Established')->as(function($date) {
-            return $date ? date('d M Y', strtotime($date)) : 'N/A';
+        $show->field('type', 'Type')->using(FfsGroup::getTypes());
+        $show->field('status', 'Status')->using(FfsGroup::getStatuses());
+        $show->field('establishment_date', 'Established')->as(function ($d) {
+            return $d ? $d->format('d M Y') : '-';
         });
-        $show->field('registration_date', 'Registration Date')->as(function($date) {
-            return $date ? date('d M Y', strtotime($date)) : 'N/A';
+        $show->field('registration_date', 'Registration Date')->as(function ($d) {
+            return $d ? $d->format('d M Y') : '-';
         });
-        
-        // Project/Partner Information
-        $show->divider('Project Information');
-        $show->field('ip_name', 'Implementing Partner')->badge('info');
+
+        // ── Partner / Project ──
+        $show->divider('Partner & Project');
+        $show->field('ip_name', 'Implementing Partner');
         $show->field('project_code', 'Project Code');
         $show->field('loa', 'Letter of Agreement');
         $show->field('source_file', 'Import Source');
-        
-        // Location
-        $show->divider('Location Information');
-        $show->field('district_display', 'District')->as(function() {
-            if ($this->district) return $this->district->name;
-            return $this->district_text ?: 'N/A';
+
+        // ── Location ──
+        $show->divider('Location');
+        $show->field('district_id', 'District')->as(function () {
+            return $this->district ? $this->district->name : ($this->district_text ?: '-');
         });
         $show->field('subcounty_text', 'Subcounty');
         $show->field('parish_text', 'Parish');
         $show->field('village', 'Village');
         $show->field('latitude', 'Latitude');
         $show->field('longitude', 'Longitude');
-        
-        // Meeting Details
-        $show->divider('Meeting Details');
+
+        // ── Meetings ──
+        $show->divider('Meeting Schedule');
         $show->field('meeting_venue', 'Meeting Venue');
         $show->field('meeting_day', 'Meeting Day');
         $show->field('meeting_frequency', 'Frequency');
-        
-        // Value Chains
+
+        // ── Activities ──
         $show->divider('Value Chains / Activities');
         $show->field('primary_value_chain', 'Primary Value Chain');
-        $show->field('secondary_value_chains', 'Secondary Value Chains')->as(function($chains) {
-            if (empty($chains)) return 'N/A';
-            $decoded = is_string($chains) ? json_decode($chains, true) : $chains;
-            return is_array($decoded) ? implode(', ', $decoded) : $chains;
+        $show->field('secondary_value_chains', 'Other Activities')->as(function ($v) {
+            if (empty($v)) return '-';
+            $arr = is_string($v) ? json_decode($v, true) : $v;
+            return is_array($arr) ? implode(', ', $arr) : $v;
         });
-        
-        // Members
-        $show->divider('Member Statistics');
-        $show->field('total_members', 'Total Members')->badge('primary');
-        $show->field('male_members', 'Male Members')->badge('info');
-        $show->field('female_members', 'Female Members')->badge('danger');
-        $show->field('youth_members', 'Youth Members (18-35)')->badge('warning');
-        $show->field('pwd_members', 'PWD Members (Total)')->badge('success');
-        $show->field('pwd_male_members', 'PWD Male Members');
-        $show->field('pwd_female_members', 'PWD Female Members');
-        
-        // Facilitation
+
+        // ── Membership (real count + manual breakdown) ──
+        $show->divider('Membership');
+        $realCount = $record->members()->count();
+        $show->field('id', 'Registered Members (Real)')->as(function () use ($realCount) {
+            return "<span class='badge' style='background:#05179F;font-size:14px;padding:4px 10px;'>{$realCount}</span>";
+        })->unescape();
+        $show->field('total_members', 'Total Members (Manual Entry)');
+        $show->field('male_members', 'Male Members');
+        $show->field('female_members', 'Female Members');
+        $show->field('youth_members', 'Youth Members (18-35)');
+        $show->field('pwd_male_members', 'PWD Male');
+        $show->field('pwd_female_members', 'PWD Female');
+
+        // ── Facilitation ──
         $show->divider('Facilitation');
-        $show->field('facilitator_name', 'Facilitator');
+        $show->field('facilitator_id', 'Facilitator')->as(function () {
+            return $this->facilitator ? $this->facilitator->name : 'Not Assigned';
+        });
         $show->field('facilitator_sex', 'Facilitator Gender');
         $show->field('contact_person_name', 'Contact Person');
         $show->field('contact_person_phone', 'Contact Phone');
-        
-        // Cycle Info (VSLA/FFS)
+
+        // ── Leadership ──
+        $show->divider('Group Officers');
+        $show->field('admin_id', 'Chairperson')->as(function () {
+            return $this->admin ? $this->admin->name : '-';
+        });
+        $show->field('secretary_id', 'Secretary')->as(function () {
+            return $this->secretary ? $this->secretary->name : '-';
+        });
+        $show->field('treasurer_id', 'Treasurer')->as(function () {
+            return $this->treasurer ? $this->treasurer->name : '-';
+        });
+
+        // ── Cycle (VSLA/FFS) ──
         $show->divider('Cycle Information');
         $show->field('cycle_number', 'Cycle Number');
-        $show->field('cycle_start_date', 'Cycle Start Date')->as(function($date) {
-            return $date ? date('d M Y', strtotime($date)) : 'N/A';
+        $show->field('cycle_start_date', 'Cycle Start')->as(function ($d) {
+            return $d ? $d->format('d M Y') : '-';
         });
-        $show->field('cycle_end_date', 'Cycle End Date')->as(function($date) {
-            return $date ? date('d M Y', strtotime($date)) : 'N/A';
+        $show->field('cycle_end_date', 'Cycle End')->as(function ($d) {
+            return $d ? $d->format('d M Y') : '-';
         });
-        
-        // Additional Info
+
+        // ── Notes ──
         $show->divider('Additional Information');
         $show->field('description', 'Description');
         $show->field('objectives', 'Objectives');
         $show->field('achievements', 'Achievements');
         $show->field('challenges', 'Challenges');
-        
-        // Photo
         $show->field('photo', 'Photo')->image();
-        
-        // Audit
-        $show->divider('Audit Information');
+
+        // ── Audit ──
+        $show->divider('Audit');
         $show->field('original_id', 'Original ID (Import)');
-        $show->field('created_by', 'Created By')->as(function() {
+        $show->field('created_by_id', 'Created By')->as(function () {
             return $this->createdBy ? $this->createdBy->name : 'System';
         });
-        $show->field('created_at', 'Created At')->date('d M Y H:i:s');
-        $show->field('updated_at', 'Updated At')->date('d M Y H:i:s');
+        $show->field('created_at', 'Created')->as(function ($d) {
+            return $d ? date('d M Y H:i', strtotime($d)) : '-';
+        });
+        $show->field('updated_at', 'Updated')->as(function ($d) {
+            return $d ? date('d M Y H:i', strtotime($d)) : '-';
+        });
 
-        // Members List
-        $show->divider('Group Members');
-        $show->members('Members', function ($members) {
-            $members->resource('/admin/ffs-members');
-
-            $members->id('ID')->sortable();
-            $members->name('Name')->sortable();
-            $members->phone_number('Phone');
-            $members->email('Email');
-            $members->column('is_group_admin', 'Role')->display(function($val) {
-                if ($val === 'Yes') return '<span class="label label-primary">Chairperson</span>';
-                if ($this->is_secretary === 'Yes') return '<span class="label label-info">Secretary</span>';
-                if ($this->is_treasurer === 'Yes') return '<span class="label label-warning">Treasurer</span>';
+        // ── Group Members relation grid ──
+        $show->relation('members', 'Group Members (' . $realCount . ')', function ($grid) {
+            $grid->column('id', 'ID')->sortable();
+            $grid->column('name', 'Name')->sortable();
+            $grid->column('phone_number', 'Phone');
+            $grid->column('email', 'Email');
+            $grid->column('sex', 'Gender')->display(function ($v) {
+                if ($v === 'Male') return '<i class="fa fa-male text-info"></i> Male';
+                if ($v === 'Female') return '<i class="fa fa-female text-danger"></i> Female';
+                return $v ?: '-';
+            });
+            $grid->column('is_group_admin', 'Role')->display(function ($v) {
+                if ($v === 'Yes') return '<span class="label label-primary">Chairperson</span>';
+                if ($this->is_group_secretary === 'Yes') return '<span class="label label-info">Secretary</span>';
+                if ($this->is_group_treasurer === 'Yes') return '<span class="label label-warning">Treasurer</span>';
                 return '<span class="label label-default">Member</span>';
             });
-            $members->column('sex', 'Gender')->display(function($val) {
-                return $val === 'Male' ? '<i class="fa fa-male text-info"></i> M' : '<i class="fa fa-female text-danger"></i> F';
-            });
-            $members->created_at('Joined')->display(function($date) {
-                return date('d M Y', strtotime($date));
+            $grid->column('national_id_number', 'NIN');
+            $grid->column('created_at', 'Joined')->display(function ($d) {
+                return $d ? date('d M Y', strtotime($d)) : '-';
             })->sortable();
 
-            $members->disableCreateButton();
-            $members->disableExport();
-            $members->disableFilter();
-            $members->disableRowSelector();
-            $members->disableActions();
-
-            $members->paginate(15);
+            $grid->disableCreateButton();
+            $grid->disableExport();
+            $grid->disableFilter();
+            $grid->disableRowSelector();
+            $grid->disableActions();
+            $grid->paginate(20);
         });
 
         return $show;
