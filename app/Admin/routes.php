@@ -278,6 +278,9 @@ Route::group([
            ->name('ffs-kpi-ip-entries.pdf-performance');
 
     $router->resource('ffs-kpi-ip-entries', 'FfsKpiIpController');
+
+    $router->get('ffs-kpi-facilitator-entries/pdf-report', 'FfsKpiFacilitatorEntryController@pdfReport')
+           ->name('ffs-kpi-facilitator-entries.pdf-report');
     $router->resource('ffs-kpi-facilitator-entries', 'FfsKpiFacilitatorEntryController');
 
     // ========================================

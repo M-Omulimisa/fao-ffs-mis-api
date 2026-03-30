@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        @page { size: A4 portrait; margin: 15mm 18mm 22mm 18mm; }
+        @page { size: A4 portrait; margin: 20mm 25mm 22mm 25mm; }
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
@@ -242,7 +242,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 6px 18mm;
+            padding: 6px 0;
             border-top: 2px solid #003d80;
             font-size: 6.5pt;
             color: #444;

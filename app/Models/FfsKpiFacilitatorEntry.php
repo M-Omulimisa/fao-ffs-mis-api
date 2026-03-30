@@ -15,6 +15,24 @@ class FfsKpiFacilitatorEntry extends Model
         'value'        => 'float',
     ];
 
+    protected $appends = ['location_display'];
+
+    // ── Accessors ───────────────────────────────────────────────────────
+
+    public function getLocationDisplayAttribute(): string
+    {
+        $parts = array_filter([
+            $this->district,
+            $this->sub_county,
+        ]);
+        $base = implode(', ', $parts);
+
+        if ($this->group_id && $this->relationLoaded('group') && $this->group) {
+            return $base ? ($base . ' — ' . $this->group->name) : $this->group->name;
+        }
+        return $base ?: '—';
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────
 
     public function ip()
