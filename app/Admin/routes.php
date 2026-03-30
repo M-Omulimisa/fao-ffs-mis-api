@@ -98,6 +98,18 @@ Route::group([
     $router->resource('system-configurations', SystemConfigurationController::class);
     $router->resource('pesapal-payments', UniversalPaymentController::class);
 
+    // System Health Check — Monitor data integrity and identify issues
+    $router->get('system-health-check', 'SystemHealthCheckController@index')->name('system-health-check');
+
+    // Health Check AJAX Batch Operations
+    $router->post('system-health-check/batch-delete-groups', 'SystemHealthCheckController@batchDeleteGroups');
+    $router->post('system-health-check/batch-delete-users', 'SystemHealthCheckController@batchDeleteUsers');
+    $router->post('system-health-check/batch-assign-facilitator', 'SystemHealthCheckController@batchAssignFacilitator');
+    $router->post('system-health-check/batch-assign-ip', 'SystemHealthCheckController@batchAssignIp');
+    $router->post('system-health-check/batch-clear-field', 'SystemHealthCheckController@batchClearField');
+    $router->post('system-health-check/batch-update-group-status', 'SystemHealthCheckController@batchUpdateGroupStatus');
+    $router->post('system-health-check/merge-duplicate-users', 'SystemHealthCheckController@mergeDuplicateUsers');
+
     // Users management
     $router->resource('users', UserController::class);
 

@@ -392,6 +392,37 @@ class FfsGroupController extends AdminController
         $show->field('created_at', 'Created At')->date('d M Y H:i:s');
         $show->field('updated_at', 'Updated At')->date('d M Y H:i:s');
 
+        // Members List
+        $show->divider('Group Members');
+        $show->members('Members', function ($members) {
+            $members->resource('/admin/ffs-members');
+
+            $members->id('ID')->sortable();
+            $members->name('Name')->sortable();
+            $members->phone_number('Phone');
+            $members->email('Email');
+            $members->column('is_group_admin', 'Role')->display(function($val) {
+                if ($val === 'Yes') return '<span class="label label-primary">Chairperson</span>';
+                if ($this->is_secretary === 'Yes') return '<span class="label label-info">Secretary</span>';
+                if ($this->is_treasurer === 'Yes') return '<span class="label label-warning">Treasurer</span>';
+                return '<span class="label label-default">Member</span>';
+            });
+            $members->column('sex', 'Gender')->display(function($val) {
+                return $val === 'Male' ? '<i class="fa fa-male text-info"></i> M' : '<i class="fa fa-female text-danger"></i> F';
+            });
+            $members->created_at('Joined')->display(function($date) {
+                return date('d M Y', strtotime($date));
+            })->sortable();
+
+            $members->disableCreateButton();
+            $members->disableExport();
+            $members->disableFilter();
+            $members->disableRowSelector();
+            $members->disableActions();
+
+            $members->paginate(15);
+        });
+
         return $show;
     }
 

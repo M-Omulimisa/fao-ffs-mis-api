@@ -208,15 +208,15 @@ class VslaOpeningBalanceController extends AdminController
                     $facName  = $facUser
                         ? e($facUser->name ?: trim(($facUser->first_name ?? '') . ' ' . ($facUser->last_name ?? '')))
                         : '<span class="text-muted">—</span>';
-                    $facPhone = $facUser && $facUser->phone
-                        ? e($facUser->phone)
+                    $facPhone = $facUser && $facUser->phone_number
+                        ? e($facUser->phone_number)
                         : '<span class="text-muted">—</span>';
 
                     // Chairperson (admin_id relationship, fallback to contact_person fields)
                     $chairUser  = $group->admin;
                     if ($chairUser) {
                         $chairName  = e($chairUser->name ?: trim(($chairUser->first_name ?? '') . ' ' . ($chairUser->last_name ?? '')));
-                        $chairPhone = $chairUser->phone ? e($chairUser->phone) : '<span class="text-muted">—</span>';
+                        $chairPhone = $chairUser->phone_number ? e($chairUser->phone_number) : '<span class="text-muted">—</span>';
                     } elseif ($group->contact_person_name) {
                         $chairName  = e($group->contact_person_name);
                         $chairPhone = $group->contact_person_phone ? e($group->contact_person_phone) : '<span class="text-muted">—</span>';
@@ -308,7 +308,7 @@ class VslaOpeningBalanceController extends AdminController
             }
             $u = $this->group->facilitator;
             $name  = e($u->name ?: trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')));
-            $phone = $u->phone ? '<br><small class="text-muted">' . e($u->phone) . '</small>' : '';
+            $phone = $u->phone_number ? '<br><small class="text-muted">' . e($u->phone_number) . '</small>' : '';
             return $name . $phone;
         });
 
@@ -317,7 +317,7 @@ class VslaOpeningBalanceController extends AdminController
             $u = $this->group->admin;
             if ($u) {
                 $name  = e($u->name ?: trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')));
-                $phone = $u->phone ? '<br><small class="text-muted">' . e($u->phone) . '</small>' : '';
+                $phone = $u->phone_number ? '<br><small class="text-muted">' . e($u->phone_number) . '</small>' : '';
                 return $name . $phone;
             }
             if ($this->group->contact_person_name) {

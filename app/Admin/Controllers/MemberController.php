@@ -40,11 +40,25 @@ class MemberController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new User());
-        $grid->model()->orderBy('id', 'desc');
+        $grid->model()
+            ->with(['group.facilitator', 'group.admin'])
+            ->orderBy('id', 'desc');
         $this->applyIpScope($grid);
         
         
-        $grid->quickSearch('name', 'phone_number', 'phone_number_2')->placeholder('Search member name, phone...');
+        // QuickSearch: member name, phone, OR group name
+        $grid->quickSearch(function ($model, $query) {
+            $model->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('first_name', 'like', "%{$query}%")
+                  ->orWhere('last_name', 'like', "%{$query}%")
+                  ->orWhere('phone_number', 'like', "%{$query}%")
+                  ->orWhere('phone_number_2', 'like', "%{$query}%")
+                  ->orWhereHas('group', function ($gq) use ($query) {
+                      $gq->where('name', 'like', "%{$query}%");
+                  });
+            });
+        })->placeholder('Search member name, phone, or group name...');
 
         // Disable batch deletion but allow batch export
         $grid->actions(function ($actions) {
@@ -61,13 +75,16 @@ class MemberController extends AdminController
                 $filter->equal('ip_id', 'Implementing Partner')
                     ->select(\App\Models\ImplementingPartner::getDropdownOptions());
             }
-            
-            // Group filters
+
+            // Group filter - super admins see ALL groups, others see only Active groups for their IP
             $filter->equal('group_id', 'FFS Group')->select(
-                FfsGroup::where('status', 'Active')
+                FfsGroup::query()
+                    ->when(!$isSuperAdmin, fn($q) => $q->where('status', 'Active'))
                     ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
                     ->orderBy('name')
-                    ->pluck('name', 'id')
+                    ->get()
+                    ->mapWithKeys(fn($g) => [$g->id => $g->name . ($g->status !== 'Active' ? ' [' . $g->status . ']' : '')])
+                    ->toArray()
             );
             
             $filter->equal('is_group_admin', 'Position')->select([
@@ -145,17 +162,55 @@ class MemberController extends AdminController
             if (!$this->group) {
                 return '<span class="text-muted">Not Assigned</span>';
             }
-            
+
             $type = $this->group->type;
             $typeLabel = [
                 'FFS' => 'success',
-                'FBS' => 'primary', 
+                'FBS' => 'primary',
                 'VSLA' => 'warning',
                 'Association' => 'info',
             ];
-            
-            return '<span class="label label-' . ($typeLabel[$type] ?? 'default') . '">' . $type . '</span><br>' . 
+
+            return '<span class="label label-' . ($typeLabel[$type] ?? 'default') . '">' . $type . '</span><br>' .
                    '<strong>' . $this->group->name . '</strong>';
+        });
+
+        // Facilitator column
+        $grid->column('facilitator_info', 'Facilitator')->display(function() {
+            if (!$this->group || !$this->group->facilitator) {
+                return '<span class="text-muted">—</span>';
+            }
+            $f = $this->group->facilitator;
+            $name = e($f->name ?: trim(($f->first_name ?? '') . ' ' . ($f->last_name ?? '')));
+            $phone = $f->phone_number
+                ? '<br><small class="text-muted"><i class="fa fa-phone"></i> ' . e($f->phone_number) . '</small>'
+                : '';
+            return '<strong>' . $name . '</strong>' . $phone;
+        });
+
+        // Chairperson column
+        $grid->column('chairperson_info', 'Chairperson')->display(function() {
+            if (!$this->group) {
+                return '<span class="text-muted">—</span>';
+            }
+            // Try admin relationship first (group chairperson)
+            if ($this->group->admin) {
+                $c = $this->group->admin;
+                $name = e($c->name ?: trim(($c->first_name ?? '') . ' ' . ($c->last_name ?? '')));
+                $phone = $c->phone_number
+                    ? '<br><small class="text-muted"><i class="fa fa-phone"></i> ' . e($c->phone_number) . '</small>'
+                    : '';
+                return '<strong>' . $name . '</strong>' . $phone;
+            }
+            // Fallback to contact_person fields
+            if ($this->group->contact_person_name) {
+                $name = e($this->group->contact_person_name);
+                $phone = $this->group->contact_person_phone
+                    ? '<br><small class="text-muted"><i class="fa fa-phone"></i> ' . e($this->group->contact_person_phone) . '</small>'
+                    : '';
+                return '<strong>' . $name . '</strong>' . $phone;
+            }
+            return '<span class="text-muted">—</span>';
         });
         
         // Implementing Partner
