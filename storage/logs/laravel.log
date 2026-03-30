@@ -14449,3 +14449,75 @@
 [2026-03-30 22:20:59] local.INFO: enrichUserWithGroup: user 828 resolved via group_id=250  
 [2026-03-30 22:20:59] local.INFO: enrichUserWithGroup: user 828 resolved via group_id=250  
 [2026-03-30 22:21:04] local.INFO: enrichUserWithGroup: user 828 resolved via group_id=250  
+[2026-03-30 22:33:58] local.ERROR: Uncaught Error: Call to a member function format() on null in /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/AccountTransaction.php:93
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php(620): App\Models\AccountTransaction->getFormattedDateAttribute(NULL)
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php(670): Illuminate\Database\Eloquent\Model->mutateAttribute('formatted_date', NULL)
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php(201): Illuminate\Database\Eloquent\Model->mutateAttributeForArray('formatted_date', NULL)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1485): Illuminate\Database\Eloquent\Model->attributesToArray()
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php(875): Illuminate\Database\Eloquent\Model->toArray()
+#5 [internal function]: Illuminate\Support\Collection->{closure:Illuminate\Support\Traits\EnumeratesValues::toArray():874}(Object(App\Models\AccountTransaction), 0)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Collections/Collection.php(695): array_map(Object(Closure), Array, Array)
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Collection.php(350): Illuminate\Support\Collection->map(Object(Closure))
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php(874): Illuminate\Database\Eloquent\Collection->map(Object(Closure))
+#9 Command line code(5): Illuminate\Support\Collection->toArray()
+#10 {main}
+  thrown {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Uncaught Error: Call to a member function format() on null in /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/AccountTransaction.php:93
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php(620): App\\Models\\AccountTransaction->getFormattedDateAttribute(NULL)
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php(670): Illuminate\\Database\\Eloquent\\Model->mutateAttribute('formatted_date', NULL)
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php(201): Illuminate\\Database\\Eloquent\\Model->mutateAttributeForArray('formatted_date', NULL)
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1485): Illuminate\\Database\\Eloquent\\Model->attributesToArray()
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php(875): Illuminate\\Database\\Eloquent\\Model->toArray()
+#5 [internal function]: Illuminate\\Support\\Collection->{closure:Illuminate\\Support\\Traits\\EnumeratesValues::toArray():874}(Object(App\\Models\\AccountTransaction), 0)
+#6 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Collections/Collection.php(695): array_map(Object(Closure), Array, Array)
+#7 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Collection.php(350): Illuminate\\Support\\Collection->map(Object(Closure))
+#8 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php(874): Illuminate\\Database\\Eloquent\\Collection->map(Object(Closure))
+#9 Command line code(5): Illuminate\\Support\\Collection->toArray()
+#10 {main}
+  thrown at /Applications/MAMP/htdocs/fao-ffs-mis-api/app/Models/AccountTransaction.php:93)
+[stacktrace]
+#0 {main}
+"} 
+[2026-03-30 22:34:24] local.ERROR: Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'obm.savings_amount' in 'field list' in /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:368
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(368): PDO->prepare('SELECT obm.memb...')
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(705): Illuminate\Database\Connection->{closure:Illuminate\Database\Connection::select():359}('SELECT obm.memb...', Array)
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\Database\Connection->runQueryCallback('SELECT obm.memb...', Array, Object(Closure))
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(359): Illuminate\Database\Connection->run('SELECT obm.memb...', Array, Object(Closure))
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(442): Illuminate\Database\Connection->select('SELECT obm.memb...')
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(261): Illuminate\Database\DatabaseManager->__call('select', Array)
+#6 Command line code(7): Illuminate\Support\Facades\Facade::__callStatic('select', Array)
+#7 {main}
+
+Next Illuminate\Database\QueryException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'obm.savings_amount' in 'field list' (SQL: SELECT obm.member_id, u.name, obm.savings_amount, obm.loan_balance, obm.social_fund_amount FROM vsla_opening_balance_members obm JOIN users u ON u.id = obm.member_id LIMIT 5) in /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:712
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\Database\Connection->runQueryCallback('SELECT obm.memb...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(359): Illuminate\Database\Connection->run('SELECT obm.memb...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(442): Illuminate\Database\Connection->select('SELECT obm.memb...')
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(261): Illuminate\Database\DatabaseManager->__call('select', Array)
+#4 Command line code(7): Illuminate\Support\Facades\Facade::__callStatic('select', Array)
+#5 {main}
+  thrown {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'obm.savings_amount' in 'field list' in /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:368
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(368): PDO->prepare('SELECT obm.memb...')
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(705): Illuminate\\Database\\Connection->{closure:Illuminate\\Database\\Connection::select():359}('SELECT obm.memb...', Array)
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('SELECT obm.memb...', Array, Object(Closure))
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(359): Illuminate\\Database\\Connection->run('SELECT obm.memb...', Array, Object(Closure))
+#4 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(442): Illuminate\\Database\\Connection->select('SELECT obm.memb...')
+#5 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(261): Illuminate\\Database\\DatabaseManager->__call('select', Array)
+#6 Command line code(7): Illuminate\\Support\\Facades\\Facade::__callStatic('select', Array)
+#7 {main}
+
+Next Illuminate\\Database\\QueryException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'obm.savings_amount' in 'field list' (SQL: SELECT obm.member_id, u.name, obm.savings_amount, obm.loan_balance, obm.social_fund_amount FROM vsla_opening_balance_members obm JOIN users u ON u.id = obm.member_id LIMIT 5) in /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:712
+Stack trace:
+#0 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(672): Illuminate\\Database\\Connection->runQueryCallback('SELECT obm.memb...', Array, Object(Closure))
+#1 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php(359): Illuminate\\Database\\Connection->run('SELECT obm.memb...', Array, Object(Closure))
+#2 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(442): Illuminate\\Database\\Connection->select('SELECT obm.memb...')
+#3 /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(261): Illuminate\\Database\\DatabaseManager->__call('select', Array)
+#4 Command line code(7): Illuminate\\Support\\Facades\\Facade::__callStatic('select', Array)
+#5 {main}
+  thrown at /Applications/MAMP/htdocs/fao-ffs-mis-api/vendor/laravel/framework/src/Illuminate/Database/Connection.php:712)
+[stacktrace]
+#0 {main}
+"} 

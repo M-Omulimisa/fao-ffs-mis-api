@@ -252,6 +252,34 @@ class MemberController extends AdminController
             return \Carbon\Carbon::parse($date)->format('d M Y');
         })->sortable();
 
+        // Financial columns — compute from account_transactions for accuracy
+        $grid->column('balance', 'Savings Balance')->display(function() {
+            $bal = \Illuminate\Support\Facades\DB::selectOne("
+                SELECT COALESCE(SUM(CASE WHEN account_type = 'share' THEN amount ELSE 0 END), 0) AS balance
+                FROM account_transactions
+                WHERE owner_type = 'member' AND user_id = ? AND deleted_at IS NULL
+            ", [$this->id]);
+            $value = floatval($bal->balance ?? 0);
+            $formatted = 'UGX ' . number_format($value, 0);
+            $color = $value > 0 ? 'green' : '#999';
+            return "<span style='color:{$color};font-weight:bold'>{$formatted}</span>";
+        })->sortable();
+
+        $grid->column('loan_balance', 'Loan Balance')->display(function() {
+            $bal = \Illuminate\Support\Facades\DB::selectOne("
+                SELECT GREATEST(0,
+                    COALESCE(ABS(SUM(CASE WHEN account_type = 'loan' THEN amount ELSE 0 END)), 0)
+                  - COALESCE(SUM(CASE WHEN account_type = 'loan_repayment' THEN amount ELSE 0 END), 0)
+                ) AS loan_balance
+                FROM account_transactions
+                WHERE owner_type = 'member' AND user_id = ? AND deleted_at IS NULL
+            ", [$this->id]);
+            $value = floatval($bal->loan_balance ?? 0);
+            $formatted = 'UGX ' . number_format($value, 0);
+            $color = $value > 0 ? '#c00' : '#999';
+            return "<span style='color:{$color};font-weight:bold'>{$formatted}</span>";
+        })->sortable();
+
         return $grid;
     }
 

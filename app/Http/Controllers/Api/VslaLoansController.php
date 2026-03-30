@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\VslaLoan;
+use App\Models\LoanTransaction;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -161,6 +162,15 @@ class VslaLoansController extends Controller
                 ], 404);
             }
 
+            // Verify loan belongs to user's group
+            if ($loan->cycle && $user->group_id && $loan->cycle->group_id != $user->group_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Loan not found',
+                    'code' => 0,
+                ], 404);
+            }
+
             // Get repayment transactions only
             $repaymentTransactions = $loan->loanTransactions()
                 ->where('transaction_type', 'repayment')
@@ -259,6 +269,16 @@ class VslaLoansController extends Controller
 
             $loan = VslaLoan::find($id);
             if (!$loan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Loan not found',
+                    'code' => 0,
+                ], 404);
+            }
+
+            // Verify loan belongs to user's group via its cycle
+            $cycle = Project::find($loan->cycle_id);
+            if ($cycle && $user->group_id && $cycle->group_id != $user->group_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Loan not found',

@@ -213,7 +213,7 @@ class MemberController extends Controller
     {
         // Get the authenticated user
         $authUser = User::find($request->header('user_id'));
-        
+
         $query = User::where('user_type', 'Customer')
             ->with(['group', 'district', 'subcounty', 'parish']);
 
@@ -244,12 +244,41 @@ class MemberController extends Controller
             $query->where('sex', $request->sex);
         }
 
+        // ── Compute real-time balances from account_transactions ──────────
+        // Join a subquery that aggregates member-side transactions so the API
+        // always returns up-to-date figures instead of stale stored columns.
+        $query->leftJoinSub(
+            DB::table('account_transactions')
+                ->select(
+                    'user_id',
+                    DB::raw("COALESCE(SUM(CASE WHEN account_type = 'share' THEN amount ELSE 0 END), 0) AS computed_balance"),
+                    DB::raw("GREATEST(0, COALESCE(ABS(SUM(CASE WHEN account_type = 'loan' THEN amount ELSE 0 END)), 0) - COALESCE(SUM(CASE WHEN account_type = 'loan_repayment' THEN amount ELSE 0 END), 0)) AS computed_loan_balance")
+                )
+                ->where('owner_type', 'member')
+                ->whereNull('deleted_at')
+                ->groupBy('user_id'),
+            'balances',
+            'balances.user_id',
+            '=',
+            'users.id'
+        );
+
+        // Select user columns plus the computed balances
+        $query->select('users.*')
+            ->addSelect(DB::raw('COALESCE(balances.computed_balance, 0) AS computed_balance'))
+            ->addSelect(DB::raw('COALESCE(balances.computed_loan_balance, 0) AS computed_loan_balance'));
+
         // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
-        
-        $allowedSortFields = ['created_at', 'name', 'balance', 'loan_balance', 'member_code'];
-        if (in_array($sortBy, $allowedSortFields)) {
+
+        $allowedSortFields = ['created_at', 'name', 'member_code'];
+        // Map balance/loan_balance sorts to the computed columns
+        if ($sortBy === 'balance') {
+            $query->orderBy('computed_balance', $sortOrder);
+        } elseif ($sortBy === 'loan_balance') {
+            $query->orderBy('computed_loan_balance', $sortOrder);
+        } elseif (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortOrder);
         } else {
             $query->orderBy('created_at', 'desc');
@@ -271,8 +300,8 @@ class MemberController extends Controller
                     'email' => $member->email,
                     'sex' => $member->sex,
                     'dob' => $member->dob,
-                    'balance' => floatval($member->balance ?? 0),
-                    'loan_balance' => floatval($member->loan_balance ?? 0),
+                    'balance' => floatval($member->computed_balance ?? 0),
+                    'loan_balance' => floatval($member->computed_loan_balance ?? 0),
                     'group_id' => $member->group_id,
                     'group' => $member->group ? [
                         'id' => $member->group->id,
@@ -305,6 +334,18 @@ class MemberController extends Controller
             ], 404);
         }
 
+        // Compute real-time balances from account_transactions
+        $bal = DB::selectOne("
+            SELECT
+                COALESCE(SUM(CASE WHEN account_type = 'share' THEN amount ELSE 0 END), 0) AS balance,
+                GREATEST(0,
+                    COALESCE(ABS(SUM(CASE WHEN account_type = 'loan' THEN amount ELSE 0 END)), 0)
+                  - COALESCE(SUM(CASE WHEN account_type = 'loan_repayment' THEN amount ELSE 0 END), 0)
+                ) AS loan_balance
+            FROM account_transactions
+            WHERE owner_type = 'member' AND user_id = ? AND deleted_at IS NULL
+        ", [$member->id]);
+
         return response()->json([
             'code' => 1,
             'message' => 'Member retrieved successfully',
@@ -336,8 +377,8 @@ class MemberController extends Controller
                 'occupation' => $member->occupation,
                 'national_id_number' => $member->national_id_number,
                 'household_size' => $member->household_size,
-                'balance' => floatval($member->balance ?? 0),
-                'loan_balance' => floatval($member->loan_balance ?? 0),
+                'balance' => floatval($bal->balance ?? 0),
+                'loan_balance' => floatval($bal->loan_balance ?? 0),
                 'emergency_contact_name' => $member->emergency_contact_name,
                 'emergency_contact_phone' => $member->emergency_contact_phone,
                 'avatar' => $member->avatar ? url($member->avatar) : null,

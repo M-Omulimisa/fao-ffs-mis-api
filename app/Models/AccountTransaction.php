@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AccountTransaction extends Model
 {
@@ -39,6 +41,61 @@ class AccountTransaction extends Model
         'source_label',
         'type',
     ];
+
+    // Boot method - keep users.balance and users.loan_balance in sync
+    protected static function boot()
+    {
+        parent::boot();
+
+        $updateBalance = function ($txn) {
+            if ($txn->owner_type === 'member' && $txn->user_id) {
+                static::updateMemberBalance($txn->user_id);
+            }
+        };
+
+        static::created($updateBalance);
+        static::updated($updateBalance);
+        static::deleted($updateBalance);
+        static::restored($updateBalance);
+    }
+
+    /**
+     * Recalculate and persist a member's balance and loan_balance from account_transactions.
+     *
+     * balance      = shares (positive member records)
+     * loan_balance = ABS(loans) - loan_repayments  (net outstanding)
+     */
+    public static function updateMemberBalance(int $userId): void
+    {
+        try {
+            $user = User::find($userId);
+            if (!$user) return;
+
+            $row = DB::selectOne("
+                SELECT
+                    COALESCE(SUM(CASE WHEN account_type = 'share' THEN amount ELSE 0 END), 0) AS shares,
+                    COALESCE(SUM(CASE WHEN account_type = 'loan'  THEN amount ELSE 0 END), 0) AS loans,
+                    COALESCE(SUM(CASE WHEN account_type = 'loan_repayment' THEN amount ELSE 0 END), 0) AS repayments,
+                    COALESCE(SUM(CASE WHEN account_type = 'fine'  THEN amount ELSE 0 END), 0) AS fines
+                FROM account_transactions
+                WHERE owner_type = 'member'
+                  AND user_id = ?
+                  AND deleted_at IS NULL
+            ", [$userId]);
+
+            // Savings balance = shares (member share records are positive)
+            $user->balance = (float) ($row->shares ?? 0);
+            // Loan balance = outstanding loan amount (loans are negative, repayments positive)
+            $loanNet = abs((float) ($row->loans ?? 0)) - (float) ($row->repayments ?? 0);
+            $user->loan_balance = max(0, $loanNet);
+            $user->save();
+        } catch (\Exception $e) {
+            Log::error('AccountTransaction::updateMemberBalance failed', [
+                'user_id' => $userId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
     // Relationships
     public function user()
@@ -84,13 +141,14 @@ class AccountTransaction extends Model
     // Accessors
     public function getFormattedAmountAttribute()
     {
-        $prefix = $this->amount >= 0 ? '+' : '';
-        return $prefix . 'UGX ' . number_format(abs($this->amount), 2);
+        $amount = $this->amount ?? 0;
+        $prefix = $amount >= 0 ? '+' : '';
+        return $prefix . 'UGX ' . number_format(abs($amount), 2);
     }
 
     public function getFormattedDateAttribute()
     {
-        return $this->transaction_date->format('d M Y');
+        return $this->transaction_date ? $this->transaction_date->format('d M Y') : null;
     }
 
     public function getSourceLabelAttribute()
