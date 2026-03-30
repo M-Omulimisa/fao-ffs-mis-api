@@ -517,7 +517,9 @@ class VslaProfileController extends AdminController
                         $chair->name               = trim($firstName . ' ' . $lastName);
                         $chair->phone_number       = $phone;
                         $chair->sex                = $profile->chair_sex;
-                        $chair->email              = !empty($profile->chair_email) ? $profile->chair_email : null;
+                        $chair->email              = !empty($profile->chair_email)
+                            ? $profile->chair_email
+                            : preg_replace('/[^\d]/', '', $phone) . '@faoffsmis.org';
                         $chair->national_id_number = !empty($profile->chair_national_id) ? $profile->chair_national_id : null;
                         $chair->group_id           = $group->id;
                         $chair->ip_id              = $userIpId;

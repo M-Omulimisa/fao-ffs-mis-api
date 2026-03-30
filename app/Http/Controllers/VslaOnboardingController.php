@@ -213,8 +213,10 @@ class VslaOnboardingController extends Controller
             }
 
             // ========== UPDATE EXISTING USER PROFILE ==========
-            $user->name = $request->name;
-            $user->first_name = $request->name;
+            if ($request->filled('name')) {
+                $user->name = $request->name;
+                $user->first_name = $request->name;
+            }
             $user->phone_number = $phoneNumber;
             $user->username = $phoneNumber;
             

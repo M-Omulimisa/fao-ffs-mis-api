@@ -886,17 +886,23 @@ class ApiResurceController extends Controller
 
 
         $msg = "";
-        //first letter to upper case
-        $u->first_name = $request->first_name;
 
-        //change first letter to upper case
-        $u->first_name = ucfirst($u->first_name);
-
-
-        $u->last_name = ucfirst($request->last_name);
-        $u->phone_number = $request->phone_number_1;
-        $u->email = $request->email;
-        $u->address = ucfirst($request->address);
+        // Only update fields when provided (non-null) to avoid wiping data
+        if ($request->filled('first_name')) {
+            $u->first_name = ucfirst($request->first_name);
+        }
+        if ($request->filled('last_name')) {
+            $u->last_name = ucfirst($request->last_name);
+        }
+        if ($request->filled('phone_number_1')) {
+            $u->phone_number = $request->phone_number_1;
+        }
+        if ($request->filled('email')) {
+            $u->email = $request->email;
+        }
+        if ($request->filled('address')) {
+            $u->address = ucfirst($request->address);
+        }
 
         $images = [];
         if (!empty($_FILES)) {

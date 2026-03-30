@@ -140,6 +140,6 @@ class NormalizeNameCasing extends Command
         }
         $clean = preg_replace('/\p{Cf}+/u', '', $value);
         $clean = trim($clean ?? '');
-        return $clean !== '' ? ucwords(mb_strtolower($clean)) : null;
+        return $clean !== '' ? ucwords(mb_strtolower($clean)) : $value;
     }
 }

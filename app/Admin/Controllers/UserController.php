@@ -286,7 +286,12 @@ class UserController extends AdminController
 
         // ── Saving logic ──
         $form->saving(function (Form $form) {
-            $form->name = trim($form->first_name . ' ' . $form->last_name);
+            $first = trim($form->first_name ?? '');
+            $last = trim($form->last_name ?? '');
+            $fullName = trim($first . ' ' . $last);
+            if ($fullName !== '') {
+                $form->name = $fullName;
+            }
             $adminUser = Admin::user();
             $isSuperAdmin = $this->isSuperAdmin();
             $adminIp = $adminUser->ip_id ?? null;

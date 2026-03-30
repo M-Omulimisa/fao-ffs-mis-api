@@ -66,6 +66,7 @@ class User extends Administrator implements JWTSubject
             self::sanitizeData($user);
             self::handleNameSplitting($user);
             self::validateUniqueFields($user, true);
+            self::preventCriticalFieldWipe($user);
         });
         
     }
@@ -154,7 +155,51 @@ class User extends Administrator implements JWTSubject
             $user->address = trim($user->address);
         }
     }
-    
+
+    /**
+     * Prevent critical fields (name, email) from being wiped to null/empty
+     * during updates. If the new value is empty but the original had data,
+     * revert to the original value. This is the last line of defense.
+     */
+    protected static function preventCriticalFieldWipe($user)
+    {
+        // Protect name: never allow it to be wiped
+        if (
+            $user->isDirty('name')
+            && (empty($user->name) || trim($user->name) === '')
+            && !empty($user->getOriginal('name'))
+        ) {
+            $user->name = $user->getOriginal('name');
+        }
+
+        // Protect first_name
+        if (
+            $user->isDirty('first_name')
+            && (empty($user->first_name) || trim($user->first_name) === '')
+            && !empty($user->getOriginal('first_name'))
+        ) {
+            $user->first_name = $user->getOriginal('first_name');
+        }
+
+        // Protect last_name
+        if (
+            $user->isDirty('last_name')
+            && (empty($user->last_name) || trim($user->last_name) === '')
+            && !empty($user->getOriginal('last_name'))
+        ) {
+            $user->last_name = $user->getOriginal('last_name');
+        }
+
+        // Protect email: never allow it to be wiped
+        if (
+            $user->isDirty('email')
+            && (empty($user->email) || trim($user->email) === '')
+            && !empty($user->getOriginal('email'))
+        ) {
+            $user->email = $user->getOriginal('email');
+        }
+    }
+
     /**
      * Normalize phone number to Uganda format (+256...)
      */
@@ -1143,6 +1188,10 @@ class User extends Administrator implements JWTSubject
 
     public function setNameAttribute($value): void
     {
+        // Never allow name to be wiped if it already has a value
+        if (($value === null || trim($value) === '') && !empty($this->attributes['name'] ?? null)) {
+            return; // silently keep existing value
+        }
         $this->attributes['name'] = $value !== null ? $this->toTitleCase($value) : null;
     }
 
@@ -1153,6 +1202,9 @@ class User extends Administrator implements JWTSubject
 
     public function setFirstNameAttribute($value): void
     {
+        if (($value === null || trim($value) === '') && !empty($this->attributes['first_name'] ?? null)) {
+            return;
+        }
         $this->attributes['first_name'] = $value !== null ? $this->toTitleCase($value) : null;
     }
 
@@ -1163,6 +1215,9 @@ class User extends Administrator implements JWTSubject
 
     public function setLastNameAttribute($value): void
     {
+        if (($value === null || trim($value) === '') && !empty($this->attributes['last_name'] ?? null)) {
+            return;
+        }
         $this->attributes['last_name'] = $value !== null ? $this->toTitleCase($value) : null;
     }
 
@@ -1174,5 +1229,16 @@ class User extends Administrator implements JWTSubject
     public function setEmergencyContactNameAttribute($value): void
     {
         $this->attributes['emergency_contact_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    // ── Email protection mutator ─────────────────────────────────────────────
+
+    public function setEmailAttribute($value): void
+    {
+        // Never allow email to be wiped if it already has a value
+        if (($value === null || trim($value) === '') && !empty($this->attributes['email'] ?? null)) {
+            return; // silently keep existing value
+        }
+        $this->attributes['email'] = $value !== null ? trim($value) : null;
     }
 }

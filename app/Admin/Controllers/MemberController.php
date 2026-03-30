@@ -624,8 +624,13 @@ class MemberController extends AdminController
 
         // ── Saving logic ──────────────────────────────────────────────────
         $form->saving(function (Form $form) {
-            // Build full name; null-coalesce each part to prevent empty-string name
-            $form->name = trim(($form->first_name ?? '') . ' ' . ($form->last_name ?? ''));
+            // Build full name only if at least one part is provided
+            $first = trim($form->first_name ?? '');
+            $last = trim($form->last_name ?? '');
+            $fullName = trim($first . ' ' . $last);
+            if ($fullName !== '') {
+                $form->name = $fullName;
+            }
 
             // Strip any null/empty values submitted by the roles multiselect widget
             if (is_array($form->roles)) {
