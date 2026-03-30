@@ -183,8 +183,7 @@ class FfsKpiIndicatorsSeeder extends Seeder
         ];
 
         foreach ($indicators as $data) {
-            // Encode disaggregations as JSON before storage
-            $data['possible_disaggregations'] = json_encode($data['possible_disaggregations']);
+            // Do NOT json_encode here — the model's 'array' cast handles it via Eloquent.
             $data['created_at'] = now();
             $data['updated_at'] = now();
 

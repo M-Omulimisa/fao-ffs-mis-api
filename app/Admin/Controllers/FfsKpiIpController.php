@@ -12,6 +12,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
+use Illuminate\Http\Request;
 
 /**
  * FFS KPI IP Entries — Manual monthly KPI tracking for Implementing Partners.
@@ -164,6 +165,49 @@ class FfsKpiIpController extends AdminController
             $export->filename('FFS_KPI_IP_' . date('Y-m-d'));
         });
 
+        // ── PDF toolbar buttons ────────────────────────────────────────────
+
+        $grid->tools(function ($tools) use ($ipId) {
+            $curYear = date('Y');
+            $ipParam = $ipId ? "&ip_id={$ipId}" : '';
+
+            $baseReport = admin_url('ffs-kpi-ip-entries/pdf-report') . "?year={$curYear}{$ipParam}";
+            $basePerf   = admin_url('ffs-kpi-ip-entries/pdf-performance') . "?year={$curYear}{$ipParam}";
+
+            $yearOpts = '';
+            for ($y = $curYear; $y >= $curYear - 4; $y--) {
+                $yearOpts .= "<option value='{$y}'>{$y}</option>";
+            }
+
+            $tools->append("
+                <div style='display:inline-flex;align-items:center;gap:4px;margin-left:6px;'>
+                    <select id='kpi-pdf-year' class='form-control input-sm' style='width:80px;'>
+                        {$yearOpts}
+                    </select>
+                    <a id='btn-kpi-data-pdf' href='{$baseReport}' target='_blank'
+                       class='btn btn-sm btn-primary' title='Download KPI Data Report PDF'>
+                        <i class='fa fa-file-pdf-o'></i> Data Report
+                    </a>
+                    <a id='btn-kpi-perf-pdf' href='{$basePerf}' target='_blank'
+                       class='btn btn-sm btn-success' title='Download KPI Performance Report PDF'>
+                        <i class='fa fa-bar-chart'></i> Performance
+                    </a>
+                </div>
+                <script>
+                (function() {
+                    var ip = '{$ipParam}';
+                    var baseR = '" . admin_url('ffs-kpi-ip-entries/pdf-report') . "';
+                    var baseP = '" . admin_url('ffs-kpi-ip-entries/pdf-performance') . "';
+                    \$(document).on('change', '#kpi-pdf-year', function () {
+                        var y = \$(this).val();
+                        \$('#btn-kpi-data-pdf').attr('href', baseR + '?year=' + y + ip);
+                        \$('#btn-kpi-perf-pdf').attr('href', baseP + '?year=' + y + ip);
+                    });
+                })();
+                </script>
+            ");
+        });
+
         return $grid;
     }
 
@@ -263,19 +307,9 @@ class FfsKpiIpController extends AdminController
             ->options($indicatorOptions)
             ->rules('required');
 
-        // Disaggregation
-        $form->select('disaggregation', 'Disaggregation')
-            ->options([
-                'Total'  => 'Total',
-                'Female' => 'Female',
-                'Male'   => 'Male',
-                'Youth'  => 'Youth',
-                'PWD'    => 'PWD',
-                'New'    => 'New',
-                'Old'    => 'Old',
-                'Number' => 'Number',
-                'N/A'    => 'N/A',
-            ])
+        // Disaggregation — free text so any value can be entered
+        $form->text('disaggregation', 'Disaggregation')
+            ->placeholder('e.g. Total, Female, Male, Youth, PWD …')
             ->rules('required')
             ->help('<span id="kpi-disagg-hint" style="color:#1565c0;font-weight:600;font-size:12px;"></span>');
 
@@ -327,31 +361,18 @@ class FfsKpiIpController extends AdminController
         // ── Monthly Actuals ───────────────────────────────────────────────
         $form->divider('Monthly Actuals (Jan – Dec)');
 
-        // Compact 6-per-row HTML grid.
-        // Uses existing model values for edit pre-fill; old() covers validation re-submit.
-        $model  = $form->model();
-        $months = [
-            'jan' => 'Jan', 'feb' => 'Feb', 'mar' => 'Mar',
-            'apr' => 'Apr', 'may' => 'May', 'jun' => 'Jun',
-            'jul' => 'Jul', 'aug' => 'Aug', 'sep' => 'Sep',
-            'oct' => 'Oct', 'nov' => 'Nov', 'dec' => 'Dec',
-        ];
-
-        $monthsHtml = '<div class="row" style="margin:0 -4px 4px;">';
-        foreach ($months as $col => $label) {
-            $val         = old($col, $model->{$col} ?? 0);
-            $monthsHtml .= '<div class="col-md-2" style="padding:0 4px;margin-bottom:8px;">'
-                         . "<label style='display:block;text-align:center;font-size:11px;"
-                         .         "font-weight:700;color:#666;margin:0 0 4px;"
-                         .         "text-transform:uppercase;letter-spacing:0.5px;'>{$label}</label>"
-                         . "<input type='number' name='{$col}' value='" . e((string) ($val ?? 0)) . "'"
-                         .        " class='form-control' style='text-align:center;padding:5px 4px;"
-                         .        "font-size:13px;' min='0' step='any' placeholder='0'>"
-                         . '</div>';
-        }
-        $monthsHtml .= '</div>';
-
-        $form->html($monthsHtml, '&nbsp;');
+        $form->decimal('jan', 'January')->default(0)->placeholder('0');
+        $form->decimal('feb', 'February')->default(0)->placeholder('0');
+        $form->decimal('mar', 'March')->default(0)->placeholder('0');
+        $form->decimal('apr', 'April')->default(0)->placeholder('0');
+        $form->decimal('may', 'May')->default(0)->placeholder('0');
+        $form->decimal('jun', 'June')->default(0)->placeholder('0');
+        $form->decimal('jul', 'July')->default(0)->placeholder('0');
+        $form->decimal('aug', 'August')->default(0)->placeholder('0');
+        $form->decimal('sep', 'September')->default(0)->placeholder('0');
+        $form->decimal('oct', 'October')->default(0)->placeholder('0');
+        $form->decimal('nov', 'November')->default(0)->placeholder('0');
+        $form->decimal('dec', 'December')->default(0)->placeholder('0');
 
         // ── Notes ─────────────────────────────────────────────────────────
         $form->textarea('comments', 'Comments / Notes')
@@ -374,10 +395,48 @@ class FfsKpiIpController extends AdminController
         Admin::script(<<<'JS'
 $(function () {
 
+    // ── Helpers ──────────────────────────────────────────────────────────
+
     function fieldGroup(name) {
         return $('[name="' + name + '"]').closest('.form-group');
     }
 
+    // ── 1. Disaggregation: show valid options as a hint under the text field.
+    //       Auto-fills the field when the indicator has only one valid value.
+    function updateDisaggregation(indicatorId) {
+        var data = window._kpiIpIndicators[indicatorId];
+        var raw  = data ? data.disaggregations : null;
+
+        // raw may be a JSON string (double-encoded) or a real array — normalise
+        var opts = [];
+        if (Array.isArray(raw)) {
+            opts = raw;
+        } else if (typeof raw === 'string' && raw.length) {
+            try { opts = JSON.parse(raw); } catch(e) { opts = [raw]; }
+        }
+
+        // Update hint text
+        if (opts.length) {
+            $('#kpi-disagg-hint').text('Valid for this indicator: ' + opts.join(' · '));
+        } else {
+            $('#kpi-disagg-hint').text('');
+        }
+
+        // Auto-fill when only one option is valid
+        if (opts.length === 1) {
+            $('[name="disaggregation"]').val(opts[0]);
+        }
+    }
+
+    // ── 2. Target: auto-fill from the indicator's default_target.
+    function updateTarget(indicatorId) {
+        var data = window._kpiIpIndicators[indicatorId];
+        if (data && data.default_target !== undefined && data.default_target !== null) {
+            $('[name="target"]').val(data.default_target);
+        }
+    }
+
+    // ── 3. Disaggregation hint (informational text below the select).
     function updateHint(indicatorId) {
         var data = window._kpiIpIndicators[indicatorId];
         if (data && data.disaggregations && data.disaggregations.length) {
@@ -387,6 +446,13 @@ $(function () {
         }
     }
 
+    // ── 4. Location fields: show/hide based on indicator's location_config.
+    //
+    //   group         → District + Sub-County + FFS Group
+    //   institution   → District + Sub-County + Institution
+    //   location_type → District + Location Type  (no Sub-County)
+    //   district_only → District + Sub-County     (no Group / Institution / Location Type)
+    //
     function updateLocationFields(indicatorId) {
         var data = window._kpiIpIndicators[indicatorId];
         var lc   = data ? data.location_config : null;
@@ -396,36 +462,137 @@ $(function () {
         var $locType   = fieldGroup('location_type');
         var $subCounty = fieldGroup('sub_county');
 
+        // Reset — hide the three Output-specific sub-fields
         $group.hide(); $inst.hide(); $locType.hide();
 
         if (!lc) return;
 
-        if (lc === 'group')          { $group.show();   $subCounty.show(); }
-        else if (lc === 'institution')    { $inst.show();   $subCounty.show(); }
+        if      (lc === 'group')         { $group.show();   $subCounty.show(); }
+        else if (lc === 'institution')   { $inst.show();    $subCounty.show(); }
         else if (lc === 'location_type') { $locType.show(); $subCounty.hide(); }
-        else if (lc === 'district_only') {                  $subCounty.hide(); }
+        else if (lc === 'district_only') {                  $subCounty.show(); }   // District + Sub-County, no group/inst/locType
     }
 
-    // Initialise on page load
+    // ── Master update: run all four whenever the indicator changes ────────
+    function onIndicatorChange(indicatorId) {
+        updateDisaggregation(indicatorId);
+        updateTarget(indicatorId);
+        updateHint(indicatorId);
+        updateLocationFields(indicatorId);
+    }
+
+    // ── Initialise on page load ───────────────────────────────────────────
     var initId = $('[name="indicator_id"]').val();
     if (initId) {
-        updateHint(initId);
-        updateLocationFields(initId);
+        onIndicatorChange(initId);
     } else {
+        // No indicator selected yet — hide all conditional location fields
+        $('[name="disaggregation"]').closest('.form-group').show(); // keep visible
         fieldGroup('group_id').hide();
         fieldGroup('institution').hide();
         fieldGroup('location_type').hide();
     }
 
-    // React to indicator change
+    // ── React to indicator change ─────────────────────────────────────────
     $(document).on('change', '[name="indicator_id"]', function () {
-        var id = $(this).val();
-        updateHint(id);
-        updateLocationFields(id);
+        onIndicatorChange($(this).val());
     });
 });
 JS);
 
         return $form;
+    }
+
+    // ── PDF: KPI Data Entry Report (landscape) ────────────────────────────
+
+    public function pdfReport(Request $request)
+    {
+        $year  = (int) $request->get('year', date('Y'));
+        $ipId  = $this->getAdminIpId() ?? (int) $request->get('ip_id') ?: null;
+
+        $query = FfsKpiIpEntry::with(['indicator', 'ip', 'group'])
+            ->where('year', $year);
+
+        if ($ipId) {
+            $query->where('ip_id', $ipId);
+        }
+
+        $entries  = $query->orderBy('ip_id')->orderBy('indicator_id')->orderBy('disaggregation')->get();
+        $byOutput = $entries->groupBy(fn($e) => $e->indicator->output_number ?? 0)->sortKeys();
+
+        $ip = $ipId ? ImplementingPartner::find($ipId) : null;
+
+        $pdf = \PDF::loadView('admin.kpi.ip-report', [
+            'entries'      => $entries,
+            'byOutput'     => $byOutput,
+            'year'         => $year,
+            'ip'           => $ip,
+            'isSuperAdmin' => $this->isSuperAdmin(),
+            'generatedAt'  => now()->format('d M Y h:i A'),
+            'generatedBy'  => Admin::user()->name ?? 'System',
+        ])->setPaper('A4', 'landscape');
+
+        return $pdf->stream("FFS_KPI_IP_Data_Report_{$year}.pdf");
+    }
+
+    // ── PDF: KPI Performance Report (portrait) ────────────────────────────
+
+    public function pdfPerformance(Request $request)
+    {
+        $year  = (int) $request->get('year', date('Y'));
+        $ipId  = $this->getAdminIpId() ?? (int) $request->get('ip_id') ?: null;
+
+        $query = FfsKpiIpEntry::with(['indicator', 'ip'])
+            ->where('year', $year);
+
+        if ($ipId) {
+            $query->where('ip_id', $ipId);
+        }
+
+        $entries  = $query->orderBy('indicator_id')->get();
+        $byOutput = $entries->groupBy(fn($e) => $e->indicator->output_number ?? 0)->sortKeys();
+
+        // IP comparison — super admin sees all IPs side by side
+        $ipComparison = null;
+        if ($this->isSuperAdmin()) {
+            $allEntries = FfsKpiIpEntry::with('ip')->where('year', $year)->get();
+            $ipComparison = $allEntries->groupBy('ip_id')
+                ->map(function ($ipEntries) {
+                    $ip           = $ipEntries->first()->ip;
+                    $totalTarget  = (float) $ipEntries->sum('target');
+                    $totalOverall = $ipEntries->sum(fn($e) => $e->overall);
+                    $pct          = $totalTarget > 0 ? round($totalOverall / $totalTarget * 100, 1) : 0;
+                    return [
+                        'ip'     => $ip,
+                        'target' => $totalTarget,
+                        'actual' => $totalOverall,
+                        'pct'    => $pct,
+                        'label'  => FfsKpiIpEntry::performanceLabel($pct),
+                        'color'  => FfsKpiIpEntry::performanceColor($pct),
+                        'count'  => $ipEntries->count(),
+                    ];
+                })
+                ->sortByDesc('pct');
+        }
+
+        // Alerts: below 85% and target > 0
+        $alerts = $entries->filter(fn($e) => $e->performance_pct < 85 && $e->target > 0)
+            ->sortBy('performance_pct');
+
+        $ip = $ipId ? ImplementingPartner::find($ipId) : null;
+
+        $pdf = \PDF::loadView('admin.kpi.ip-performance', [
+            'entries'      => $entries,
+            'byOutput'     => $byOutput,
+            'year'         => $year,
+            'ip'           => $ip,
+            'isSuperAdmin' => $this->isSuperAdmin(),
+            'ipComparison' => $ipComparison,
+            'alerts'       => $alerts,
+            'generatedAt'  => now()->format('d M Y h:i A'),
+            'generatedBy'  => Admin::user()->name ?? 'System',
+        ])->setPaper('A4', 'portrait');
+
+        return $pdf->stream("FFS_KPI_IP_Performance_{$year}.pdf");
     }
 }

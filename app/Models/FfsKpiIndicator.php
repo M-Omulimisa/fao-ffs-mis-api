@@ -59,6 +59,7 @@ class FfsKpiIndicator extends Model
         $data = $query->get()->mapWithKeys(fn($i) => [$i->id => [
             'disaggregations' => $i->possible_disaggregations,
             'location_config' => $i->location_config,
+            'default_target'  => (float) $i->default_target,
         ]]);
         return json_encode($data);
     }

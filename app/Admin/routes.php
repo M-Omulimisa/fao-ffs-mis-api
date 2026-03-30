@@ -270,6 +270,13 @@ Route::group([
     // FFS KPI MANUAL ENTRY — Monthly tracking against project targets
     // ========================================
     $router->get('ffs-kpi-dashboard', 'FfsKpiDashboardController@index');
+
+    // PDF report routes MUST be before the resource() to avoid being matched as {id}
+    $router->get('ffs-kpi-ip-entries/pdf-report',      'FfsKpiIpController@pdfReport')
+           ->name('ffs-kpi-ip-entries.pdf-report');
+    $router->get('ffs-kpi-ip-entries/pdf-performance', 'FfsKpiIpController@pdfPerformance')
+           ->name('ffs-kpi-ip-entries.pdf-performance');
+
     $router->resource('ffs-kpi-ip-entries', 'FfsKpiIpController');
     $router->resource('ffs-kpi-facilitator-entries', 'FfsKpiFacilitatorEntryController');
 
