@@ -20,8 +20,29 @@ class User extends Administrator implements JWTSubject
     use Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * Override parent Administrator's restrictive $fillable.
+     * Allow all fields to be mass-assignable (validation is in boot events).
      */
+    protected $fillable = [
+        'username', 'password', 'name', 'avatar',
+        'first_name', 'last_name', 'email', 'phone_number', 'phone_number_2',
+        'sex', 'dob', 'marital_status', 'household_size', 'education_level',
+        'occupation', 'national_id_number', 'nin',
+        'user_type', 'status', 'group_id', 'ip_id',
+        'district_id', 'subcounty_id', 'parish_id', 'village', 'district_name',
+        'is_group_admin', 'is_group_secretary', 'is_group_treasurer',
+        'onboarding_step', 'onboarding_completed_at', 'last_onboarding_step_at',
+        'emergency_contact_name', 'emergency_contact_phone',
+        'balance', 'loan_balance', 'member_code',
+        'registered_by_id', 'created_by_id',
+        'is_membership_paid', 'membership_paid_at', 'membership_amount',
+        'membership_payment_id', 'membership_type', 'membership_expiry_date',
+        'business_name', 'business_phone_number', 'business_email',
+        'business_address', 'business_whatsapp', 'business_logo',
+        'disabilities', 'skills', 'remarks',
+        'location_lat', 'location_long', 'address',
+        'about', 'intro', 'title',
+    ];
     protected $guarded = [];
 
     /**
