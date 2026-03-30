@@ -141,91 +141,110 @@ class VslaOpeningBalanceController extends AdminController
         return response()->json($cycles);
     }
 
-    // ─── MISSING GROUPS PANEL ─────────────────────────────────────────────────
+    // ─── ALL GROUPS PANEL ──────────────────────────────────────────────────────
 
     /**
-     * Renders a summary card listing VSLA groups that have an active cycle
-     * but have not yet submitted any opening balance.
+     * Renders a comprehensive panel listing ALL groups with member count,
+     * facilitator/chairperson info, and opening balance status.
      */
     private function renderMissingGroupsPanel(Row $row): void
     {
         $ipId = $this->getAdminIpId();
 
-        // All VSLA groups that have at least one cycle (Project with is_vsla_cycle = Yes)
-        $groupQuery = FfsGroup::query()
-            ->whereExists(function ($q) {
-                $q->select(DB::raw(1))
-                  ->from('projects')
-                  ->whereColumn('projects.group_id', 'ffs_groups.id')
-                  ->where('projects.is_vsla_cycle', 'Yes')
-                  ->whereNull('projects.deleted_at');
-            });
-
-        if ($ipId !== null) {
-            $groupQuery->where('ffs_groups.ip_id', $ipId);
-        }
-
-        $allGroupIds = $groupQuery->pluck('ffs_groups.id');
-
-        // Group IDs that already have at least one opening balance (not soft-deleted)
-        $groupsWithOb = VslaOpeningBalance::whereIn('group_id', $allGroupIds)
-            ->pluck('group_id')
-            ->unique();
-
-        $missingGroupIds = $allGroupIds->diff($groupsWithOb)->values();
-
-        $missingGroups = FfsGroup::whereIn('id', $missingGroupIds)
-            ->with(['implementingPartner', 'facilitator'])
+        // All groups (IP-scoped for non-super-admins)
+        $allGroups = FfsGroup::query()
+            ->with(['implementingPartner', 'facilitator', 'admin'])
+            ->withCount('members')
+            ->when($ipId !== null, fn($q) => $q->where('ip_id', $ipId))
             ->orderBy('name')
             ->get();
 
-        $row->column(12, function (Column $col) use ($missingGroups) {
-            $count = $missingGroups->count();
-            $color = $count === 0 ? '#4caf50' : '#ff9800';
-            $icon  = $count === 0 ? 'check-circle' : 'exclamation-triangle';
-            $lblCls = $count === 0 ? 'success' : 'warning';
+        // Group IDs that have at least one opening balance
+        $groupsWithOb = VslaOpeningBalance::pluck('group_id')->unique();
 
-            $html  = "<div style='background:#fff;border:1px solid #ddd;border-left:4px solid {$color};padding:16px;margin-bottom:16px;border-radius:2px;'>";
-            $html .= "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;'>";
-            $html .= "<h4 style='margin:0;'><i class='fa fa-{$icon}' style='color:{$color};'></i>&nbsp; Groups Without Opening Balance</h4>";
-            $html .= "<span class='label label-{$lblCls}'>{$count} group" . ($count !== 1 ? 's' : '') . "</span>";
+        $row->column(12, function (Column $col) use ($allGroups, $groupsWithOb) {
+            $total        = $allGroups->count();
+            $withOb       = $allGroups->filter(fn($g) => $groupsWithOb->contains($g->id))->count();
+            $withoutOb    = $total - $withOb;
+            $totalMembers = $allGroups->sum('members_count');
+
+            $html  = "<div style='background:#fff;border:1px solid #ddd;padding:16px;margin-bottom:16px;border-radius:2px;'>";
+
+            // Header
+            $html .= "<h4 style='margin:0 0 12px;'><i class='fa fa-users' style='color:#003d80;'></i>&nbsp; All Groups &mdash; Opening Balance Status</h4>";
+
+            // Summary stat cards
+            $html .= "<div style='display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;'>";
+            $html .= $this->statCard($total, 'Total Groups', '#003d80');
+            $html .= $this->statCard(number_format($totalMembers), 'Total Members', '#1565c0');
+            $html .= $this->statCard($withOb, 'OB Submitted', '#2e7d32');
+            $html .= $this->statCard($withoutOb, 'OB Pending', $withoutOb > 0 ? '#e65100' : '#4caf50');
             $html .= "</div>";
 
-            if ($count === 0) {
-                $html .= "<p class='text-muted' style='margin:0;padding:8px 0;'>"
-                       . "<i class='fa fa-check'></i>&nbsp; All VSLA groups with active cycles have an opening balance record.</p>";
+            if ($total === 0) {
+                $html .= "<p class='text-muted' style='margin:0;padding:8px 0;'>No groups found.</p>";
             } else {
-                $html .= "<p class='text-muted' style='margin:0 0 10px;'>"
-                       . "<small><i class='fa fa-info-circle'></i>&nbsp; The groups below have VSLA cycles but have <strong>not yet</strong> submitted an opening balance.</small></p>";
-
-                $html .= "<div style='overflow-x:auto;'>";
+                $html .= "<div style='overflow-x:auto;max-height:420px;overflow-y:auto;'>";
                 $html .= "<table class='table table-bordered table-condensed table-striped' style='margin:0;font-size:13px;'>";
-                $html .= "<thead><tr style='background:#fff3e0;'>
-                    <th style='width:40px;'>#</th>
-                    <th>Group Name</th>
-                    <th>Implementing Partner</th>
-                    <th>Facilitator</th>
-                    <th>Facilitator Phone</th>
-                </tr></thead><tbody>";
+                $html .= "<thead><tr style='background:#e8eef6; position:sticky;top:0;z-index:1;'>"
+                        . "<th style='width:35px;'>#</th>"
+                        . "<th>Group Name</th>"
+                        . "<th>IP</th>"
+                        . "<th style='width:70px;text-align:center;'>Members</th>"
+                        . "<th>Facilitator</th>"
+                        . "<th>Facilitator Phone</th>"
+                        . "<th>Chairperson</th>"
+                        . "<th>Chairperson Phone</th>"
+                        . "<th style='width:90px;text-align:center;'>OB Status</th>"
+                        . "</tr></thead><tbody>";
 
-                foreach ($missingGroups as $i => $group) {
-                    $name     = e($group->name ?: 'Unnamed Group');
-                    $ipName   = e(optional($group->implementingPartner)->name ?? '—');
+                foreach ($allGroups as $i => $group) {
+                    $name    = e($group->name ?: 'Unnamed Group');
+                    $ipName  = e(optional($group->implementingPartner)->name ?? '—');
+                    $members = $group->members_count;
+
+                    // Facilitator
                     $facUser  = $group->facilitator;
                     $facName  = $facUser
-                        ? e($facUser->name ?: trim($facUser->first_name . ' ' . $facUser->last_name))
-                        : '—';
+                        ? e($facUser->name ?: trim(($facUser->first_name ?? '') . ' ' . ($facUser->last_name ?? '')))
+                        : '<span class="text-muted">—</span>';
                     $facPhone = $facUser && $facUser->phone
                         ? e($facUser->phone)
                         : '<span class="text-muted">—</span>';
 
-                    $html .= "<tr>
-                        <td style='color:#999;text-align:center;'>" . ($i + 1) . "</td>
-                        <td><strong>{$name}</strong></td>
-                        <td>{$ipName}</td>
-                        <td>{$facName}</td>
-                        <td>{$facPhone}</td>
-                    </tr>";
+                    // Chairperson (admin_id relationship, fallback to contact_person fields)
+                    $chairUser  = $group->admin;
+                    if ($chairUser) {
+                        $chairName  = e($chairUser->name ?: trim(($chairUser->first_name ?? '') . ' ' . ($chairUser->last_name ?? '')));
+                        $chairPhone = $chairUser->phone ? e($chairUser->phone) : '<span class="text-muted">—</span>';
+                    } elseif ($group->contact_person_name) {
+                        $chairName  = e($group->contact_person_name);
+                        $chairPhone = $group->contact_person_phone ? e($group->contact_person_phone) : '<span class="text-muted">—</span>';
+                    } else {
+                        $chairName  = '<span class="text-muted">—</span>';
+                        $chairPhone = '<span class="text-muted">—</span>';
+                    }
+
+                    // OB Status badge
+                    $hasOb = $groupsWithOb->contains($group->id);
+                    $obBadge = $hasOb
+                        ? "<span class='label label-success'><i class='fa fa-check'></i> Submitted</span>"
+                        : "<span class='label label-warning'><i class='fa fa-clock-o'></i> Pending</span>";
+
+                    // Highlight rows without OB
+                    $rowStyle = $hasOb ? '' : "style='background:#fff8e1 !important;'";
+
+                    $html .= "<tr {$rowStyle}>"
+                           . "<td style='color:#999;text-align:center;'>" . ($i + 1) . "</td>"
+                           . "<td><strong>{$name}</strong></td>"
+                           . "<td>{$ipName}</td>"
+                           . "<td style='text-align:center;'><span class='badge' style='background:" . ($members > 0 ? '#607d8b' : '#e0e0e0') . ";'>{$members}</span></td>"
+                           . "<td>{$facName}</td>"
+                           . "<td>{$facPhone}</td>"
+                           . "<td>{$chairName}</td>"
+                           . "<td>{$chairPhone}</td>"
+                           . "<td style='text-align:center;'>{$obBadge}</td>"
+                           . "</tr>";
                 }
 
                 $html .= "</tbody></table></div>";
@@ -236,6 +255,17 @@ class VslaOpeningBalanceController extends AdminController
         });
     }
 
+    /**
+     * Mini stat card HTML for the overview panel.
+     */
+    private function statCard($value, string $label, string $color): string
+    {
+        return "<div style='flex:1;min-width:110px;background:{$color};color:#fff;padding:10px 14px;border-radius:3px;text-align:center;'>"
+             . "<div style='font-size:20px;font-weight:bold;'>{$value}</div>"
+             . "<div style='font-size:11px;opacity:0.9;'>{$label}</div>"
+             . "</div>";
+    }
+
     // ─── GRID ─────────────────────────────────────────────────────────────────
 
     protected function grid()
@@ -244,7 +274,7 @@ class VslaOpeningBalanceController extends AdminController
         $ipId = $this->getAdminIpId();
 
         $grid->model()
-            ->with(['group', 'cycle', 'submittedBy'])
+            ->with(['group.facilitator', 'group.admin', 'cycle', 'submittedBy'])
             ->withCount('memberEntries')
             ->orderBy('id', 'desc');
 
@@ -263,6 +293,40 @@ class VslaOpeningBalanceController extends AdminController
             return $this->group
                 ? '<strong>' . e($this->group->name) . '</strong>'
                 : '<span class="text-muted">—</span>';
+        });
+
+        $grid->column('group_members', 'Members')->display(function () {
+            if (!$this->group) return '—';
+            $cnt = $this->group->members()->count();
+            $bg  = $cnt > 0 ? '#607d8b' : '#e0e0e0';
+            return "<span class='badge' style='background:{$bg};'>{$cnt}</span>";
+        })->width(70);
+
+        $grid->column('facilitator_info', 'Facilitator')->display(function () {
+            if (!$this->group || !$this->group->facilitator) {
+                return '<span class="text-muted">—</span>';
+            }
+            $u = $this->group->facilitator;
+            $name  = e($u->name ?: trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')));
+            $phone = $u->phone ? '<br><small class="text-muted">' . e($u->phone) . '</small>' : '';
+            return $name . $phone;
+        });
+
+        $grid->column('chairperson_info', 'Chairperson')->display(function () {
+            if (!$this->group) return '<span class="text-muted">—</span>';
+            $u = $this->group->admin;
+            if ($u) {
+                $name  = e($u->name ?: trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')));
+                $phone = $u->phone ? '<br><small class="text-muted">' . e($u->phone) . '</small>' : '';
+                return $name . $phone;
+            }
+            if ($this->group->contact_person_name) {
+                $name  = e($this->group->contact_person_name);
+                $phone = $this->group->contact_person_phone
+                    ? '<br><small class="text-muted">' . e($this->group->contact_person_phone) . '</small>' : '';
+                return $name . $phone;
+            }
+            return '<span class="text-muted">—</span>';
         });
 
         $grid->column('cycle_id', 'Cycle')->display(function () {
