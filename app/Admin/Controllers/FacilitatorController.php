@@ -55,6 +55,7 @@ class FacilitatorController extends AdminController
         $ids = $this->facilitatorIds();
         $grid->model()
             ->whereIn('id', $ids)
+            ->selectRaw('users.*, (SELECT COUNT(*) FROM ffs_groups WHERE ffs_groups.facilitator_id = users.id) AS groups_count_sql, (SELECT COUNT(*) FROM users AS m WHERE m.group_id IN (SELECT id FROM ffs_groups WHERE ffs_groups.facilitator_id = users.id)) AS members_profiled_sql')
             ->orderBy('id', 'desc');
 
         // ── Three-tier access ──────────────────────────────────────────────
@@ -107,12 +108,12 @@ class FacilitatorController extends AdminController
         })->sortable();
 
         $grid->column('phone_number', 'Phone');
-        $grid->column('email',        'Email');
+        $grid->column('email',        'Email')->hide();
         $grid->column('sex',          'Gender');
 
         $grid->column('district_name', 'District')->display(function ($v) {
             return $v ?: '—';
-        });
+        })->hide();
 
         if ($isSuperAdmin) {
             $grid->column('ip_id', 'Partner')->display(function ($id) {
@@ -124,15 +125,17 @@ class FacilitatorController extends AdminController
 
         $grid->column('facilitator_start_date', 'Start Date')->date('d M Y')->sortable();
 
-        $grid->column('groups_count', 'Groups')->display(function () {
-            $count = DB::table('ffs_groups')
-                ->where('facilitator_id', $this->id)
-                ->count();
+        $grid->column('groups_count_sql', 'Groups')->display(function ($count) {
+            $count = (int)$count;
             if (!$count) return '<span class="label label-default">0</span>';
             return '<span class="label label-primary">' . $count . '</span>';
-        });
+        })->sortable();
 
-        $grid->column('created_at', 'Registered')->date('d M Y')->sortable();
+        $grid->column('members_profiled_sql', 'Members Profiled')->display(function ($count) {
+            $count = (int)$count;
+            if (!$count) return '<span class="label label-default">0</span>';
+            return '<span class="label label-success">' . $count . '</span>';
+        })->sortable();
 
         return $grid;
     }
@@ -140,6 +143,20 @@ class FacilitatorController extends AdminController
     // ─────────────────────────────────────────────────────────────────────────
     // DETAIL
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Inject a visible section heading (same approach as FfsGroupController).
+     */
+    private function showDetailSection(Show $show, string $label, string $icon = ''): void
+    {
+        $show->divider();
+        $ico  = $icon ? "<i class='fa fa-{$icon} fa-fw'></i> " : '';
+        $html = "<div style='margin:4px 0 2px;padding-bottom:4px;border-bottom:1px solid #ddd;'>"
+              . "<span style='font-size:11px;font-weight:700;text-transform:uppercase;"
+              . "letter-spacing:.6px;color:#666;'>{$ico}" . htmlspecialchars($label, ENT_QUOTES) . "</span></div>";
+        static $idx = 0;
+        $show->field('_ds_' . (++$idx), '')->as(fn() => $html)->unescape();
+    }
 
     protected function detail($id)
     {
@@ -158,44 +175,122 @@ class FacilitatorController extends AdminController
             return $this->denyIpAccess();
         }
 
+        // Pre-load groups and compute stats
+        $groups      = \App\Models\FfsGroup::where('facilitator_id', $facilitator->id)
+                            ->withCount('members')
+                            ->with('district')
+                            ->orderBy('status')->orderBy('name')
+                            ->get();
+        $groupCount  = $groups->count();
+        $memberCount = $groups->sum('members_count');
+
         $show = new Show($facilitator);
+        $show->panel()->style('primary')
+            ->title(e($facilitator->name ?: trim($facilitator->first_name . ' ' . $facilitator->last_name)));
 
-        $show->field('id',    'ID');
+        // ── Personal Information ──────────────────────────────────────────
+        $show->field('name', 'Full Name')->as(function ($v) {
+            $n = $v ?: trim($this->first_name . ' ' . $this->last_name);
+            return "<strong style='font-size:15px;'>" . e($n) . "</strong>";
+        })->unescape();
+        $show->field('sex', 'Gender')->as(fn($v) => $v ?: '-');
+        $show->field('phone_number', 'Phone')->as(function ($v) {
+            if (!$v) return '-';
+            $clean = preg_replace('/[^0-9+]/', '', $v);
+            return "<a href='tel:{$clean}' style='color:#337ab7;'>"
+                . "<i class='fa fa-phone'></i> " . e($v) . "</a>";
+        })->unescape();
+        $show->field('email', 'Email')->as(function ($v) {
+            if (!$v) return '-';
+            return "<a href='mailto:" . e($v) . "' style='color:#337ab7;'>"
+                . "<i class='fa fa-envelope'></i> " . e($v) . "</a>";
+        })->unescape();
+        $show->field('national_id_number', 'National ID (NIN)')->as(fn($v) => $v ?: '-');
+        $show->field('username', 'Login Username')->as(fn($v) => $v ?: '-');
 
-        $show->divider();
-        $show->field('first_name', 'First Name');
-        $show->field('last_name',  'Last Name');
-        $show->field('name',       'Full Name');
-        $show->field('sex',        'Gender');
-        $show->field('phone_number','Phone');
-        $show->field('email',      'Email');
-        $show->field('username',   'Username');
-        $show->field('national_id_number', 'National ID');
+        // ── Location ─────────────────────────────────────────────────────
+        $this->showDetailSection($show, 'Location', 'map-marker');
+        $show->field('district_name', 'District')->as(fn($v) => $v ? ucwords(strtolower($v)) : '-');
+        $show->field('village', 'Village')->as(fn($v) => $v ? ucwords(strtolower($v)) : '-');
 
-        $show->divider();
-        $show->field('district_name', 'District');
-        $show->field('village', 'Village');
+        // ── Work Assignment ───────────────────────────────────────────────
+        $this->showDetailSection($show, 'Work Assignment', 'briefcase');
+        $show->field('ip_id', 'Implementing Partner')->as(function ($ipId) {
+            if (!$ipId) return '-';
+            $ip = ImplementingPartner::find($ipId);
+            if (!$ip) return '-';
+            $url   = admin_url("implementing-partners/{$ip->id}");
+            $short = $ip->short_name ? " <span class='text-muted'>({$ip->short_name})</span>" : '';
+            return "<a href='{$url}' style='color:#337ab7;'>"
+                . "<i class='fa fa-external-link fa-fw'></i> " . e($ip->name) . "</a>" . $short;
+        })->unescape();
+        $show->field('facilitator_start_date', 'Facilitator Since')->as(function ($v) {
+            if (!$v) return '-';
+            $date = \Carbon\Carbon::parse($v);
+            $years  = $date->diffInYears(now());
+            $months = $date->diffInMonths(now()) % 12;
+            $parts  = [];
+            if ($years  > 0) $parts[] = "{$years} yr";
+            if ($months > 0) $parts[] = "{$months} mo";
+            $dur = $parts ? " <span class='text-muted'>(" . implode(' ', $parts) . " experience)</span>" : '';
+            return $date->format('d M Y') . $dur;
+        })->unescape();
+        $show->field('status', 'Account Status')->as(function ($v) {
+            return $v == 1
+                ? "<span class='label label-success'><i class='fa fa-check'></i> Active</span>"
+                : "<span class='label label-default'>Inactive</span>";
+        })->unescape();
 
-        $show->divider();
-        $show->field('ip_id', 'Implementing Partner')->as(function ($id) {
-            $ip = ImplementingPartner::find($id);
-            return $ip ? "{$ip->name} ({$ip->short_name})" : '—';
-        });
-        $show->field('facilitator_start_date', 'Facilitator Since');
-        $show->field('status', 'Status')->as(function ($v) {
-            return $v == 1 ? 'Active' : 'Inactive';
-        });
-        $show->field('created_at', 'Registered At');
+        // ── Statistics ────────────────────────────────────────────────────
+        $this->showDetailSection($show, 'Performance Summary', 'bar-chart');
+        $show->field('_stat_groups', 'Groups Managed')->as(function () use ($groupCount) {
+            return "<span style='font-size:22px;font-weight:700;color:#05179F;'>{$groupCount}</span>"
+                . " <span class='text-muted'>group" . ($groupCount != 1 ? 's' : '') . "</span>";
+        })->unescape();
+        $show->field('_stat_members', 'Members Profiled')->as(function () use ($memberCount) {
+            return "<span style='font-size:22px;font-weight:700;color:#00a65a;'>{$memberCount}</span>"
+                . " <span class='text-muted'>member" . ($memberCount != 1 ? 's' : '') . " across all groups</span>";
+        })->unescape();
 
-        // Groups managed
-        $show->field('id', 'Groups Managed')->as(function ($id) {
-            $groups = DB::table('ffs_groups')
-                ->where('facilitator_id', $id)
-                ->pluck('name');
-            return $groups->isNotEmpty()
-                ? $groups->implode(', ')
-                : 'None assigned';
-        });
+        // ── Groups Managed ────────────────────────────────────────────────
+        $this->showDetailSection($show, "Groups Managed ({$groupCount})", 'users');
+        $show->field('_groups_table', 'Groups')->as(function () use ($groups) {
+            if ($groups->isEmpty()) {
+                return "<span class='text-muted'><i class='fa fa-info-circle'></i> No groups assigned yet</span>";
+            }
+            $rows = $groups->map(function ($g) {
+                $url         = admin_url("ffs-all-groups/{$g->id}");
+                $typeColors  = ['VSLA' => 'warning', 'FFS' => 'info', 'FBS' => 'primary', 'Association' => 'success'];
+                $statColors  = ['Active' => 'success', 'Inactive' => 'default', 'Suspended' => 'warning', 'Graduated' => 'info'];
+                $typeColor   = $typeColors[$g->type]   ?? 'default';
+                $statColor   = $statColors[$g->status] ?? 'default';
+                $members     = (int)($g->members_count ?? 0);
+                $district    = $g->district_text
+                    ? ucwords(strtolower($g->district_text))
+                    : ($g->district ? $g->district->name : '-');
+                return "<tr>"
+                    . "<td><a href='{$url}' style='color:#337ab7;font-weight:500;'>"
+                    .       "<i class='fa fa-external-link fa-fw'></i> " . e($g->name)
+                    . "</a><br><small class='text-muted'>" . e($g->code ?: '') . "</small></td>"
+                    . "<td><span class='label label-{$typeColor}'>" . e($g->type) . "</span></td>"
+                    . "<td><span class='label label-{$statColor}'>" . e($g->status) . "</span></td>"
+                    . "<td>" . e($district) . "</td>"
+                    . "<td><strong>{$members}</strong></td>"
+                    . "</tr>";
+            })->implode('');
+
+            return "<table class='table table-condensed table-bordered table-hover' style='margin:0;font-size:13px;'>"
+                . "<thead style='background:#f4f4f4;'><tr>"
+                . "<th>Group Name</th><th>Type</th><th>Status</th><th>District</th><th>Members</th>"
+                . "</tr></thead>"
+                . "<tbody>{$rows}</tbody>"
+                . "</table>";
+        })->unescape();
+
+        // ── Audit ─────────────────────────────────────────────────────────
+        $this->showDetailSection($show, 'Audit', 'clock-o');
+        $show->field('created_at', 'Registered')->as(fn($d) => $d ? date('d M Y H:i', strtotime($d)) : '-');
+        $show->field('updated_at', 'Last Updated')->as(fn($d) => $d ? date('d M Y H:i', strtotime($d)) : '-');
 
         return $show;
     }

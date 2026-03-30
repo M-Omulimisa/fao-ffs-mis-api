@@ -7,6 +7,7 @@ use App\Models\FfsGroup;
 use App\Models\User;
 use App\Models\Location;
 use App\Models\Project;
+use App\Services\VslaService;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -223,27 +224,51 @@ class VslaConfigurationController extends Controller
                 return $this->error('User not authenticated', 401);
             }
 
-            // Get user's group - check if user is a leader or a regular member
-            $group = FfsGroup::where('admin_id', $user->id)
-                ->orWhere('secretary_id', $user->id)
-                ->orWhere('treasurer_id', $user->id)
-                ->first();
-
-            // If not a leader, check if user is a regular member
-            if (!$group && !empty($user->group_id)) {
+            // Resolve the user's group.
+            // Priority 1: user.group_id (set explicitly during onboarding /
+            //   account assignment). This is the most specific and reliable
+            //   signal — always prefer it when present.
+            // Priority 2: leadership lookup (admin / secretary / treasurer).
+            //   Used only as a fallback for accounts where group_id wasn't
+            //   stored but the user is registered as a group officer.
+            //
+            // IMPORTANT: swapping the original order (leadership-first) was
+            // causing the wrong cycle to be returned for users who happen to
+            // be an officer in Group A but whose group_id points to Group B.
+            $group = null;
+            if (!empty($user->group_id)) {
                 $group = FfsGroup::find($user->group_id);
+            }
+
+            if (!$group) {
+                $group = FfsGroup::where('admin_id', $user->id)
+                    ->orWhere('secretary_id', $user->id)
+                    ->orWhere('treasurer_id', $user->id)
+                    ->first();
             }
 
             if (!$group) {
                 return $this->error('User is not part of any VSLA group', 404);
             }
 
-            // Get all cycles for this group
-            $cycles = \App\Models\Project::where('is_vsla_cycle', 'Yes')
+            // ── Guarantee an active cycle always exists ────────────────────────
+            // VslaService::ensureActiveCycle is a fast no-op when an active
+            // cycle is already present (returns immediately from path 1).
+            // It only does work when no active/non-completed cycle is found
+            // — either activating the most recent one, or auto-creating a new
+            // one from scratch.  Calling it unconditionally here means the
+            // response can never contain an empty cycles array, and
+            // `active_cycle` is always non-null.
+            VslaService::ensureActiveCycle($group, $user->id);
+
+            // Get all cycles for this group (re-fetches to reflect any changes)
+            $rawCycles = \App\Models\Project::where('is_vsla_cycle', 'Yes')
                 ->where('group_id', $group->id)
                 ->orderByRaw("CASE WHEN is_active_cycle = 'Yes' THEN 0 ELSE 1 END")
                 ->orderBy('start_date', 'desc')
-                ->get()
+                ->get();
+
+            $cycles = $rawCycles
                 ->map(function ($cycle) {
                     // Calculate progress
                     $now = \Carbon\Carbon::now();
@@ -279,6 +304,7 @@ class VslaConfigurationController extends Controller
                     
                     return [
                         'id' => $cycle->id,
+                        'group_id' => $cycle->group_id,
                         'cycle_name' => $cycle->cycle_name,
                         'start_date' => $cycle->start_date,
                         'end_date' => $cycle->end_date,

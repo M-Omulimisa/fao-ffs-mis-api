@@ -76,44 +76,51 @@ class MemberController extends AdminController
                     ->select(\App\Models\ImplementingPartner::getDropdownOptions());
             }
 
-            // Group filter - super admins see ALL groups, others see only Active groups for their IP
+            // Group filter with real member count in brackets
             $filter->equal('group_id', 'FFS Group')->select(
                 FfsGroup::query()
+                    ->withCount('members')
                     ->when(!$isSuperAdmin, fn($q) => $q->where('status', 'Active'))
                     ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
                     ->orderBy('name')
                     ->get()
-                    ->mapWithKeys(fn($g) => [$g->id => $g->name . ($g->status !== 'Active' ? ' [' . $g->status . ']' : '')])
+                    ->mapWithKeys(fn($g) => [
+                        $g->id => $g->name . ' (' . $g->members_count . ' members)'
+                            . ($g->status !== 'Active' ? ' [' . $g->status . ']' : '')
+                    ])
                     ->toArray()
             );
-            
-            $filter->equal('is_group_admin', 'Position')->select([
+
+            $filter->equal('is_group_admin', 'Chairperson')->select([
                 'Yes' => 'Chairperson',
                 'No' => 'Regular Member',
             ]);
-            
-            // Location filter
-            $filter->equal('district_name', 'District')
-                ->select($this->northernUgandaDistricts());
-            
+
+            $filter->equal('is_group_secretary', 'Secretary')->select([
+                'Yes' => 'Secretary',
+                'No' => 'Not Secretary',
+            ]);
+
+            $filter->equal('is_group_treasurer', 'Treasurer')->select([
+                'Yes' => 'Treasurer',
+                'No' => 'Not Treasurer',
+            ]);
+
+            // District filter using district_id (FK to locations)
+            $filter->equal('district_id', 'District')->select(
+                Location::where('type', 'District')->orderBy('name')->pluck('name', 'id')
+            );
+
             $filter->equal('subcounty_id', 'Subcounty')->select(function() {
                 return Location::where('parent', '>', 0)
                     ->orderBy('name')
                     ->pluck('name', 'id');
             });
-            
+
             // Demographics
             $filter->equal('sex', 'Gender')->select([
-                'Male' => 'Male', 
+                'Male' => 'Male',
                 'Female' => 'Female'
-            ]);
-            
-            $filter->between('dob', 'Age Range')->date();
-            
-            // Account status
-            $filter->equal('status', 'Account Status')->select([
-                '1' => 'Active',
-                '0' => 'Inactive',
             ]);
         });
         
@@ -151,13 +158,7 @@ class MemberController extends AdminController
             'Male' => 'primary',
             'Female' => 'danger',
         ], 'warning')->sortable();
-        
-        $grid->column('dob', 'Age')->display(function($dob) {
-            if (!$dob) return '-';
-            $age = \Carbon\Carbon::parse($dob)->age;
-            return $age . ' yrs';
-        })->sortable();
-        
+
         $grid->column('group.name', 'FFS Group')->display(function() {
             if (!$this->group) {
                 return '<span class="text-muted">Not Assigned</span>';
@@ -232,34 +233,20 @@ class MemberController extends AdminController
             }
             return '<span style="color:#999;">-</span>';
         })->sortable();
-        
-        $grid->column('location', 'Location')->display(function() {
-            $parts = [];
-            if ($this->village) $parts[] = $this->village;
-            if ($this->district_name) $parts[] = '<strong>' . e($this->district_name) . '</strong>';
-            return implode(', ', $parts) ?: 'N/A';
+
+        // SACCO Role
+        $grid->column('sacco_role', 'SACCO Role')->display(function() {
+            if ($this->is_group_admin === 'Yes') {
+                return '<span class="label label-primary"><i class="fa fa-star"></i> Chairperson</span>';
+            }
+            if ($this->is_group_secretary === 'Yes') {
+                return '<span class="label label-info"><i class="fa fa-pencil"></i> Secretary</span>';
+            }
+            if ($this->is_group_treasurer === 'Yes') {
+                return '<span class="label label-warning"><i class="fa fa-money"></i> Treasurer</span>';
+            }
+            return '<span class="label label-default">Member</span>';
         });
-        
-        $grid->column('status', 'Status')->display(function() {
-            return $this->status == 1 ? 
-                '<span class="label label-success">Active</span>' : 
-                '<span class="label label-default">Inactive</span>';
-        })->sortable();
-        
-        $grid->column('onboarding_step', 'Onboarding')->display(function($step) {
-            $labels = [
-                'not_started'         => ['Not Started', 'default'],
-                'step_1_welcome'      => ['Welcome', 'default'],
-                'step_2_terms'        => ['Terms', 'info'],
-                'step_3_registration' => ['Registered', 'info'],
-                'step_4_group'        => ['Group', 'primary'],
-                'step_5_members'      => ['Members', 'primary'],
-                'step_6_cycle'        => ['Cycle', 'warning'],
-                'step_7_complete'     => ['Complete', 'success'],
-            ];
-            $info = $labels[$step] ?? ['Unknown', 'default'];
-            return '<span class="label label-' . $info[1] . '">' . $info[0] . '</span>';
-        })->sortable();
 
         $grid->column('created_at', 'Registered')->display(function($date) {
             return \Carbon\Carbon::parse($date)->format('d M Y');

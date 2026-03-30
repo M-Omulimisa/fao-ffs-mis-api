@@ -7,11 +7,13 @@ use App\Models\VslaMeeting;
 use App\Models\Project;
 use App\Models\FfsGroup;
 use App\Services\MeetingProcessingService;
+use App\Services\VslaService;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * VSLA Meeting API Controller
@@ -38,9 +40,11 @@ class VslaMeetingController extends Controller
     {
         try {
             // Validate request
+            // Note: cycle_id uses 'integer' only (no 'exists') so that auto-correction
+            // via VslaService can handle stale IDs from a previous group session.
             $validator = Validator::make($request->all(), [
                 'local_id' => 'required|string|max:255',
-                'cycle_id' => 'required|integer|exists:projects,id',
+                'cycle_id' => 'required|integer',
                 'group_id' => 'nullable|integer',
                 'meeting_date' => 'required|date',
                 'notes' => 'nullable|string',
@@ -90,10 +94,61 @@ class VslaMeetingController extends Controller
                 ], 409);
             }
 
-            // Validate cycle
-            $cycle = Project::find($request->cycle_id);
-            if (!$cycle) {
-                return $this->error('Cycle not found', 404);
+            // ── Resolve the user's authoritative group ────────────────────────
+            // user.group_id ALWAYS takes priority over the submitted group_id
+            // to prevent cross-group data leakage when a facilitator switches
+            // between different chairpersons / groups.
+            $user = Auth::user();
+            if (!$user) {
+                return $this->error('Unauthorized', 401);
+            }
+
+            $submittedGroupId = (int) $request->group_id;
+            $submittedCycleId = (int) $request->cycle_id;
+
+            $group = null;
+            if (!empty($user->group_id) && (int) $user->group_id > 0) {
+                $group = FfsGroup::find((int) $user->group_id);
+                if ($group && $submittedGroupId > 0 && (int) $group->id !== $submittedGroupId) {
+                    Log::warning("[Meeting submit] group_id overridden: submitted={$submittedGroupId}, "
+                        . "user.group_id={$group->id} (user #{$user->id})");
+                }
+            }
+            if (!$group && $submittedGroupId > 0) {
+                $group = FfsGroup::find($submittedGroupId);
+            }
+
+            $groupId = $group ? (int) $group->id : null;
+
+            // Validate group type
+            if ($group && !empty($group->type) && !in_array($group->type, ['VSLA', 'FFS'])) {
+                return $this->error('Group type "' . $group->type . '" is not supported for VSLA meetings', 422);
+            }
+
+            // ── Resolve the correct cycle (auto-correct stale IDs) ────────────
+            // If the mobile app sends a cycle_id from a previously cached group,
+            // VslaService detects the mismatch and returns the correct active cycle.
+            if ($group) {
+                $resolution = VslaService::resolveGroupActiveCycle(
+                    $submittedCycleId,
+                    $group,
+                    $user->id ?? null
+                );
+                $cycle   = $resolution['cycle'];
+                $cycleId = (int) $cycle->id;
+
+                if ($resolution['corrected']) {
+                    Log::warning("[Meeting submit] cycle_id auto-corrected: "
+                        . "{$resolution['original_id']} → {$cycleId} for group #{$groupId} (user #{$user->id})");
+                }
+            } else {
+                // No group resolved — fall back to direct cycle lookup
+                $cycle = Project::find($submittedCycleId);
+                if (!$cycle) {
+                    return $this->error('Cycle not found', 404);
+                }
+                $cycleId = (int) $cycle->id;
+                $groupId = $cycle->group_id ?? $groupId;
             }
 
             // Validate cycle is active
@@ -111,50 +166,18 @@ class VslaMeetingController extends Controller
                 ]);
             }
 
-            // Get group_id from request or from authenticated user's profile
-            $groupId = $request->group_id;
-            if (!$groupId) {
-                $user = Auth::user();
-                if ($user && $user->group_id) {
-                    $groupId = $user->group_id;
-                }
-            }
-
-            // Validate group (if group_id available)
-            if ($groupId) {
-                $group = FfsGroup::find($groupId);
-                if (!$group) {
-                    return $this->error('Group not found #' . $groupId, 404);
-                }
-                
-                // Only validate type if it's explicitly set and not VSLA
-                // This allows groups without explicit type to pass (backward compatibility)
-                if (!empty($group->type) && $group->type !== 'VSLA' && $group->type !== 'FFS') {
-                    return $this->error('Group type "' . $group->type . '" is not supported for VSLA meetings', 422);
-                }
-            } else {
-                // No group_id available from request or user profile
-                // This is acceptable - group_id is optional
-                $groupId = null;
-            }
-
             // Auto-generate meeting number (server-controlled)
-            $meetingNumber = $this->generateMeetingNumber($request->cycle_id, $groupId);
+            $meetingNumber = $this->generateMeetingNumber($cycleId, $groupId);
 
             // Get authenticated user ID (server-controlled)
-            // Try multiple methods: Auth facade, request user, request userModel, or request parameter
-            $createdById = Auth::id() 
-                ?? optional($request->user())->id 
-                ?? optional($request->userModel)->id
-                ?? $request->user_id 
-                ?? 1; // Fallback to admin user ID 1 if all else fails
+            $createdById = $user->id ?? 1;
 
             // Create meeting record
             DB::beginTransaction();
 
             $meeting = VslaMeeting::create([
                 'local_id' => $request->local_id,
-                'cycle_id' => $request->cycle_id,
+                'cycle_id' => $cycleId,
                 'group_id' => $groupId,
                 'meeting_date' => $request->meeting_date,
                 'meeting_number' => $meetingNumber,
@@ -179,7 +202,7 @@ class VslaMeetingController extends Controller
                 'upcoming_action_plans_data' => $request->upcoming_action_plans_data ?? [],
                 'processing_status' => 'pending',
                 'created_by_id' => $createdById,
-                'ip_id' => optional(Auth::user())->ip_id ?? optional($group ?? null)->ip_id,
+                'ip_id' => $user->ip_id ?? optional($group)->ip_id,
                 'submitted_from_app_at' => now(),
                 'received_at' => now(),
             ]);

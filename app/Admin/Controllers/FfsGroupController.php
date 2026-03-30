@@ -6,8 +6,6 @@ use App\Models\FfsGroup;
 use App\Models\Location;
 use App\Models\User;
 use App\Models\Project;
-use App\Models\AccountTransaction;
-use App\Models\VslaMeeting;
 use App\Models\ImplementingPartner;
 use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
@@ -56,11 +54,11 @@ class FfsGroupController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new FfsGroup());
-        
+
         // Detect group type from URL
         $url = url()->current();
         $groupType = null;
-        
+
         if (strpos($url, 'ffs-farmer-field-schools') !== false) {
             $groupType = 'FFS';
         } elseif (strpos($url, 'ffs-farmer-business-schools') !== false) {
@@ -70,216 +68,173 @@ class FfsGroupController extends AdminController
         } elseif (strpos($url, 'ffs-group-associations') !== false) {
             $groupType = 'Association';
         }
-        
-        // Filter by group type if detected
+
+        // Eager-load relationships + real member count to avoid N+1
+        $grid->model()
+            ->withCount('members')
+            ->with(['implementingPartner', 'district', 'facilitator'])
+            ->orderBy('id', 'desc');
+
         if ($groupType) {
             $grid->model()->where('type', $groupType);
         }
 
-        // ── IP Scoping: IP admins see only their own groups ──
+        // ── IP Scoping ──
         $this->applyIpScope($grid);
 
-        // ── Field Facilitator Scoping: only see groups assigned to them ──
+        // ── Field Facilitator Scoping ──
         $adminUser = \Encore\Admin\Facades\Admin::user();
         if ($adminUser && $adminUser->isRole('field_facilitator')) {
             $grid->model()->where('facilitator_id', $adminUser->id);
         }
 
         $grid->disableBatchActions();
-        
-        // Filters — variables extracted before closure to avoid $this binding issues
+
+        // ── Quick Search ──
+        $grid->quickSearch(function ($model, $query) {
+            $model->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('code', 'like', "%{$query}%")
+                  ->orWhere('ip_name', 'like', "%{$query}%")
+                  ->orWhere('district_text', 'like', "%{$query}%")
+                  ->orWhere('primary_value_chain', 'like', "%{$query}%");
+            });
+        })->placeholder('Search by name, code, IP, district or activity...');
+
+        // ── Filters ──
         $ipId = $this->getAdminIpId();
         $isSuperAdmin = $this->isSuperAdmin();
 
-        $grid->filter(function($filter) use ($ipId, $isSuperAdmin) {
+        $grid->filter(function ($filter) use ($ipId, $isSuperAdmin, $groupType) {
             $filter->disableIdFilter();
-            
-            $filter->equal('type', 'Group Type')->select(FfsGroup::getTypes());
+
+            $filter->like('name', 'Group Name');
+
+            if (!$groupType) {
+                $filter->equal('type', 'Group Type')->select(FfsGroup::getTypes());
+            }
+
             $filter->equal('status', 'Status')->select(FfsGroup::getStatuses());
+
             if ($isSuperAdmin) {
                 $filter->equal('ip_id', 'Implementing Partner')
                     ->select(ImplementingPartner::getDropdownOptions());
             }
-            $filter->equal('ip_name', 'IP (Legacy)')->select(
-                FfsGroup::whereNotNull('ip_name')->distinct()->pluck('ip_name', 'ip_name')
+
+            $filter->equal('district_id', 'District')->select(
+                Location::where('type', 'District')->orderBy('name')->pluck('name', 'id')
             );
-            $filter->equal('district_id', 'District')->select(Location::where('type', 'District')->pluck('name', 'id'));
-            $filter->like('district_text', 'District (Text)');
-            $filter->like('name', 'Group Name');
+
+            $filter->like('subcounty_text', 'Subcounty');
+
+            // Facilitator dropdown — only show users assigned as facilitators, with phone
+            $facilitatorIds = FfsGroup::whereNotNull('facilitator_id')
+                ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                ->distinct()->pluck('facilitator_id');
+            $filter->equal('facilitator_id', 'Facilitator')->select(
+                User::whereIn('id', $facilitatorIds)->orderBy('name')->get()
+                    ->mapWithKeys(fn($u) => [
+                        $u->id => $u->name . ($u->phone_number ? ' (' . $u->phone_number . ')' : ''),
+                    ])
+            );
+
             $filter->like('primary_value_chain', 'Value Chain');
-            $filter->equal('facilitator_id', 'Facilitator')->select(User::pluck('name', 'id'));
+
             $filter->between('establishment_date', 'Established')->date();
         });
-        
-        // ========== PRIMARY COLUMNS (Always Visible) ==========
+
+        // ── Columns ──
+
         $grid->column('id', 'ID')->sortable()->hide();
-        $grid->column('code', 'Code')->label('primary')->copyable()->sortable();
-        
-        $grid->column('name', 'Group Name')->display(function($name) {
-            return "<strong>$name</strong>";
+
+        $grid->column('name', 'Group Name')->display(function ($name) {
+            $code = $this->code ? '<small class="text-muted">' . e($this->code) . '</small><br>' : '';
+            return $code . '<strong>' . e($name) . '</strong>';
         })->sortable();
-        
-        $grid->column('type', 'Type')->label([
-            'FFS' => 'primary',
-            'FBS' => 'success',
-            'VSLA' => 'warning',
-            'Association' => 'info',
-        ])->sortable();
-        
-        // Implementing Partner (relational)
-        $grid->column('ip_id', 'IP')->display(function () {
-            if ($this->ip_id && $this->implementingPartner) {
-                $name = $this->implementingPartner->short_name ?: $this->implementingPartner->name;
-                return "<span class='label label-primary'>{$name}</span>";
-            }
-            // Fallback to legacy ip_name text
-            if (!empty($this->ip_name)) {
-                return "<span class='label label-default'>{$this->ip_name}</span>";
-            }
-            return '<span style="color:#999;">-</span>';
-        })->sortable();
-        
-        // District - Show text if no ID linked
-        $grid->column('district_display', 'District')->display(function() {
-            if ($this->district) {
-                return $this->district->name;
-            }
-            return $this->district_text ?: '<span style="color: #999;">-</span>';
-        })->sortable('district_text');
-        
-        // Subcounty
-        $grid->column('subcounty_text', 'Subcounty')->display(function($subcounty) {
-            return $subcounty ?: '<span style="color: #999;">-</span>';
-        })->sortable();
-        
-        // Members with breakdown
-        $grid->column('total_members', 'Members')->display(function($total) {
-            $total = $total ?? 0;
-            $male = $this->male_members ?? 0;
-            $female = $this->female_members ?? 0;
-            $pwd = ($this->pwd_male_members ?? 0) + ($this->pwd_female_members ?? 0);
-            
-            $html = "<span class='badge' style='background: #05179F; font-size: 13px;'>{$total}</span><br><small>";
-            $html .= "<span class='badge' style='background: #2196f3; font-size: 10px;'>♂ {$male}</span> ";
-            $html .= "<span class='badge' style='background: #e91e63; font-size: 10px;'>♀ {$female}</span>";
-            if ($pwd > 0) {
-                $html .= " <span class='badge' style='background: #ff9800; font-size: 10px;'>PWD {$pwd}</span>";
-            }
-            $html .= "</small>";
-            return $html;
-        })->sortable();
-        
-        // Primary Value Chain - KEY FIELD
-        $grid->column('primary_value_chain', 'Primary Activity')->display(function($vc) {
-            if (empty($vc)) return '<span style="color: #999;">-</span>';
-            // Truncate long value chains
-            $display = strlen($vc) > 25 ? substr($vc, 0, 22) . '...' : $vc;
-            return "<span title='{$vc}' style='cursor: help;'>{$display}</span>";
-        })->sortable();
-        
-        // Establishment Year
-        $grid->column('establishment_date', 'Est.')->display(function($date) {
-            if (empty($date)) return '<span style="color: #999;">-</span>';
-            return date('Y', strtotime($date));
-        })->sortable();
-        
-        // Project Code - visible by default
-        $grid->column('project_code', 'Project')->display(function($code) {
-            return $code ?: '-';
-        })->sortable();
-        
-        // Source File - visible by default
-        $grid->column('source_file', 'Source')->display(function($file) {
-            if (empty($file)) return '-';
-            if (strpos($file, 'KADP') !== false) return '<span class="badge" style="background:#28a745;">KADP</span>';
-            if (strpos($file, 'ECO') !== false) return '<span class="badge" style="background:#17a2b8;">ECO</span>';
-            if (strpos($file, 'GARD') !== false) return '<span class="badge" style="background:#6c757d;">GARD</span>';
-            return $file;
-        })->sortable();
-        
-        // ========== SECONDARY COLUMNS (Hidden by Default) ==========
-        // These have less data or are less frequently needed
-        
-        $grid->column('village', 'Village')->hide();
-        
-        $grid->column('parish_text', 'Parish')->display(function($parish) {
-            return $parish ?: '-';
-        })->hide();
-        
-        $grid->column('facilitator_display', 'Facilitator')->display(function() {
-            if ($this->facilitator) {
-                $name = $this->facilitator->name;
-                $phone = $this->facilitator->phone_number ? '<br><small class="text-muted"><i class="fa fa-phone"></i> ' . $this->facilitator->phone_number . '</small>' : '';
-                return $name . $phone;
-            }
-            $name = $this->contact_person_name ?: '-';
-            $phone = $this->contact_person_phone ? '<br><small class="text-muted"><i class="fa fa-phone"></i> ' . $this->contact_person_phone . '</small>' : '';
-            return $name . $phone;
-        })->sortable('contact_person_name');
-        
-        $grid->column('secondary_value_chains', 'Other Activities')->display(function($chains) {
-            if (empty($chains)) return '-';
-            $decoded = is_string($chains) ? json_decode($chains, true) : $chains;
-            if (empty($decoded)) return '-';
-            return implode(', ', array_slice($decoded, 0, 2)) . (count($decoded) > 2 ? '...' : '');
-        })->hide();
-        
-        $grid->column('latitude', 'Lat')->display(function($lat) {
-            return $lat ? number_format($lat, 4) : '-';
-        })->hide();
-        
-        $grid->column('longitude', 'Long')->display(function($lng) {
-            return $lng ? number_format($lng, 4) : '-';
-        })->hide();
-        
-        $grid->column('registration_date', 'Registered')->display(function($date) {
-            return $date ? date('d M Y', strtotime($date)) : '-';
-        })->sortable()->hide();
-        
-        $grid->column('status', 'Status')->label([
-            'Active' => 'success',
-            'Inactive' => 'default',
-            'Suspended' => 'warning',
-            'Graduated' => 'info',
-        ])->hide();
-        
-        // VSLA-specific columns
-        if ($groupType === 'VSLA') {
-            $grid->column('vsla_cycles', 'Active Cycles')->display(function() {
-                $activeCycles = Project::where('group_id', $this->id)
-                    ->where('is_vsla_cycle', 'Yes')
-                    ->where('is_active_cycle', 'Yes')
-                    ->count();
-                return "<a href='/admin/cycles?group_id={$this->id}' style='color: #2196f3;'>{$activeCycles}</a>";
-            });
-            
-            $grid->column('vsla_balance', 'Group Balance')->display(function() {
-                // Get balance from all group transactions (user_id = null)
-                // by checking transactions created during meetings for this group
-                $balance = AccountTransaction::where('user_id', null)
-                    ->where('created_by_id', '>', 0)
-                    ->whereIn('source', ['share_purchase', 'loan_disbursement', 'loan_repayment', 'savings', 'welfare_contribution'])
-                    ->sum('amount');
-                    
-                $formatted = number_format($balance, 0);
-                $color = $balance >= 0 ? 'green' : 'red';
-                return "<strong style='color: {$color};'>UGX {$formatted}</strong>";
-            });
-            
-            $grid->column('total_meetings', 'Meetings')->display(function() {
-                $meetings = VslaMeeting::where('group_id', $this->id)->count();
-                return "<a href='/admin/vsla-meetings?group_id={$this->id}'>{$meetings}</a>";
-            });
+
+        if (!$groupType) {
+            $grid->column('type', 'Type')->sortable();
         }
-        
-        $grid->column('created_at', 'Created')->display(function($date) {
-            return date('d M Y', strtotime($date));
+
+        $grid->column('status', 'Status')->display(function ($status) {
+            $map = ['Active' => 'success', 'Inactive' => 'default', 'Suspended' => 'warning', 'Graduated' => 'info'];
+            return '<span class="label label-' . ($map[$status] ?? 'default') . '">' . e($status) . '</span>';
+        })->sortable();
+
+        // IP — use eager-loaded relationship
+        $grid->column('ip_id', 'IP')->display(function () {
+            if ($this->implementingPartner) {
+                return e($this->implementingPartner->short_name ?: $this->implementingPartner->name);
+            }
+            return $this->ip_name ?: '-';
+        })->sortable();
+
+        // District — use eager-loaded relationship
+        $grid->column('district_id', 'District')->display(function () {
+            if ($this->district) {
+                return e($this->district->name);
+            }
+            return $this->district_text ?: '-';
+        })->sortable('district_text');
+
+        $grid->column('subcounty_text', 'Subcounty')->display(function ($v) {
+            return $v ?: '-';
+        })->sortable();
+
+        // Real member count from withCount('members')
+        $grid->column('members_count', 'Members')->sortable();
+
+        $grid->column('primary_value_chain', 'Primary Activity')->display(function ($vc) {
+            if (empty($vc)) return '-';
+            return e(mb_strlen($vc) > 30 ? mb_substr($vc, 0, 27) . '...' : $vc);
         })->sortable()->hide();
-        
-        // Set default sort - latest first
-        $grid->model()->orderBy('id', 'desc');
+
+        // Facilitator — use eager-loaded relationship, include phone
+        $grid->column('facilitator_id', 'Facilitator')->display(function () {
+            if ($this->facilitator) {
+                $phone = $this->facilitator->phone_number
+                    ? ' <small class="text-muted">(' . e($this->facilitator->phone_number) . ')</small>'
+                    : '';
+                return e($this->facilitator->name) . $phone;
+            }
+            return $this->contact_person_name ? e($this->contact_person_name) : '-';
+        })->sortable();
+
+        $grid->column('establishment_date', 'Established')->display(function ($d) {
+            return $d ? date('Y', strtotime($d)) : '-';
+        })->sortable();
+
+        // Hidden columns available via column selector
+        $grid->column('village', 'Village')->hide();
+        $grid->column('parish_text', 'Parish')->hide();
+        $grid->column('meeting_day', 'Meeting Day')->hide();
+        $grid->column('meeting_frequency', 'Frequency')->hide();
+        $grid->column('project_code', 'Project Code')->hide();
+        $grid->column('source_file', 'Source')->hide();
+        $grid->column('registration_date', 'Registered')->display(function ($d) {
+            return $d ? date('d M Y', strtotime($d)) : '-';
+        })->sortable()->hide();
+        $grid->column('created_at', 'Created')->display(function ($d) {
+            return date('d M Y', strtotime($d));
+        })->sortable()->hide();
 
         return $grid;
+    }
+
+    /**
+     * Inject a visible section heading into a Show panel.
+     * divider() takes no args in Encore Admin — labels are ignored — so we
+     * render the heading as an unescape HTML field with an empty label.
+     */
+    private function showSection(Show $show, string $label, string $icon = ''): void
+    {
+        $show->divider();
+        $ico  = $icon ? "<i class='fa fa-{$icon} fa-fw'></i> " : '';
+        $html = "<div style='margin:4px 0 2px;padding-bottom:4px;border-bottom:1px solid #ddd;'>"
+              . "<span style='font-size:11px;font-weight:700;text-transform:uppercase;"
+              . "letter-spacing:.6px;color:#666;'>{$ico}" . htmlspecialchars($label, ENT_QUOTES) . "</span></div>";
+        static $idx = 0;
+        $show->field('_section_' . (++$idx), '')->as(fn() => $html)->unescape();
     }
 
     /**
@@ -290,146 +245,181 @@ class FfsGroupController extends AdminController
      */
     protected function detail($id)
     {
-        $record = FfsGroup::findOrFail($id);
+        $record = FfsGroup::with([
+            'implementingPartner', 'district', 'facilitator',
+            'admin', 'secretary', 'treasurer', 'createdBy',
+        ])->findOrFail($id);
+
         if (!$this->verifyIpAccess($record)) {
             return $this->denyIpAccess();
         }
 
-        $show = new Show($record);
+        $realCount = $record->members()->count();
 
-        $show->panel()->style('primary')->title($record->name);
+        $show = new Show($record);
+        $show->panel()->style('primary')
+            ->title($record->name . ($record->code ? ' — ' . $record->code : ''));
 
         // ── Basic Information ──
-        $show->field('code', 'Group Code');
         $show->field('name', 'Group Name');
-        $show->field('type', 'Type')->using(FfsGroup::getTypes());
-        $show->field('status', 'Status')->using(FfsGroup::getStatuses());
-        $show->field('establishment_date', 'Established')->as(function ($d) {
-            return $d ? $d->format('d M Y') : '-';
-        });
-        $show->field('registration_date', 'Registration Date')->as(function ($d) {
-            return $d ? $d->format('d M Y') : '-';
-        });
+        $show->field('type', 'Group Type')->using(FfsGroup::getTypes());
+        $show->field('status', 'Status')->as(function ($v) {
+            $map = ['Active' => 'success', 'Inactive' => 'default', 'Suspended' => 'warning', 'Graduated' => 'info'];
+            return '<span class="label label-' . ($map[$v] ?? 'default') . '">' . e($v ?: '-') . '</span>';
+        })->unescape();
+        $show->field('establishment_date', 'Established')->as(fn($d) => $d ? $d->format('d M Y') : '-');
+        $show->field('registration_date', 'Registration Date')->as(fn($d) => $d ? $d->format('d M Y') : '-');
 
         // ── Partner / Project ──
-        $show->divider('Partner & Project');
-        $show->field('ip_name', 'Implementing Partner');
-        $show->field('project_code', 'Project Code');
-        $show->field('loa', 'Letter of Agreement');
-        $show->field('source_file', 'Import Source');
+        $this->showSection($show, 'Partner & Project', 'building-o');
+        $show->field('ip_id', 'Implementing Partner')->as(function () {
+            if (!$this->implementingPartner) {
+                return $this->ip_name ? e($this->ip_name) : '-';
+            }
+            $ip  = $this->implementingPartner;
+            $url = admin_url("implementing-partners/{$ip->id}");
+            return "<a href='{$url}' style='color:#337ab7;'>"
+                . "<i class='fa fa-external-link fa-fw'></i> " . e($ip->name) . "</a>";
+        })->unescape();
+        $show->field('project_code', 'Project Code')->as(fn($v) => $v ?: '-');
+        $show->field('loa', 'Letter of Agreement')->as(fn($v) => $v ?: '-');
+        $show->field('source_file', 'Import Source')->as(fn($v) => $v ?: '-');
 
         // ── Location ──
-        $show->divider('Location');
+        $this->showSection($show, 'Location', 'map-marker');
         $show->field('district_id', 'District')->as(function () {
-            return $this->district ? $this->district->name : ($this->district_text ?: '-');
+            if ($this->district) return e($this->district->name);
+            return $this->district_text ? ucwords(strtolower($this->district_text)) : '-';
         });
-        $show->field('subcounty_text', 'Subcounty');
-        $show->field('parish_text', 'Parish');
-        $show->field('village', 'Village');
-        $show->field('latitude', 'Latitude');
-        $show->field('longitude', 'Longitude');
+        $show->field('subcounty_text', 'Subcounty')->as(fn($v) => $v ? ucwords(strtolower($v)) : '-');
+        $show->field('parish_text', 'Parish')->as(fn($v) => $v ? ucwords(strtolower($v)) : '-');
+        $show->field('village', 'Village')->as(fn($v) => $v ? ucwords(strtolower($v)) : '-');
+        $show->field('latitude', 'GPS (Lat, Long)')->as(function ($lat) {
+            $lng = $this->longitude;
+            return ($lat && $lng) ? "{$lat}, {$lng}" : '-';
+        });
 
-        // ── Meetings ──
-        $show->divider('Meeting Schedule');
-        $show->field('meeting_venue', 'Meeting Venue');
-        $show->field('meeting_day', 'Meeting Day');
-        $show->field('meeting_frequency', 'Frequency');
+        // ── Meeting Schedule ──
+        $this->showSection($show, 'Meeting Schedule', 'calendar');
+        $show->field('meeting_venue', 'Meeting Venue')->as(fn($v) => $v ?: '-');
+        $show->field('meeting_day', 'Meeting Day')->as(fn($v) => $v ?: '-');
+        $show->field('meeting_frequency', 'Meeting Frequency')->as(fn($v) => $v ?: '-');
 
-        // ── Activities ──
-        $show->divider('Value Chains / Activities');
-        $show->field('primary_value_chain', 'Primary Value Chain');
+        // ── Activities / Value Chains ──
+        $this->showSection($show, 'Value Chains / Activities', 'leaf');
+        $show->field('primary_value_chain', 'Primary Activity')->as(fn($v) => $v ?: '-');
         $show->field('secondary_value_chains', 'Other Activities')->as(function ($v) {
             if (empty($v)) return '-';
             $arr = is_string($v) ? json_decode($v, true) : $v;
-            return is_array($arr) ? implode(', ', $arr) : $v;
+            return is_array($arr) && count($arr) ? implode(', ', array_filter($arr)) : '-';
         });
 
-        // ── Membership (real count + manual breakdown) ──
-        $show->divider('Membership');
-        $realCount = $record->members()->count();
-        $show->field('id', 'Registered Members (Real)')->as(function () use ($realCount) {
-            return "<span class='badge' style='background:#05179F;font-size:14px;padding:4px 10px;'>{$realCount}</span>";
+        // ── Membership ──
+        $this->showSection($show, 'Membership', 'users');
+        $show->field('id', 'Members in System')->as(function () use ($realCount) {
+            return "<strong style='font-size:18px;color:#05179F;'>{$realCount}</strong>";
         })->unescape();
-        $show->field('total_members', 'Total Members (Manual Entry)');
-        $show->field('male_members', 'Male Members');
-        $show->field('female_members', 'Female Members');
-        $show->field('youth_members', 'Youth Members (18-35)');
-        $show->field('pwd_male_members', 'PWD Male');
-        $show->field('pwd_female_members', 'PWD Female');
+        $show->field('male_members', 'Male (Reported)')->as(fn($v) => (int)($v ?? 0));
+        $show->field('female_members', 'Female (Reported)')->as(fn($v) => (int)($v ?? 0));
+        $show->field('youth_members', 'Youth 18–35')->as(fn($v) => (int)($v ?? 0) ?: '-');
+        $show->field('pwd_male_members', 'PWD')->as(function () {
+            $m = (int)($this->pwd_male_members ?? 0);
+            $f = (int)($this->pwd_female_members ?? 0);
+            return ($m + $f) ? "{$m}M / {$f}F" : '-';
+        });
 
         // ── Facilitation ──
-        $show->divider('Facilitation');
+        $this->showSection($show, 'Facilitation & Contact', 'user-circle-o');
         $show->field('facilitator_id', 'Facilitator')->as(function () {
-            return $this->facilitator ? $this->facilitator->name : 'Not Assigned';
+            if (!$this->facilitator) {
+                return $this->contact_person_name ?: '-';
+            }
+            $url   = admin_url("facilitators/{$this->facilitator_id}");
+            $phone = $this->facilitator->phone_number
+                ? ' <span class="text-muted">&bull; ' . e($this->facilitator->phone_number) . '</span>' : '';
+            return "<a href='{$url}' style='color:#337ab7;'>"
+                . "<i class='fa fa-user fa-fw'></i> " . e($this->facilitator->name) . "</a>" . $phone;
+        })->unescape();
+        $show->field('facilitator_sex', 'Facilitator Gender')->as(fn($v) => $v ?: '-');
+        $show->field('contact_person_phone', 'Contact Phone')->as(function ($v) {
+            if ($v) return $v;
+            return ($this->facilitator && $this->facilitator->phone_number)
+                ? $this->facilitator->phone_number : '-';
         });
-        $show->field('facilitator_sex', 'Facilitator Gender');
-        $show->field('contact_person_name', 'Contact Person');
-        $show->field('contact_person_phone', 'Contact Phone');
 
-        // ── Leadership ──
-        $show->divider('Group Officers');
+        // ── Group Officers ──
+        $this->showSection($show, 'Group Officers', 'id-card-o');
         $show->field('admin_id', 'Chairperson')->as(function () {
-            return $this->admin ? $this->admin->name : '-';
-        });
+            if (!$this->admin) return '-';
+            $url   = admin_url("ffs-members/{$this->admin_id}");
+            $phone = $this->admin->phone_number
+                ? ' <span class="text-muted">&bull; ' . e($this->admin->phone_number) . '</span>' : '';
+            return "<a href='{$url}' style='color:#337ab7;'>"
+                . "<i class='fa fa-user fa-fw'></i> " . e($this->admin->name) . "</a>" . $phone;
+        })->unescape();
         $show->field('secretary_id', 'Secretary')->as(function () {
-            return $this->secretary ? $this->secretary->name : '-';
-        });
+            if (!$this->secretary) return '-';
+            $url   = admin_url("ffs-members/{$this->secretary_id}");
+            $phone = $this->secretary->phone_number
+                ? ' <span class="text-muted">&bull; ' . e($this->secretary->phone_number) . '</span>' : '';
+            return "<a href='{$url}' style='color:#337ab7;'>"
+                . "<i class='fa fa-user fa-fw'></i> " . e($this->secretary->name) . "</a>" . $phone;
+        })->unescape();
         $show->field('treasurer_id', 'Treasurer')->as(function () {
-            return $this->treasurer ? $this->treasurer->name : '-';
-        });
+            if (!$this->treasurer) return '-';
+            $url   = admin_url("ffs-members/{$this->treasurer_id}");
+            $phone = $this->treasurer->phone_number
+                ? ' <span class="text-muted">&bull; ' . e($this->treasurer->phone_number) . '</span>' : '';
+            return "<a href='{$url}' style='color:#337ab7;'>"
+                . "<i class='fa fa-user fa-fw'></i> " . e($this->treasurer->name) . "</a>" . $phone;
+        })->unescape();
 
-        // ── Cycle (VSLA/FFS) ──
-        $show->divider('Cycle Information');
-        $show->field('cycle_number', 'Cycle Number');
-        $show->field('cycle_start_date', 'Cycle Start')->as(function ($d) {
-            return $d ? $d->format('d M Y') : '-';
-        });
-        $show->field('cycle_end_date', 'Cycle End')->as(function ($d) {
-            return $d ? $d->format('d M Y') : '-';
-        });
+        // ── Cycle Information ──
+        $this->showSection($show, 'Cycle Information', 'refresh');
+        $show->field('cycle_number', 'Cycle Number')->as(fn($v) => $v ?: '-');
+        $show->field('cycle_start_date', 'Cycle Start')->as(fn($d) => $d ? $d->format('d M Y') : '-');
+        $show->field('cycle_end_date', 'Cycle End')->as(fn($d) => $d ? $d->format('d M Y') : '-');
 
         // ── Notes ──
-        $show->divider('Additional Information');
-        $show->field('description', 'Description');
-        $show->field('objectives', 'Objectives');
-        $show->field('achievements', 'Achievements');
-        $show->field('challenges', 'Challenges');
+        $this->showSection($show, 'Additional Information', 'info-circle');
+        $show->field('description', 'Description')->as(fn($v) => $v ?: '-');
+        $show->field('objectives', 'Objectives')->as(fn($v) => $v ?: '-');
+        $show->field('achievements', 'Achievements')->as(fn($v) => $v ?: '-');
+        $show->field('challenges', 'Challenges')->as(fn($v) => $v ?: '-');
         $show->field('photo', 'Photo')->image();
 
         // ── Audit ──
-        $show->divider('Audit');
-        $show->field('original_id', 'Original ID (Import)');
-        $show->field('created_by_id', 'Created By')->as(function () {
-            return $this->createdBy ? $this->createdBy->name : 'System';
+        $this->showSection($show, 'Audit', 'clock-o');
+        $show->field('created_by_id', 'Profiled By')->as(function () {
+            return $this->createdBy ? e($this->createdBy->name) : 'System';
         });
-        $show->field('created_at', 'Created')->as(function ($d) {
-            return $d ? date('d M Y H:i', strtotime($d)) : '-';
-        });
-        $show->field('updated_at', 'Updated')->as(function ($d) {
-            return $d ? date('d M Y H:i', strtotime($d)) : '-';
-        });
+        $show->field('created_at', 'Created')->as(fn($d) => $d ? date('d M Y H:i', strtotime($d)) : '-');
+        $show->field('updated_at', 'Last Updated')->as(fn($d) => $d ? date('d M Y H:i', strtotime($d)) : '-');
+        $show->field('original_id', 'Import Ref.')->as(fn($v) => $v ?: '-');
 
         // ── Group Members relation grid ──
-        $show->relation('members', 'Group Members (' . $realCount . ')', function ($grid) {
-            $grid->column('id', 'ID')->sortable();
-            $grid->column('name', 'Name')->sortable();
-            $grid->column('phone_number', 'Phone');
-            $grid->column('email', 'Email');
-            $grid->column('sex', 'Gender')->display(function ($v) {
-                if ($v === 'Male') return '<i class="fa fa-male text-info"></i> Male';
-                if ($v === 'Female') return '<i class="fa fa-female text-danger"></i> Female';
-                return $v ?: '-';
+        $show->relation('members', "Group Members ({$realCount})", function ($grid) {
+            $grid->model()->orderBy('name');
+            $grid->column('member_code', 'Code')->sortable()->display(fn($v) => $v ?: '-');
+            $grid->column('name', 'Full Name')->sortable()->display(function ($name) {
+                $url = admin_url("ffs-members/{$this->id}");
+                return "<a href='{$url}' style='color:#337ab7;font-weight:500;'>"
+                    . "<i class='fa fa-user fa-fw'></i> " . e($name) . "</a>";
             });
-            $grid->column('is_group_admin', 'Role')->display(function ($v) {
-                if ($v === 'Yes') return '<span class="label label-primary">Chairperson</span>';
+            $grid->column('phone_number', 'Phone')->display(fn($v) => $v ?: '-');
+            $grid->column('sex', 'Gender')->display(function ($v) {
+                if ($v === 'Male')   return '<span class="label label-info">M</span>';
+                if ($v === 'Female') return '<span class="label label-danger">F</span>';
+                return '-';
+            });
+            $grid->column('is_group_admin', 'Role')->display(function () {
+                if ($this->is_group_admin === 'Yes')    return '<span class="label label-primary">Chairperson</span>';
                 if ($this->is_group_secretary === 'Yes') return '<span class="label label-info">Secretary</span>';
                 if ($this->is_group_treasurer === 'Yes') return '<span class="label label-warning">Treasurer</span>';
                 return '<span class="label label-default">Member</span>';
             });
-            $grid->column('national_id_number', 'NIN');
-            $grid->column('created_at', 'Joined')->display(function ($d) {
-                return $d ? date('d M Y', strtotime($d)) : '-';
-            })->sortable();
+            $grid->column('national_id_number', 'NIN')->display(fn($v) => $v ?: '-');
+            $grid->column('created_at', 'Joined')->display(fn($d) => $d ? date('d M Y', strtotime($d)) : '-')->sortable();
 
             $grid->disableCreateButton();
             $grid->disableExport();
@@ -557,7 +547,9 @@ class FfsGroupController extends AdminController
             if ($ipId !== null) {
                 $usersQuery->where('ip_id', $ipId);
             }
-            $userOptions = $usersQuery->pluck('name', 'id');
+            $userOptions = $usersQuery->get()->mapWithKeys(
+                fn($u) => [$u->id => $u->name . ($u->phone_number ? ' (' . $u->phone_number . ')' : '')]
+            );
 
             $row->width(6)->select('facilitator_id', 'Facilitator')
                 ->options($userOptions)

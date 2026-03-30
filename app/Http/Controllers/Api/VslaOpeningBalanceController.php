@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\VslaOpeningBalance;
 use App\Models\VslaOpeningBalanceMember;
+use App\Models\FfsGroup;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\OpeningBalanceService;
+use App\Services\VslaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -45,8 +47,10 @@ class VslaOpeningBalanceController extends Controller
 
     public function getMembers(Request $request)
     {
+        // project_id is expected but may be stale (wrong group).
+        // We accept any integer and auto-correct via VslaService if needed.
         $validator = Validator::make($request->all(), [
-            'project_id' => 'required|integer|exists:projects,id',
+            'project_id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
@@ -63,27 +67,63 @@ class VslaOpeningBalanceController extends Controller
                 return response()->json(['code' => 0, 'message' => 'Unauthorized'], 401);
             }
 
-            $projectId = $request->input('project_id');
-            $project   = Project::find($projectId);
-
-            if (!$project) {
-                return response()->json(['code' => 0, 'message' => 'Project not found'], 404);
+            // ── Resolve the user's group ────────────────────────────────────────
+            // Priority 1: user.group_id (explicit, most reliable)
+            // Priority 2: leadership role lookup (fallback)
+            $group = null;
+            if (!empty($user->group_id)) {
+                $group = FfsGroup::find($user->group_id);
+            }
+            if (!$group) {
+                $group = FfsGroup::where('admin_id', $user->id)
+                    ->orWhere('secretary_id', $user->id)
+                    ->orWhere('treasurer_id', $user->id)
+                    ->first();
             }
 
-            $members = User::where('group_id', $user->group_id)
+            if (!$group) {
+                return response()->json([
+                    'code'    => 0,
+                    'message' => 'Could not determine the group for this account. '
+                        . 'Please ensure your account is linked to a group.',
+                ], 422);
+            }
+
+            // ── Resolve the correct cycle (auto-correct stale IDs) ──────────────
+            // If the submitted project_id belongs to a different group (stale
+            // mobile cache), resolveGroupActiveCycle finds the user's group's
+            // actual active cycle instead of rejecting the request.
+            $submittedProjectId = (int) $request->input('project_id');
+            $resolution = VslaService::resolveGroupActiveCycle(
+                $submittedProjectId,
+                $group,
+                $user->id
+            );
+            $project = $resolution['cycle'];
+            $groupId = (int) $group->id;
+
+            if ($resolution['corrected']) {
+                Log::warning("Opening balance getMembers: cycle #{$resolution['original_id']} "
+                    . "did not belong to group #{$groupId}; auto-corrected to cycle #{$project->id}");
+            }
+
+            $members = User::where('group_id', $groupId)
                 ->where('status', 1)
+                ->where('user_type', 'Customer')
                 ->whereNotNull('group_id')
-                ->select('id', 'name', 'first_name', 'last_name', 'member_code', 'phone_number')
+                ->select('id', 'name', 'first_name', 'last_name', 'member_code', 'phone_number', 'sex')
                 ->orderBy('name', 'asc')
                 ->get()
                 ->map(function ($m) {
+                    $name = trim($m->name ?? '') ?: trim("{$m->first_name} {$m->last_name}");
                     return [
                         'id'                => $m->id,
-                        'name'              => $m->name,
-                        'first_name'        => $m->first_name,
-                        'last_name'         => $m->last_name,
-                        'member_code'       => $m->member_code ?? '',
+                        'name'              => $name,
+                        'first_name'        => $m->first_name ?? '',
+                        'last_name'         => $m->last_name  ?? '',
+                        'member_code'       => $m->member_code  ?? '',
                         'phone_number'      => $m->phone_number ?? '',
+                        'sex'               => $m->sex          ?? '',
                         'total_shares'      => 0,
                         'share_count'       => 0,
                         'total_loan_amount' => 0,
@@ -92,15 +132,22 @@ class VslaOpeningBalanceController extends Controller
                     ];
                 });
 
+            if ($members->isEmpty()) {
+                Log::warning("Opening balance getMembers: no members for group_id={$groupId} cycle_id={$project->id}");
+            }
+
             return response()->json([
                 'code'    => 1,
                 'message' => 'Members retrieved successfully',
                 'data'    => [
-                    'project_id'   => $project->id,
-                    'project_name' => $project->cycle_name ?? $project->title,
-                    'share_value'  => (float) $project->share_value,
-                    'members'      => $members,
-                    'total'        => $members->count(),
+                    'group_id'          => $groupId,
+                    'project_id'        => $project->id,    // always the correct cycle
+                    'project_name'      => $project->cycle_name ?? $project->title,
+                    'share_value'       => (float) $project->share_value,
+                    'cycle_corrected'   => $resolution['corrected'],   // signal to the app
+                    'original_cycle_id' => $resolution['original_id'],
+                    'members'           => $members,
+                    'total'             => $members->count(),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -184,7 +231,7 @@ class VslaOpeningBalanceController extends Controller
 
         $validator = Validator::make($request->all(), [
             'group_id'                    => 'required|integer|exists:ffs_groups,id',
-            'cycle_id'                    => 'required|integer|exists:projects,id',
+            'cycle_id'                    => 'required|integer',
             'notes'                       => 'nullable|string|max:1000',
             'members'                     => 'required|array|min:1',
             'members.*.member_id'         => 'required|integer|exists:users,id',
@@ -211,6 +258,76 @@ class VslaOpeningBalanceController extends Controller
 
             $cycleId = (int) $request->input('cycle_id');
             $groupId = (int) $request->input('group_id');
+
+            // ── Resolve the user's authoritative group ──────────────────────────
+            // user.group_id takes priority over the submitted group_id to
+            // prevent the app sending a stale group from a previous session.
+            $group = null;
+            if (!empty($user->group_id) && (int) $user->group_id > 0) {
+                $group = FfsGroup::find((int) $user->group_id);
+                if ($group && (int) $group->id !== $groupId) {
+                    Log::warning("Opening balance store: submitted group_id={$groupId} "
+                        . "overridden by user's actual group_id={$group->id}");
+                    $groupId = (int) $group->id;
+                }
+            }
+            if (!$group) {
+                $group = FfsGroup::find($groupId);
+            }
+            if (!$group) {
+                return response()->json([
+                    'code'    => 0,
+                    'message' => 'Group not found. Please refresh and try again.',
+                ], 422);
+            }
+            $groupId = (int) $group->id; // pin to authoritative value
+
+            // ── Resolve the correct cycle (auto-correct stale IDs) ──────────────
+            // Instead of hard-rejecting when the submitted cycle_id belongs to a
+            // different group (a common mobile cache staleness issue), we find the
+            // user's group's actual active cycle and use that.  This prevents a
+            // valid submission from being blocked by a simple ID mismatch.
+            $resolution = VslaService::resolveGroupActiveCycle($cycleId, $group, $user->id);
+            $cycle      = $resolution['cycle'];
+            $cycleId    = $cycle->id; // always the authoritative cycle ID for this group
+
+            if ($resolution['corrected']) {
+                Log::warning("Opening balance store: submitted cycle_id={$resolution['original_id']} "
+                    . "did not belong to group #{$groupId}; auto-corrected to cycle #{$cycleId}");
+            }
+
+            // ── Validate all member_ids belong to this group ────────────────────
+            $submittedMemberIds = array_map(fn($m) => (int) $m['member_id'], $members);
+            $submittedMemberIds = array_filter($submittedMemberIds, fn($id) => $id > 0);
+
+            if (count($submittedMemberIds) !== count($members)) {
+                return response()->json([
+                    'code'    => 0,
+                    'message' => 'One or more member entries have an invalid (zero) member ID. '
+                        . 'Please refresh the member list and try again.',
+                ], 422);
+            }
+
+            $validGroupMemberIds = User::where('group_id', $groupId)
+                ->whereIn('id', $submittedMemberIds)
+                ->where('user_type', 'Customer')
+                ->pluck('id')
+                ->map(fn($id) => (int) $id)
+                ->toArray();
+
+            $foreignIds = array_diff($submittedMemberIds, $validGroupMemberIds);
+            if (!empty($foreignIds)) {
+                Log::warning('Opening balance store: foreign member IDs rejected', [
+                    'group_id'    => $groupId,
+                    'foreign_ids' => array_values($foreignIds),
+                ]);
+                return response()->json([
+                    'code'    => 0,
+                    'message' => 'Some member IDs do not belong to this group ('
+                        . implode(', ', array_values($foreignIds))
+                        . '). Submission rejected to prevent data corruption.',
+                ], 422);
+            }
 
             // ── Deduplication guard ─────────────────────────────────────────────
             $existingSubmitted = VslaOpeningBalance::where('cycle_id', $cycleId)
