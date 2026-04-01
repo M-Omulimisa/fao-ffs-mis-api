@@ -44,20 +44,20 @@ class MemberController extends AdminController
             ->with(['group.facilitator', 'group.admin'])
             ->orderBy('id', 'desc');
         $this->applyIpScope($grid);
-        
-        
+
+
         // QuickSearch: member name, phone, OR group name
         $grid->quickSearch(function ($model, $query) {
             $model->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('first_name', 'like', "%{$query}%")
-                  ->orWhere('last_name', 'like', "%{$query}%")
-                  ->orWhere('phone_number', 'like', "%{$query}%")
-                  ->orWhere('phone_number_2', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%")
-                  ->orWhereHas('group', function ($gq) use ($query) {
-                      $gq->where('name', 'like', "%{$query}%");
-                  });
+                    ->orWhere('first_name', 'like', "%{$query}%")
+                    ->orWhere('last_name', 'like', "%{$query}%")
+                    ->orWhere('phone_number', 'like', "%{$query}%")
+                    ->orWhere('phone_number_2', 'like', "%{$query}%")
+                    ->orWhere('email', 'like', "%{$query}%")
+                    ->orWhereHas('group', function ($gq) use ($query) {
+                        $gq->where('name', 'like', "%{$query}%");
+                    });
             });
         })->placeholder('Search name, phone, email or group...');
 
@@ -65,12 +65,12 @@ class MemberController extends AdminController
         $grid->actions(function ($actions) {
             $actions->disableDelete();
         });
-        
+
         // Filters
         $ipId = $this->getAdminIpId();
         $isSuperAdmin = $this->isSuperAdmin();
 
-        $grid->filter(function($filter) use ($ipId, $isSuperAdmin) {
+        $grid->filter(function ($filter) use ($ipId, $isSuperAdmin) {
             $filter->disableIdFilter();
             if ($isSuperAdmin) {
                 $filter->equal('ip_id', 'Implementing Partner')
@@ -112,26 +112,20 @@ class MemberController extends AdminController
                 Location::where('type', 'District')->orderBy('name')->pluck('name', 'id')
             );
 
-            $filter->equal('subcounty_id', 'Subcounty')->select(function() {
+            $filter->equal('subcounty_id', 'Subcounty')->select(function () {
                 return Location::where('parent', '>', 0)
                     ->orderBy('name')
                     ->pluck('name', 'id');
             });
-
-            // Demographics
-            $filter->equal('sex', 'Gender')->select([
-                'Male' => 'Male',
-                'Female' => 'Female'
-            ]);
         });
-        
+
         // Columns
         $grid->column('id', 'ID')->sortable();
 
-        $grid->column('name', 'Full Name')->display(function() {
+        $grid->column('name', 'Full Name')->display(function () {
             $name = $this->name ?: ($this->first_name . ' ' . $this->last_name);
             $html = "<strong>{$name}</strong><br>";
-            
+
             // Show position badge if chairperson
             if ($this->is_group_admin == 'Yes') {
                 $html .= '<span class="label label-primary"><i class="fa fa-star"></i> Chairperson</span>';
@@ -140,27 +134,23 @@ class MemberController extends AdminController
             } elseif ($this->is_group_treasurer == 'Yes') {
                 $html .= '<span class="label label-warning"><i class="fa fa-money"></i> Treasurer</span>';
             }
-            
+
             return $html;
         })->sortable();
-        
-        $grid->column('phone_number', 'Contact')->display(function() {
+
+        $grid->column('phone_number', 'Contact')->display(function () {
             $html = '<i class="fa fa-phone text-success"></i> ' . $this->phone_number;
             if ($this->phone_number_2) {
                 $html .= '<br><i class="fa fa-phone text-muted"></i> ' . $this->phone_number_2;
             }
             return $html;
         });
-        
-        $grid->column('sex', 'Gender')->using([
-            'Male' => 'Male',
-            'Female' => 'Female',
-        ])->dot([
-            'Male' => 'primary',
-            'Female' => 'danger',
-        ], 'warning')->sortable();
 
-        $grid->column('group.name', 'FFS Group')->display(function() {
+        $grid->column('email', 'Email')->display(function () {
+            return $this->email ? '<i class="fa fa-envelope text-info"></i> ' . $this->email : '<span class="text-muted">—</span>';
+        });
+
+        $grid->column('group.name', 'FFS Group')->display(function () {
             if (!$this->group) {
                 return '<span class="text-muted">Not Assigned</span>';
             }
@@ -174,11 +164,11 @@ class MemberController extends AdminController
             ];
 
             return '<span class="label label-' . ($typeLabel[$type] ?? 'default') . '">' . $type . '</span><br>' .
-                   '<strong>' . $this->group->name . '</strong>';
+                '<strong>' . $this->group->name . '</strong>';
         });
 
         // Facilitator column
-        $grid->column('facilitator_info', 'Facilitator')->display(function() {
+        $grid->column('facilitator_info', 'Facilitator')->display(function () {
             if (!$this->group || !$this->group->facilitator) {
                 return '<span class="text-muted">—</span>';
             }
@@ -191,7 +181,7 @@ class MemberController extends AdminController
         });
 
         // Chairperson column
-        $grid->column('chairperson_info', 'Chairperson')->display(function() {
+        $grid->column('chairperson_info', 'Chairperson')->display(function () {
             if (!$this->group) {
                 return '<span class="text-muted">—</span>';
             }
@@ -214,7 +204,7 @@ class MemberController extends AdminController
             }
             return '<span class="text-muted">—</span>';
         });
-        
+
         // Implementing Partner
         $grid->column('ip_id', 'IP')->display(function () {
             if ($this->ip_id) {
@@ -236,7 +226,7 @@ class MemberController extends AdminController
         })->sortable();
 
         // SACCO Role
-        $grid->column('sacco_role', 'SACCO Role')->display(function() {
+        $grid->column('sacco_role', 'SACCO Role')->display(function () {
             if ($this->is_group_admin === 'Yes') {
                 return '<span class="label label-primary"><i class="fa fa-star"></i> Chairperson</span>';
             }
@@ -249,12 +239,12 @@ class MemberController extends AdminController
             return '<span class="label label-default">Member</span>';
         });
 
-        $grid->column('created_at', 'Registered')->display(function($date) {
+        $grid->column('created_at', 'Registered')->display(function ($date) {
             return \Carbon\Carbon::parse($date)->format('d M Y');
         })->sortable();
 
         // Financial columns — compute from account_transactions for accuracy
-        $grid->column('balance', 'Savings Balance')->display(function() {
+        $grid->column('balance', 'Savings Balance')->display(function () {
             $bal = \Illuminate\Support\Facades\DB::selectOne("
                 SELECT COALESCE(SUM(CASE WHEN account_type = 'share' THEN amount ELSE 0 END), 0) AS balance
                 FROM account_transactions
@@ -266,7 +256,7 @@ class MemberController extends AdminController
             return "<span style='color:{$color};font-weight:bold'>{$formatted}</span>";
         })->sortable();
 
-        $grid->column('loan_balance', 'Loan Balance')->display(function() {
+        $grid->column('loan_balance', 'Loan Balance')->display(function () {
             $bal = \Illuminate\Support\Facades\DB::selectOne("
                 SELECT GREATEST(0,
                     COALESCE(ABS(SUM(CASE WHEN account_type = 'loan' THEN amount ELSE 0 END)), 0)
@@ -298,17 +288,17 @@ class MemberController extends AdminController
         }
 
         $show = new Show($record);
-        
+
         $show->panel()->style('success')->title('Member Profile');
 
         // Basic Information
         $show->divider('Personal Information');
         $show->field('name', 'Full Name');
         $show->field('sex', 'Gender')->using(['Male' => 'Male', 'Female' => 'Female']);
-        $show->field('phone_number', 'Phone Number')->as(function($phone) {
+        $show->field('phone_number', 'Phone Number')->as(function ($phone) {
             return $phone ? '<a href="tel:' . $phone . '">' . $phone . '</a>' : 'N/A';
         })->unescape();
-        
+
         // FFS Group Information
         $show->divider('FFS Group Membership');
         $show->field('group.name', 'Group Name');
@@ -325,22 +315,22 @@ class MemberController extends AdminController
             'Yes' => '✓ Yes',
             'No' => '✗ No',
         ]);
-        
+
         // Location
         $show->divider('Location');
         $show->field('district_name', 'District');
         $show->field('village', 'Village');
-        
+
         // Account Information
         $show->divider('Account Status');
         $show->field('status', 'Account Status')->using([
             '1' => '✓ Active',
             '0' => '✗ Inactive',
         ]);
-        $show->field('created_at', 'Registration Date')->as(function($date) {
+        $show->field('created_at', 'Registration Date')->as(function ($date) {
             return \Carbon\Carbon::parse($date)->format('d M Y H:i');
         });
-        $show->field('registered_by_id', 'Registered By')->as(function($id) {
+        $show->field('registered_by_id', 'Registered By')->as(function ($id) {
             if (!$id) return 'N/A';
             $user = User::find($id);
             return $user ? $user->name : 'Unknown';
@@ -358,10 +348,10 @@ class MemberController extends AdminController
             'id' => $id,
             'input' => request()->all(),
         ]);
-        
+
         return $this->form()->update($id);
     }
-    
+
     /**
      * Send login credentials SMS to member
      */
@@ -379,20 +369,20 @@ class MemberController extends AdminController
             admin_toastr('Member has no phone number on file', 'error');
             return redirect()->back();
         }
-        
+
         // Prepare SMS message
         $firstName = $user->first_name ?: explode(' ', $user->name)[0];
         $username = $user->username ?: $user->phone_number;
-        
+
         // Extract digits from phone for password
         $password = preg_replace('/[^0-9]/', '', $user->phone_number);
-        
+
         $message = "FAO FFS-MIS - Login Credentials\n\n";
         $message .= "Dear {$firstName},\n";
         $message .= "Username: {$username}\n";
         $message .= "Password: {$password}\n\n";
         $message .= "Download the app from Play Store or contact your administrator.";
-        
+
         try {
             Log::info('Attempting to send credentials SMS', [
                 'member_id' => $user->id,
@@ -400,16 +390,15 @@ class MemberController extends AdminController
                 'phone' => $user->phone_number,
                 'message' => $message,
             ]);
-            
+
             $response = \App\Models\Utils::send_sms($user->phone_number, $message);
-            
+
             Log::info('Credentials SMS sent successfully', [
                 'member_id' => $user->id,
                 'response' => $response,
             ]);
-            
+
             admin_toastr("Login credentials sent to {$user->name} ({$user->phone_number})", 'success');
-            
         } catch (\Exception $e) {
             Log::error('Credentials SMS failed', [
                 'member_id' => $user->id,
@@ -417,13 +406,13 @@ class MemberController extends AdminController
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             admin_toastr('Failed to send SMS: ' . $e->getMessage(), 'error');
         }
-        
+
         return redirect()->back();
     }
-    
+
     /**
      * Send welcome SMS to member
      */
@@ -441,16 +430,16 @@ class MemberController extends AdminController
             admin_toastr('Member has no phone number on file', 'error');
             return redirect()->back();
         }
-        
+
         // Prepare welcome message
         $firstName = $user->first_name ?: explode(' ', $user->name)[0];
         $groupName = $user->group ? $user->group->name : 'your group';
-        
+
         $message = "Welcome to FAO FFS-MIS!\n\n";
         $message .= "Dear {$firstName},\n";
         $message .= "You have been successfully registered as a member of {$groupName}.\n\n";
         $message .= "You will receive login credentials shortly. Thank you for joining us!";
-        
+
         try {
             Log::info('Attempting to send welcome SMS', [
                 'member_id' => $user->id,
@@ -458,16 +447,15 @@ class MemberController extends AdminController
                 'phone' => $user->phone_number,
                 'message' => $message,
             ]);
-            
+
             $response = \App\Models\Utils::send_sms($user->phone_number, $message);
-            
+
             Log::info('Welcome SMS sent successfully', [
                 'member_id' => $user->id,
                 'response' => $response,
             ]);
-            
+
             admin_toastr("Welcome message sent to {$user->name} ({$user->phone_number})", 'success');
-            
         } catch (\Exception $e) {
             Log::error('Welcome SMS failed', [
                 'member_id' => $user->id,
@@ -475,13 +463,13 @@ class MemberController extends AdminController
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             admin_toastr('Failed to send SMS: ' . $e->getMessage(), 'error');
         }
-        
+
         return redirect()->back();
     }
-    
+
     /**
      * Make a form builder.
      *
@@ -725,7 +713,7 @@ class MemberController extends AdminController
             }
         });
 
-        $form->disableViewCheck(); 
+        $form->disableViewCheck();
         $form->disableCreatingCheck();
         $form->tools(function (Form\Tools $tools) {
             $tools->disableView();
