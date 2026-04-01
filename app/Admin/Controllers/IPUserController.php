@@ -10,6 +10,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -289,8 +290,9 @@ class IPUserController extends AdminController
                     unset($form->phone_number);
                 }
 
-                if (!empty($form->password)) {
-                    $form->password = bcrypt($form->password);
+                // Protect password: only hash if user typed a NEW password
+                if ($form->password && $form->model()->password != $form->password) {
+                    $form->password = Hash::make($form->password);
                 } else {
                     unset($form->password);
                 }

@@ -274,25 +274,25 @@ class User extends Administrator implements JWTSubject
             $user->phone_number = $user->getOriginal('phone_number');
         }
 
-        // Protect password: never allow a hashed password to be overwritten
-        // with an empty value or an unhashed string (non-bcrypt)
+        // Protect password: defense-in-depth — controllers should handle
+        // this via the AuthController pattern, but if a password somehow
+        // reaches the model layer unchanged, catch it here.
         if ($user->isDirty('password')) {
             $newPassword = $user->password;
             $originalPassword = $user->getOriginal('password');
 
-            // If new password is empty/null, revert to original
             if (empty($newPassword) || trim($newPassword) === '') {
+                // Empty password submitted — revert to original
                 if (!empty($originalPassword)) {
                     $user->password = $originalPassword;
                 }
-            }
-            // If new password looks like it's already a bcrypt hash being
-            // re-submitted unchanged (e.g. from a textarea), revert
-            elseif ($newPassword === $originalPassword) {
-                // No change needed, but prevent accidental double-hash
-            }
-            // If new password is NOT a bcrypt hash, hash it (defense-in-depth)
-            elseif (!str_starts_with($newPassword, '$2y$') && !str_starts_with($newPassword, '$2a$')) {
+            } elseif ($newPassword === $originalPassword) {
+                // Same as stored (form auto-populated the hash) — no change
+            } elseif (str_starts_with($newPassword, '$2y$') || str_starts_with($newPassword, '$2a$')) {
+                // Already a bcrypt hash but different from original — accept as-is
+                // (controller already hashed a new password via Hash::make)
+            } else {
+                // Plain-text password that slipped through — hash it
                 $user->password = bcrypt($newPassword);
             }
         }

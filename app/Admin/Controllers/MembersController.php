@@ -11,6 +11,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use Illuminate\Support\Str;
 use App\Admin\Traits\IpScopeable;
+use Illuminate\Support\Facades\Hash;
 
 
 class MembersController extends AdminController
@@ -259,9 +260,9 @@ class MembersController extends AdminController
 
         // Auto-create membership payment when user is marked as paid
         $form->saving(function (Form $form) {
-            // Protect password: hash if new, unset if empty
-            if (!empty($form->password)) {
-                $form->password = bcrypt($form->password);
+            // Protect password: only hash if user typed a NEW password
+            if ($form->password && $form->model()->password != $form->password) {
+                $form->password = Hash::make($form->password);
             } else {
                 unset($form->password);
             }

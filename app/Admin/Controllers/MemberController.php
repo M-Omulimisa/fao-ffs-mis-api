@@ -716,15 +716,8 @@ class MemberController extends AdminController
                 }
 
                 // Protect password: only hash if user typed a NEW password
-                $submittedPassword = $form->password;
-                if (!empty($submittedPassword)) {
-                    // If the submitted value is already a bcrypt hash (i.e. the form
-                    // auto-populated the existing hash), skip it — user didn't change it
-                    if (str_starts_with($submittedPassword, '$2y$') || str_starts_with($submittedPassword, '$2a$')) {
-                        unset($form->password);
-                    } else {
-                        $form->password = bcrypt($submittedPassword);
-                    }
+                if ($form->password && $form->model()->password != $form->password) {
+                    $form->password = Hash::make($form->password);
                 } else {
                     unset($form->password);
                 }

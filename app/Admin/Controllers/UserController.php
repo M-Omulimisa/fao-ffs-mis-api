@@ -359,7 +359,8 @@ class UserController extends AdminController
                     unset($form->username); // keep existing DB value, don't blank it
                 }
 
-                if (!empty($form->password)) {
+                // Protect password: only hash if user typed a NEW password
+                if ($form->password && $form->model()->password != $form->password) {
                     $form->password = Hash::make($form->password);
                 } else {
                     unset($form->password);
