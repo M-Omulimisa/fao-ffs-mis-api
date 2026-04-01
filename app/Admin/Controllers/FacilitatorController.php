@@ -178,7 +178,7 @@ class FacilitatorController extends AdminController
         $currentAdmin = Admin::user();
         if (
             !$this->isSuperAdmin()
-            && $this->userHasRoleSlug($currentAdmin, 'facilitator')
+            && $this->userHasRoleSlug($currentAdmin, 'field_facilitator')
             && (int) $facilitator->id !== (int) $currentAdmin->id
         ) {
             return $this->denyIpAccess();
@@ -439,6 +439,26 @@ class FacilitatorController extends AdminController
                     $form->password = bcrypt($form->password);
                 } else {
                     unset($form->password);
+                }
+            }
+        });
+
+        // ── Auto-assign field_facilitator role ──────────────────────────
+        $form->saved(function (Form $form) {
+            $userId = $form->model()->id;
+            $roleId = DB::table('admin_roles')->where('slug', 'field_facilitator')->value('id');
+
+            if ($roleId && $userId) {
+                $exists = DB::table('admin_role_users')
+                    ->where('role_id', $roleId)
+                    ->where('user_id', $userId)
+                    ->exists();
+
+                if (!$exists) {
+                    DB::table('admin_role_users')->insert([
+                        'role_id' => $roleId,
+                        'user_id' => $userId,
+                    ]);
                 }
             }
         });
