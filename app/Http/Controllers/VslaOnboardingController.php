@@ -1122,30 +1122,23 @@ class VslaOnboardingController extends Controller
     }
 
     /**
-     * Send credentials via SMS
+     * Send credentials via email
      */
     private function sendCredentialsSMS($user, $password, $group, $role)
     {
         try {
-            $message = "Welcome to {$group->name}! You have been appointed as {$role}.\n\n";
-            $message .= "Login Details:\n";
-            $message .= "Phone: {$user->phone_number}\n";
-            $message .= "Password: {$password}\n\n";
-            $message .= "Download FAO FFS-MIS app to get started.";
+            Utils::send_credentials_email($user, $password, $role . ' — ' . $group->name);
 
-            // Use existing SMS utility
-            $result = Utils::send_sms($user->phone_number, $message);
-            
             return [
                 'success' => true,
-                'phone' => $user->phone_number,
-                'message' => 'SMS sent successfully'
+                'email' => $user->email ?: $user->username,
+                'message' => 'Email sent successfully'
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'phone' => $user->phone_number,
-                'message' => 'Failed to send SMS: ' . $e->getMessage()
+                'email' => $user->email ?: $user->username,
+                'message' => 'Failed to send email: ' . $e->getMessage()
             ];
         }
     }

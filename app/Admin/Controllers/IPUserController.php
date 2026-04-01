@@ -318,28 +318,21 @@ class IPUserController extends AdminController
             return $this->denyIpAccess();
         }
 
-        if (empty($user->phone_number)) {
-            admin_toastr('User has no phone number on file.', 'error');
+        $email = $user->email ?: $user->username;
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            admin_toastr('User has no valid email address — cannot send credentials.', 'error');
             return redirect()->back();
         }
 
-        $firstName = $user->first_name ?: explode(' ', $user->name)[0];
-        $username  = $user->username ?: $user->phone_number;
-        $password  = preg_replace('/[^0-9]/', '', $user->phone_number);
-
-        $message  = "FAO FFS-MIS — Login Credentials\n\n";
-        $message .= "Dear {$firstName},\n";
-        $message .= "Username: {$username}\n";
-        $message .= "Password: {$password}\n\n";
-        $message .= "Download the FAO FFS-MIS app or visit the web portal.";
+        $password = preg_replace('/[^0-9]/', '', $user->phone_number ?: '') ?: '123456';
 
         try {
-            \App\Models\Utils::send_sms($user->phone_number, $message);
-            admin_toastr("Credentials sent to {$user->name} ({$user->phone_number})", 'success');
-            Log::info("IPUserController: credentials SMS sent to #{$user->id}");
+            \App\Models\Utils::send_credentials_email($user, $password);
+            admin_toastr("Credentials emailed to {$user->name} ({$email})", 'success');
+            Log::info("IPUserController: credentials email sent to #{$user->id}");
         } catch (\Exception $e) {
-            admin_toastr('Failed to send SMS: ' . $e->getMessage(), 'error');
-            Log::error("IPUserController: SMS failed #{$user->id}: " . $e->getMessage());
+            admin_toastr('Failed to send email: ' . $e->getMessage(), 'error');
+            Log::error("IPUserController: email failed #{$user->id}: " . $e->getMessage());
         }
 
         return redirect()->back();

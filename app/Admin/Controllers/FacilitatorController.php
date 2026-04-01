@@ -452,28 +452,21 @@ class FacilitatorController extends AdminController
             return $this->denyIpAccess();
         }
 
-        if (empty($facilitator->phone_number)) {
-            admin_toastr('Facilitator has no phone number on file.', 'error');
+        $email = $facilitator->email ?: $facilitator->username;
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            admin_toastr('Facilitator has no valid email address — cannot send credentials.', 'error');
             return redirect()->back();
         }
 
-        $firstName = $facilitator->first_name ?: explode(' ', $facilitator->name)[0];
-        $username  = $facilitator->username ?: $facilitator->phone_number;
-        $password  = preg_replace('/[^0-9]/', '', $facilitator->phone_number);
-
-        $message  = "FAO FFS-MIS — Login Credentials\n\n";
-        $message .= "Dear {$firstName},\n";
-        $message .= "Username: {$username}\n";
-        $message .= "Password: {$password}\n\n";
-        $message .= "Download the FAO FFS-MIS app from Play Store or contact your administrator.";
+        $password = preg_replace('/[^0-9]/', '', $facilitator->phone_number ?: '') ?: '123456';
 
         try {
-            \App\Models\Utils::send_sms($facilitator->phone_number, $message);
-            admin_toastr("Credentials sent to {$facilitator->name} ({$facilitator->phone_number})", 'success');
-            Log::info("FacilitatorController: credentials SMS sent to #{$facilitator->id}");
+            \App\Models\Utils::send_credentials_email($facilitator, $password, 'Facilitator');
+            admin_toastr("Credentials emailed to {$facilitator->name} ({$email})", 'success');
+            Log::info("FacilitatorController: credentials email sent to #{$facilitator->id}");
         } catch (\Exception $e) {
-            admin_toastr('Failed to send SMS: ' . $e->getMessage(), 'error');
-            Log::error("FacilitatorController: credentials SMS failed for #{$facilitator->id}: " . $e->getMessage());
+            admin_toastr('Failed to send email: ' . $e->getMessage(), 'error');
+            Log::error("FacilitatorController: credentials email failed for #{$facilitator->id}: " . $e->getMessage());
         }
 
         return redirect()->back();

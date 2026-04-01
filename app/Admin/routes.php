@@ -132,6 +132,13 @@ Route::group([
     $router->resource('ip-users', IPUserController::class);
 
     // ========================================
+    // IP MANAGERS MANAGEMENT — Dedicated controller for IP Manager accounts
+    // ========================================
+    $router->get('ip-managers/{id}/send-credentials', 'IPManagerController@sendCredentials')->name('ip-managers.send-credentials');
+    $router->get('ip-managers/{id}/reset-password', 'IPManagerController@resetPassword')->name('ip-managers.reset-password');
+    $router->resource('ip-managers', IPManagerController::class);
+
+    // ========================================
     // FACILITATORS MANAGEMENT
     // ========================================
     $router->get('facilitators/{id}/send-credentials', 'FacilitatorController@sendCredentials')->name('facilitators.send-credentials');

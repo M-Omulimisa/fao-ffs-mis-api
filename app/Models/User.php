@@ -796,33 +796,26 @@ class User extends Administrator implements JWTSubject
 
         $data['email']   = $toEmail;
         $data['name']    = $fullName;
-        $data['subject'] = 'Your password reset code - ' . env('APP_NAME');
+        $data['subject'] = 'Password Reset Code';
         $data['title']   = 'Password Reset';
         $data['body']    = "
-            <p style='font-size:15px;'>Dear <strong>" . e($fullName) . "</strong>,</p>
-            <p>We received a request to reset the password for your <strong>" . env('APP_NAME') . "</strong> account.</p>
-            <p>Use the one-time code (OTP) below to set a new password.
-               This code is valid for <strong>15 minutes</strong> and can only be used once.</p>
+            <p>Hi <strong>" . e($fullName) . "</strong>,</p>
+            <p>Your password reset code:</p>
 
-            <div style='text-align:center; margin:30px 0;'>
-              <div style='display:inline-block; background:#114786; color:#fff;
-                          font-size:40px; font-weight:700; letter-spacing:14px;
-                          padding:22px 44px; border-radius:10px;
-                          box-shadow: 0 4px 15px rgba(17,71,134,0.35);'>
+            <div style='text-align:center; margin:24px 0;'>
+              <div style='display:inline-block; background:#05179F; color:#fff;
+                          font-size:32px; font-weight:700; letter-spacing:10px;
+                          padding:16px 32px; border-radius:8px;'>
                 {$otp}
               </div>
             </div>
 
-            <p style='text-align:center; color:#666; font-size:13px;'>
-              ⏰ Expires at <strong>{$expTime}</strong>
+            <p style='text-align:center; color:#64748b; font-size:13px;'>
+              Valid for 15 minutes.
             </p>
 
-            <p>If you did not request a password reset, you can safely ignore this email.
-               Your account remains secure.</p>
-
-            <hr style='border:none; border-top:1px solid #eee; margin:24px 0;'>
-            <p style='color:#999; font-size:12px;'>
-              This is an automated message — please do not reply directly to this email.
+            <p style='color:#94a3b8; font-size:12px; margin-top:20px;'>
+              If you didn't request this, ignore this email.
             </p>
         ";
         $data['view'] = 'mail-1';
@@ -842,12 +835,14 @@ class User extends Administrator implements JWTSubject
         }
 
         $data['name'] = $u->name;
-        $data['subject'] = env('APP_NAME') . " - Email Verification";
-        $data['body'] = "<br>Dear " . $u->name . ",<br>";
-        $data['body'] .= "<br>Please use the CODE below to verify your email address.<br><br>";
-        $data['body'] .= "CODE: <b>" . $u->intro . "</b><br>";
-        $data['body'] .= "<br>Thank you.<br><br>";
-        $data['body'] .= "<br><small>This is an automated message, please do not reply.</small><br>";
+        $data['subject'] = "Email Verification Code";
+        $data['body'] = "<p>Hi <strong>" . e($u->name) . "</strong>,</p>"
+            . "<p>Your verification code:</p>"
+            . "<div style='text-align:center; margin:24px 0;'>"
+            . "<div style='display:inline-block; background:#05179F; color:#fff; font-size:32px; font-weight:700; letter-spacing:10px; padding:16px 32px; border-radius:8px;'>"
+            . $u->intro
+            . "</div></div>"
+            . "<p style='color:#94a3b8; font-size:12px; margin-top:20px;'>If you didn't request this, ignore this email.</p>";
         $data['view'] = 'mail-1';
         $data['data'] = $data['body'];
         try {
@@ -1115,22 +1110,10 @@ class User extends Administrator implements JWTSubject
             'success' => false,
             'message' => '',
             'password' => null,
-            'sms_sent' => false,
-            'sms_response' => null
+            'email_sent' => false,
         ];
 
         try {
-            // Validate phone number
-            if (empty($this->phone_number)) {
-                $response->message = 'User has no phone number registered';
-                return $response;
-            }
-
-            if (!Utils::phone_number_is_valid($this->phone_number)) {
-                $response->message = 'User has invalid phone number: ' . $this->phone_number;
-                return $response;
-            }
-
             // Generate 6-digit random password
             $newPassword = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
             $response->password = $newPassword;
@@ -1145,41 +1128,28 @@ class User extends Administrator implements JWTSubject
                 return $response;
             }
 
-            // Prepare welcome message with credentials
-            $appName = env('APP_NAME', 'DTEHM Insurance');
-            $userName = $this->name ?? $this->first_name ?? 'User';
-
-            $message = "Welcome to {$appName}! Your login credentials:\n"
-                . "Email: {$this->email}\n"
-                . "Password: {$newPassword}\n"
-                . "Download our app to get started!";
-
-            // Send SMS
-            $smsResponse = Utils::sendSMS($this->phone_number, $message);
-            $response->sms_response = $smsResponse;
-            $response->sms_sent = $smsResponse->success;
-
-            if ($smsResponse->success) {
+            // Send credentials via email
+            try {
+                Utils::send_credentials_email($this, $newPassword);
+                $response->email_sent = true;
                 $response->success = true;
-                $response->message = 'Password reset successfully and SMS sent to ' . $this->phone_number;
-            } else {
-                $response->success = false;
-                $response->message = 'Password reset but SMS failed: ' . $smsResponse->message;
+                $response->message = 'Password reset and credentials emailed to ' . ($this->email ?: $this->username);
+            } catch (\Exception $e) {
+                // Password was reset, but email failed
+                $response->success = true;
+                $response->message = 'Password reset to ' . $newPassword . ' but email failed: ' . $e->getMessage();
             }
 
             return $response;
         } catch (\Exception $e) {
             $response->message = 'Error during password reset: ' . $e->getMessage();
             return $response;
-        } catch (\Throwable $e) {
-            $response->message = 'Critical error: ' . $e->getMessage();
-            return $response;
         }
     }
 
     /**
-     * Send welcome SMS with custom message
-     * 
+     * Send welcome email with custom message
+     *
      * @param string|null $customMessage Custom message to send (optional)
      * @return object Response object
      */
@@ -1188,50 +1158,15 @@ class User extends Administrator implements JWTSubject
         $response = (object)[
             'success' => false,
             'message' => '',
-            'sms_response' => null
         ];
 
         try {
-            // Validate phone number
-            if (empty($this->phone_number)) {
-                $response->message = 'User has no phone number registered';
-                return $response;
-            }
-
-            if (!Utils::phone_number_is_valid($this->phone_number)) {
-                $response->message = 'Invalid phone number: ' . $this->phone_number;
-                return $response;
-            }
-
-            // Prepare message
-            $appName = env('APP_NAME', 'DTEHM Insurance');
-            $userName = $this->name ?? $this->first_name ?? 'User';
-
-            if ($customMessage) {
-                $message = $customMessage;
-            } else {
-                $message = "Hello {$userName}! Welcome to {$appName}. "
-                    . "Get comprehensive insurance coverage at your fingertips. "
-                    . "Download our app today and secure your future!";
-            }
-
-            // Send SMS
-            $smsResponse = Utils::sendSMS($this->phone_number, $message);
-            $response->sms_response = $smsResponse;
-
-            if ($smsResponse->success) {
-                $response->success = true;
-                $response->message = 'Welcome SMS sent successfully to ' . $this->phone_number;
-            } else {
-                $response->message = 'Failed to send SMS: ' . $smsResponse->message;
-            }
-
+            Utils::send_welcome_email($this, $customMessage);
+            $response->success = true;
+            $response->message = 'Welcome email sent to ' . ($this->email ?: $this->username);
             return $response;
         } catch (\Exception $e) {
-            $response->message = 'Error sending welcome SMS: ' . $e->getMessage();
-            return $response;
-        } catch (\Throwable $e) {
-            $response->message = 'Critical error: ' . $e->getMessage();
+            $response->message = 'Failed to send welcome email: ' . $e->getMessage();
             return $response;
         }
     }

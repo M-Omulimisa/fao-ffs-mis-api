@@ -219,28 +219,113 @@ class Utils extends Model
             if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 throw new Exception('Invalid or missing recipient email address.');
             }
+
             $MAIL_FROM_ADDRESS = env('MAIL_FROM_ADDRESS');
-            if (empty(env('MAIL_FROM_ADDRESS')) || !filter_var(env('MAIL_FROM_ADDRESS'), FILTER_VALIDATE_EMAIL)) {
+            if (empty($MAIL_FROM_ADDRESS) || !filter_var($MAIL_FROM_ADDRESS, FILTER_VALIDATE_EMAIL)) {
                 $MAIL_FROM_ADDRESS = "skills@comfarnet.org";
             }
-            $data['from_mail'] = $MAIL_FROM_ADDRESS;
+
             $fromName = env('MAIL_FROM_NAME', env('APP_NAME', 'FAO FFS MIS'));
+            $recipientName = $data['name'] ?? '';
+            $subject = $data['subject'] ?? 'FAO FFS MIS';
+
             Mail::send(
                 $template,
                 [
                     'body' => $data['body'],
-                    'title' => $data['subject'],
-                    'subject' => $data['subject']
+                    'title' => $subject,
+                    'subject' => $subject,
                 ],
-                function ($m) use ($data, $fromName) {
-                    $m->to($data['email'], $data['name'])
-                        ->subject($data['subject']);
-                    $m->from($data['from_mail'], $fromName);
+                function ($m) use ($data, $fromName, $MAIL_FROM_ADDRESS, $recipientName, $subject) {
+                    $m->from($MAIL_FROM_ADDRESS, $fromName);
+                    $m->replyTo($MAIL_FROM_ADDRESS, $fromName);
+                    $m->to($data['email'], $recipientName);
+                    $m->subject($subject);
+
+                    // Anti-spam headers
+                    $m->getHeaders()->addTextHeader('X-Mailer', 'FAO-FFS-MIS');
+                    $m->getHeaders()->addTextHeader('List-Unsubscribe', '<mailto:' . $MAIL_FROM_ADDRESS . '?subject=unsubscribe>');
+                    $m->getHeaders()->addTextHeader('Precedence', 'bulk');
                 }
             );
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
         }
+    }
+
+    /**
+     * Send login credentials to a user via email.
+     *
+     * @param  object  $user      User model (needs email, name/first_name, username)
+     * @param  string  $password  Plain-text password to include
+     * @param  string  $role      Optional role label (e.g. "IP Manager", "Facilitator")
+     * @return void
+     * @throws Exception
+     */
+    public static function send_credentials_email($user, string $password, string $role = '')
+    {
+        $email = $user->email ?? $user->username ?? null;
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('User has no valid email address.');
+        }
+
+        $name     = $user->name ?: trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+        $username = $user->username ?: $email;
+        $loginUrl = url('/auth/login');
+        $roleText = $role ? " as <strong>{$role}</strong>" : '';
+
+        $body = "<p>Hi <strong>" . e($name) . "</strong>,</p>"
+              . "<p>Your FAO FFS MIS account has been set up{$roleText}. Here are your login credentials:</p>"
+              . "<table style='margin:16px 0;border-collapse:collapse;'>"
+              . "<tr><td style='padding:6px 16px 6px 0;color:#64748b;'>Username</td>"
+              . "<td style='padding:6px 0;font-weight:700;'>" . e($username) . "</td></tr>"
+              . "<tr><td style='padding:6px 16px 6px 0;color:#64748b;'>Password</td>"
+              . "<td style='padding:6px 0;font-weight:700;'>" . e($password) . "</td></tr>"
+              . "</table>"
+              . "<p><a href='{$loginUrl}' style='display:inline-block;background:#05179F;color:#fff;padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:600;'>Sign In</a></p>"
+              . "<p style='color:#94a3b8;font-size:12px;margin-top:20px;'>Please change your password after first login.</p>";
+
+        self::mail_sender([
+            'email'   => $email,
+            'name'    => $name,
+            'subject' => 'Your Login Credentials',
+            'body'    => $body,
+        ]);
+    }
+
+    /**
+     * Send a welcome email to a user.
+     *
+     * @param  object       $user
+     * @param  string|null  $customMessage
+     * @return void
+     * @throws Exception
+     */
+    public static function send_welcome_email($user, ?string $customMessage = null)
+    {
+        $email = $user->email ?? $user->username ?? null;
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('User has no valid email address.');
+        }
+
+        $name = $user->name ?: trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+
+        if ($customMessage) {
+            $body = "<p>Hi <strong>" . e($name) . "</strong>,</p>"
+                  . "<p>" . e($customMessage) . "</p>";
+        } else {
+            $loginUrl = url('/auth/login');
+            $body = "<p>Hi <strong>" . e($name) . "</strong>,</p>"
+                  . "<p>Welcome to the FAO FFS MIS. Your account is ready.</p>"
+                  . "<p><a href='{$loginUrl}' style='display:inline-block;background:#05179F;color:#fff;padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:600;'>Sign In</a></p>";
+        }
+
+        self::mail_sender([
+            'email'   => $email,
+            'name'    => $name,
+            'subject' => 'Welcome to FAO FFS MIS',
+            'body'    => $body,
+        ]);
     }
 
 

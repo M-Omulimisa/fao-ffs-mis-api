@@ -85,7 +85,7 @@ class Administrator extends BaseAdministrator
     }
 
     /**
-     * Reset user password and send credentials via SMS
+     * Reset user password and send credentials via email
      *
      * @return object Response object with success status and message
      */
@@ -95,29 +95,17 @@ class Administrator extends BaseAdministrator
             'success' => false,
             'message' => '',
             'password' => null,
-            'sms_sent' => false,
-            'sms_response' => null
+            'email_sent' => false,
         ];
 
         try {
-            // Validate phone number
-            if (empty($this->phone_number)) {
-                $response->message = 'User has no phone number registered';
-                return $response;
-            }
-
-            if (!Utils::phone_number_is_valid($this->phone_number)) {
-                $response->message = 'User has invalid phone number: ' . $this->phone_number;
-                return $response;
-            }
-
             // Generate 6-digit random password
             $newPassword = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
             $response->password = $newPassword;
 
             // Hash and save password
             $this->password = password_hash($newPassword, PASSWORD_DEFAULT);
-            
+
             try {
                 $this->save();
             } catch (\Exception $e) {
@@ -125,26 +113,16 @@ class Administrator extends BaseAdministrator
                 return $response;
             }
 
-            // Prepare welcome message with credentials
-            $appName = env('APP_NAME', 'DTEHM Insurance');
-            $userName = $this->name ?? $this->first_name ?? 'User';
-            
-            $message = "Welcome to {$appName}! Your login credentials:\n"
-                     . "Email: {$this->email}\n"
-                     . "Password: {$newPassword}\n"
-                     . "Download our app to get started!";
-
-            // Send SMS
-            $smsResponse = Utils::sendSMS($this->phone_number, $message);
-            $response->sms_response = $smsResponse;
-            $response->sms_sent = $smsResponse->success;
-
-            if ($smsResponse->success) {
+            // Send credentials via email
+            try {
+                Utils::send_credentials_email($this, $newPassword);
+                $response->email_sent = true;
                 $response->success = true;
-                $response->message = 'Password reset successfully and SMS sent to ' . $this->phone_number;
-            } else {
-                $response->success = false;
-                $response->message = 'Password reset but SMS failed: ' . $smsResponse->message;
+                $response->message = 'Password reset and credentials emailed to ' . ($this->email ?: $this->username);
+            } catch (\Exception $e) {
+                // Password was reset, but email failed
+                $response->success = true;
+                $response->message = 'Password reset to ' . $newPassword . ' but email failed: ' . $e->getMessage();
             }
 
             return $response;
@@ -152,15 +130,12 @@ class Administrator extends BaseAdministrator
         } catch (\Exception $e) {
             $response->message = 'Error during password reset: ' . $e->getMessage();
             return $response;
-        } catch (\Throwable $e) {
-            $response->message = 'Critical error: ' . $e->getMessage();
-            return $response;
         }
     }
 
     /**
-     * Send welcome SMS with custom message
-     * 
+     * Send welcome email with custom message
+     *
      * @param string|null $customMessage Custom message to send (optional)
      * @return object Response object
      */
@@ -169,51 +144,16 @@ class Administrator extends BaseAdministrator
         $response = (object)[
             'success' => false,
             'message' => '',
-            'sms_response' => null
         ];
 
         try {
-            // Validate phone number
-            if (empty($this->phone_number)) {
-                $response->message = 'User has no phone number registered';
-                return $response;
-            }
-
-            if (!Utils::phone_number_is_valid($this->phone_number)) {
-                $response->message = 'Invalid phone number: ' . $this->phone_number;
-                return $response;
-            }
-
-            // Prepare message
-            $appName = env('APP_NAME', 'DTEHM Insurance');
-            $userName = $this->name ?? $this->first_name ?? 'User';
-
-            if ($customMessage) {
-                $message = $customMessage;
-            } else {
-                $message = "Hello {$userName}! Welcome to {$appName}. "
-                         . "Get comprehensive insurance coverage at your fingertips. "
-                         . "Download our app today and secure your future!";
-            }
-
-            // Send SMS
-            $smsResponse = Utils::sendSMS($this->phone_number, $message);
-            $response->sms_response = $smsResponse;
-
-            if ($smsResponse->success) {
-                $response->success = true;
-                $response->message = 'Welcome SMS sent successfully to ' . $this->phone_number;
-            } else {
-                $response->message = 'Failed to send SMS: ' . $smsResponse->message;
-            }
-
+            Utils::send_welcome_email($this, $customMessage);
+            $response->success = true;
+            $response->message = 'Welcome email sent to ' . ($this->email ?: $this->username);
             return $response;
 
         } catch (\Exception $e) {
-            $response->message = 'Error sending welcome SMS: ' . $e->getMessage();
-            return $response;
-        } catch (\Throwable $e) {
-            $response->message = 'Critical error: ' . $e->getMessage();
+            $response->message = 'Failed to send welcome email: ' . $e->getMessage();
             return $response;
         }
     }

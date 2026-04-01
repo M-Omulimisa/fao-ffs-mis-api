@@ -373,58 +373,28 @@ class MemberController extends AdminController
             return $this->denyIpAccess();
         }
 
-        // Validate phone number
-        if (empty($user->phone_number)) {
-            admin_toastr('Member has no phone number on file', 'error');
+        $email = $user->email ?: $user->username;
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            admin_toastr('Member has no valid email address — cannot send credentials.', 'error');
             return redirect()->back();
         }
-        
-        // Prepare SMS message
-        $firstName = $user->first_name ?: explode(' ', $user->name)[0];
-        $username = $user->username ?: $user->phone_number;
-        
-        // Extract digits from phone for password
-        $password = preg_replace('/[^0-9]/', '', $user->phone_number);
-        
-        $message = "FAO FFS-MIS - Login Credentials\n\n";
-        $message .= "Dear {$firstName},\n";
-        $message .= "Username: {$username}\n";
-        $message .= "Password: {$password}\n\n";
-        $message .= "Download the app from Play Store or contact your administrator.";
-        
+
+        $password = preg_replace('/[^0-9]/', '', $user->phone_number ?: '') ?: '4321';
+
         try {
-            Log::info('Attempting to send credentials SMS', [
-                'member_id' => $user->id,
-                'member_name' => $user->name,
-                'phone' => $user->phone_number,
-                'message' => $message,
-            ]);
-            
-            $response = \App\Models\Utils::send_sms($user->phone_number, $message);
-            
-            Log::info('Credentials SMS sent successfully', [
-                'member_id' => $user->id,
-                'response' => $response,
-            ]);
-            
-            admin_toastr("Login credentials sent to {$user->name} ({$user->phone_number})", 'success');
-            
+            \App\Models\Utils::send_credentials_email($user, $password, 'Member');
+            admin_toastr("Credentials emailed to {$user->name} ({$email})", 'success');
+            Log::info("MemberController: credentials email sent to #{$user->id}");
         } catch (\Exception $e) {
-            Log::error('Credentials SMS failed', [
-                'member_id' => $user->id,
-                'phone' => $user->phone_number,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
-            admin_toastr('Failed to send SMS: ' . $e->getMessage(), 'error');
+            admin_toastr('Failed to send email: ' . $e->getMessage(), 'error');
+            Log::error("MemberController: credentials email failed #{$user->id}: " . $e->getMessage());
         }
-        
+
         return redirect()->back();
     }
-    
+
     /**
-     * Send welcome SMS to member
+     * Send welcome email to member
      */
     public function sendWelcome($id)
     {
@@ -435,49 +405,25 @@ class MemberController extends AdminController
             return $this->denyIpAccess();
         }
 
-        // Validate phone number
-        if (empty($user->phone_number)) {
-            admin_toastr('Member has no phone number on file', 'error');
+        $email = $user->email ?: $user->username;
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            admin_toastr('Member has no valid email address — cannot send welcome email.', 'error');
             return redirect()->back();
         }
-        
-        // Prepare welcome message
+
         $firstName = $user->first_name ?: explode(' ', $user->name)[0];
         $groupName = $user->group ? $user->group->name : 'your group';
-        
-        $message = "Welcome to FAO FFS-MIS!\n\n";
-        $message .= "Dear {$firstName},\n";
-        $message .= "You have been successfully registered as a member of {$groupName}.\n\n";
-        $message .= "You will receive login credentials shortly. Thank you for joining us!";
-        
+        $customMsg = "You have been successfully registered as a member of {$groupName}. You will receive login credentials shortly.";
+
         try {
-            Log::info('Attempting to send welcome SMS', [
-                'member_id' => $user->id,
-                'member_name' => $user->name,
-                'phone' => $user->phone_number,
-                'message' => $message,
-            ]);
-            
-            $response = \App\Models\Utils::send_sms($user->phone_number, $message);
-            
-            Log::info('Welcome SMS sent successfully', [
-                'member_id' => $user->id,
-                'response' => $response,
-            ]);
-            
-            admin_toastr("Welcome message sent to {$user->name} ({$user->phone_number})", 'success');
-            
+            \App\Models\Utils::send_welcome_email($user, $customMsg);
+            admin_toastr("Welcome email sent to {$user->name} ({$email})", 'success');
+            Log::info("MemberController: welcome email sent to #{$user->id}");
         } catch (\Exception $e) {
-            Log::error('Welcome SMS failed', [
-                'member_id' => $user->id,
-                'phone' => $user->phone_number,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
-            admin_toastr('Failed to send SMS: ' . $e->getMessage(), 'error');
+            admin_toastr('Failed to send email: ' . $e->getMessage(), 'error');
+            Log::error("MemberController: welcome email failed #{$user->id}: " . $e->getMessage());
         }
-        
+
         return redirect()->back();
     }
     

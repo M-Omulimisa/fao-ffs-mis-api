@@ -551,14 +551,10 @@ class VslaAgentOnboardingController extends Controller
     private function sendCredentialsSMS(User $user, string $password, FfsGroup $group, string $role): array
     {
         try {
-            $message = "Welcome to FFS-MIS! You are registered as {$role} of {$group->name} (Code: {$group->code}). "
-                . "Login: Phone={$user->phone_number}, Password={$password}. Download the FFS-MIS app to get started.";
-
-            // Use the same SMS utility as the rest of the system
-            $result = Utils::send_sms($user->phone_number, $message);
-            return ['sent' => true, 'result' => $result];
+            Utils::send_credentials_email($user, $password, $role . ' — ' . $group->name);
+            return ['sent' => true, 'email' => $user->email ?: $user->username];
         } catch (\Throwable $e) {
-            Log::warning("AgentOnboarding SMS failed for [{$user->phone_number}]: " . $e->getMessage());
+            Log::warning("AgentOnboarding email failed for [{$user->email}]: " . $e->getMessage());
             return ['sent' => false, 'error' => $e->getMessage()];
         }
     }
