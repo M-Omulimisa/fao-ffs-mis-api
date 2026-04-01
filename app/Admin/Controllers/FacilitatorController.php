@@ -25,16 +25,25 @@ class FacilitatorController extends AdminController
      */
     private function facilitatorIds()
     {
+        // Source 1: users assigned as facilitator on a group
         $fromGroups = DB::table('ffs_groups')
             ->whereNotNull('facilitator_id')
             ->distinct()
             ->pluck('facilitator_id');
 
+        // Source 2: users with a facilitator start date
         $fromDate = DB::table('users')
             ->whereNotNull('facilitator_start_date')
             ->pluck('id');
 
-        return $fromGroups->merge($fromDate)->unique()->values();
+        // Source 3: users with the field_facilitator role
+        $fromRole = DB::table('admin_role_users')
+            ->join('admin_roles', 'admin_roles.id', '=', 'admin_role_users.role_id')
+            ->where('admin_roles.slug', 'field_facilitator')
+            ->distinct()
+            ->pluck('admin_role_users.user_id');
+
+        return $fromGroups->merge($fromDate)->merge($fromRole)->unique()->values();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -48,7 +57,7 @@ class FacilitatorController extends AdminController
         $currentAdmin  = Admin::user();
         $isSuperAdmin  = $this->isSuperAdmin();
         $isFacilitator = !$isSuperAdmin && $currentAdmin
-            && $this->userHasRoleSlug($currentAdmin, 'facilitator');
+            && $this->userHasRoleSlug($currentAdmin, 'field_facilitator');
         $ipId = $this->getAdminIpId();
 
         // ── Base scope: users who are facilitators (linked to a group OR have start date) ──
