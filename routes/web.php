@@ -38,6 +38,11 @@ Route::get('/auth/login', [AuthController::class, 'showLoginForm'])->name('login
 Route::post('/auth/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Redirect Laravel Admin's default login to our branded login page
+Route::get('/admin/auth/login', function () {
+    return redirect()->route('login');
+});
+
 // Forgot / reset password (web portal)
 Route::get('/auth/forgot-password',  [WebForgotPasswordController::class, 'showForm'])->name('forgot-password');
 Route::post('/auth/forgot-password', [WebForgotPasswordController::class, 'sendOtp'])->name('forgot-password.send');

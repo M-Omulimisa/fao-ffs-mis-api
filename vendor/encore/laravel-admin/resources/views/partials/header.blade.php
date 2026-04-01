@@ -32,13 +32,13 @@ use App\Models\Utils;
                 <!-- User Account Menu -->
                 <li class="dropdown user user-menu">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        <img src="{{ Admin::user()->avatar }}" class="user-image" alt="User Image" style="cursor:pointer;">
-                        <span class="hidden-xs">{{ Admin::user()->name }}</span>
+                        <img src="{{ Admin::user()->avatar }}" class="user-image" alt="User Image" style="cursor:pointer;width:25px;height:25px;object-fit:cover;border-radius:50%;">
+                        <span class="hidden-xs" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;">{{ Admin::user()->name }}</span>
                     </a>
                     <ul class="dropdown-menu">
                         <li class="user-header">
-                            <a href="{{ admin_url('auth/setting') }}">
-                                <img src="{{ Admin::user()->avatar }}" class="img-circle" alt="User Image" style="cursor:pointer;border:3px solid rgba(255,255,255,0.5);">
+                            <a href="{{ admin_url('auth/setting') }}" style="display:inline-block;line-height:0;">
+                                <img src="{{ Admin::user()->avatar }}" class="img-circle" alt="User Image" style="cursor:pointer;border:3px solid rgba(255,255,255,0.5);width:70px;height:70px;object-fit:cover;">
                             </a>
                             <p>
                                 {{ Admin::user()->name }}
