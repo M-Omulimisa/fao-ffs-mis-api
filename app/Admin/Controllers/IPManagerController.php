@@ -273,10 +273,23 @@ class IPManagerController extends AdminController
             return $form;
         }
 
-        $this->addIpFieldToForm($form);
-
         // IP Managers are Admin-type users
         $form->hidden('user_type')->default('Admin');
+
+        // ── Implementing Partner (explicit dropdown instead of trait) ──
+        $allIpOptions = ImplementingPartner::query()
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(function ($ip) {
+                $short = $ip->short_name ? " ({$ip->short_name})" : '';
+                return [$ip->id => "{$ip->name}{$short}"];
+            })
+            ->toArray();
+
+        $form->select('ip_id', 'Implementing Partner')
+            ->options($allIpOptions)
+            ->rules('required')
+            ->help('Select the IP this manager belongs to');
 
         // ── Personal information ──
         $form->row(function ($row) {
