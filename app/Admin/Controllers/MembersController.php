@@ -173,7 +173,6 @@ class MembersController extends AdminController
 
         $show->field('id', __('Id'));
         $show->field('username', __('Username'));
-        $show->field('password', __('Password'));
         $show->field('first_name', __('First name'));
         $show->field('last_name', __('Last name'));
         $show->field('reg_date', __('Reg date'));
@@ -221,7 +220,7 @@ class MembersController extends AdminController
         $form = new Form(new User());
 
         $form->text('username', __('Username'));
-        $form->textarea('password', __('Password'));
+        $form->password('password', __('Password'))->help('Leave blank to keep current password');
         $form->text('first_name', __('First name'));
         $form->text('last_name', __('Last name'));
         $form->text('reg_date', __('Reg date'));
@@ -260,6 +259,13 @@ class MembersController extends AdminController
 
         // Auto-create membership payment when user is marked as paid
         $form->saving(function (Form $form) {
+            // Protect password: hash if new, unset if empty
+            if (!empty($form->password)) {
+                $form->password = bcrypt($form->password);
+            } else {
+                unset($form->password);
+            }
+
             // Check if this is a new user being created and is_membership_paid is checked
             if ($form->isCreating() && $form->is_membership_paid == 1) {
                 // Will create membership payment after user is saved

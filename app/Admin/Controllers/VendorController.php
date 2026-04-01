@@ -94,7 +94,6 @@ class VendorController extends AdminController
 
         $show->field('id', __('Id'));
         $show->field('username', __('Username'));
-        $show->field('password', __('Password'));
         $show->field('first_name', __('First name'));
         $show->field('last_name', __('Last name'));
         $show->field('reg_date', __('Reg date'));

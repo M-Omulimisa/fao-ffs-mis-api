@@ -273,6 +273,29 @@ class User extends Administrator implements JWTSubject
         ) {
             $user->phone_number = $user->getOriginal('phone_number');
         }
+
+        // Protect password: never allow a hashed password to be overwritten
+        // with an empty value or an unhashed string (non-bcrypt)
+        if ($user->isDirty('password')) {
+            $newPassword = $user->password;
+            $originalPassword = $user->getOriginal('password');
+
+            // If new password is empty/null, revert to original
+            if (empty($newPassword) || trim($newPassword) === '') {
+                if (!empty($originalPassword)) {
+                    $user->password = $originalPassword;
+                }
+            }
+            // If new password looks like it's already a bcrypt hash being
+            // re-submitted unchanged (e.g. from a textarea), revert
+            elseif ($newPassword === $originalPassword) {
+                // No change needed, but prevent accidental double-hash
+            }
+            // If new password is NOT a bcrypt hash, hash it (defense-in-depth)
+            elseif (!str_starts_with($newPassword, '$2y$') && !str_starts_with($newPassword, '$2a$')) {
+                $user->password = bcrypt($newPassword);
+            }
+        }
     }
 
     /**
