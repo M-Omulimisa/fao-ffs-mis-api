@@ -616,9 +616,11 @@ class MemberController extends AdminController
 
             if ($form->isCreating()) {
                 $row->width(6)->password('password', 'Password')
+                    ->default('')
                     ->help('Optional — phone number digits used if left blank');
             } else {
                 $row->width(6)->password('password', 'Change Password')
+                    ->default('')
                     ->help('Leave blank to keep current password');
             }
         });
@@ -713,8 +715,16 @@ class MemberController extends AdminController
                     unset($form->phone_number);
                 }
 
-                if (!empty($form->password)) {
-                    $form->password = bcrypt($form->password);
+                // Protect password: only hash if user typed a NEW password
+                $submittedPassword = $form->password;
+                if (!empty($submittedPassword)) {
+                    // If the submitted value is already a bcrypt hash (i.e. the form
+                    // auto-populated the existing hash), skip it — user didn't change it
+                    if (str_starts_with($submittedPassword, '$2y$') || str_starts_with($submittedPassword, '$2a$')) {
+                        unset($form->password);
+                    } else {
+                        $form->password = bcrypt($submittedPassword);
+                    }
                 } else {
                     unset($form->password);
                 }
