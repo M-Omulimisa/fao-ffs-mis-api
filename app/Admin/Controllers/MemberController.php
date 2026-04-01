@@ -54,11 +54,12 @@ class MemberController extends AdminController
                   ->orWhere('last_name', 'like', "%{$query}%")
                   ->orWhere('phone_number', 'like', "%{$query}%")
                   ->orWhere('phone_number_2', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%")
                   ->orWhereHas('group', function ($gq) use ($query) {
                       $gq->where('name', 'like', "%{$query}%");
                   });
             });
-        })->placeholder('Search member name, phone, or group name...');
+        })->placeholder('Search name, phone, email or group...');
 
         // Disable batch deletion but allow batch export
         $grid->actions(function ($actions) {
