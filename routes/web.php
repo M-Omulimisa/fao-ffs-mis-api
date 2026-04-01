@@ -19,10 +19,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('tests', function () {
-    $u = User::find(1);
-    $u->password = password_has
-    DD('$u->password');
-    die("testihin....");
+    dd("test");
 });
 /*
 |--------------------------------------------------------------------------
@@ -500,34 +497,33 @@ Route::get('fix-projects', function () {
         'Property Wealth Builder' => 50000,
         'Motorcycle Taxi Fleet' => 200,
     ];
-    
+
     $results = [];
     DB::beginTransaction();
-    
+
     try {
         foreach ($updates as $title => $totalShares) {
             $project = \App\Models\Project::where('title', $title)->first();
-            
+
             if ($project) {
                 $oldShares = $project->total_shares;
                 $project->total_shares = $totalShares;
                 $project->save();
-                
+
                 $results[] = "{$project->title}: {$oldShares} → {$totalShares} shares";
             }
         }
-        
+
         DB::commit();
-        
+
         $allProjects = \App\Models\Project::all(['id', 'title', 'status', 'total_shares', 'shares_sold']);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Projects fixed!',
             'updates' => $results,
             'all_projects' => $allProjects
         ]);
-        
     } catch (\Exception $e) {
         DB::rollBack();
         return response()->json([
