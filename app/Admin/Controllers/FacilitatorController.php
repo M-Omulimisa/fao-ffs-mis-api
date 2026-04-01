@@ -373,7 +373,17 @@ class FacilitatorController extends AdminController
         // ── Saving logic ──────────────────────────────────────────────────
         $form->saving(function (Form $form) {
             $form->user_type = 'Customer';
-            $form->name      = trim($form->first_name . ' ' . $form->last_name);
+
+            // Build name safely — only if both parts are present
+            $first = trim($form->first_name ?? '');
+            $last  = trim($form->last_name ?? '');
+            if ($first !== '' && $last !== '') {
+                $form->name = trim($first . ' ' . $last);
+            } elseif ($first !== '') {
+                $form->name = $first;
+            } elseif ($last !== '') {
+                $form->name = $last;
+            }
 
             if ($form->isCreating()) {
                 if (empty($form->username) && !empty($form->phone_number)) {
@@ -404,6 +414,16 @@ class FacilitatorController extends AdminController
                     $form->username = preg_replace('/[^0-9]/', '', $form->phone_number);
                 } elseif (empty($form->username)) {
                     unset($form->username); // keep existing DB value, don't blank it
+                }
+
+                // Protect email from being wiped on update
+                if (empty(trim((string) ($form->email ?? '')))) {
+                    unset($form->email);
+                }
+
+                // Protect phone_number from being wiped on update
+                if (empty(trim((string) ($form->phone_number ?? '')))) {
+                    unset($form->phone_number);
                 }
 
                 if (!empty($form->password)) {

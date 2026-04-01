@@ -11,7 +11,7 @@ use App\Models\Utils;
 use App\Traits\ApiResponser;
 use App\Traits\PhoneNumberNormalization;
 use Carbon\Carbon;
-use Encore\Admin\Auth\Database\Administrator;
+use App\Models\Administrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -208,7 +208,7 @@ class VslaAgentOnboardingController extends Controller
 
         DB::beginTransaction();
         try {
-            // Chairperson uses custom password (default 4321) — always encrypted
+            // Chairperson uses custom password (default 4321 for new members) — always encrypted
             $chairPassword = $request->chairperson_password ?? '4321';
             $chairperson   = $this->createOrUpdateOfficer(
                 $request->chairperson_name,
@@ -532,17 +532,16 @@ class VslaAgentOnboardingController extends Controller
         $user->address             = $user->address ?? '';
         $user->occupation          = $user->occupation ?? '';
 
-        $user->saveQuietly();
+        $user->save();
 
         // If no phone was provided, fall back to member_code as the unique identifier
         if (!$phone) {
             $saved = User::find($user->id);
             if ($saved && $saved->member_code) {
-                $saved->updateQuietly([
-                    'phone_number' => $saved->member_code,
-                    'username'     => $saved->member_code,
-                    'reg_number'   => $saved->member_code,
-                ]);
+                $saved->phone_number = $saved->member_code;
+                $saved->username     = $saved->member_code;
+                $saved->reg_number   = $saved->member_code;
+                $saved->save();
             }
         }
 

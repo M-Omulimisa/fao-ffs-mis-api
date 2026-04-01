@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
- 
+
 use Encore\Admin\Auth\Database\Administrator;
 use Encore\Admin\Form\Field\BelongsToMany;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -24,31 +24,73 @@ class User extends Administrator implements JWTSubject
      * Allow all fields to be mass-assignable (validation is in boot events).
      */
     protected $fillable = [
-        'username', 'password', 'name', 'avatar',
-        'first_name', 'last_name', 'email', 'phone_number', 'phone_number_2',
-        'sex', 'dob', 'marital_status', 'household_size', 'education_level',
-        'occupation', 'national_id_number', 'nin',
-        'user_type', 'status', 'group_id', 'ip_id',
-        'district_id', 'subcounty_id', 'parish_id', 'village', 'district_name',
-        'is_group_admin', 'is_group_secretary', 'is_group_treasurer',
-        'onboarding_step', 'onboarding_completed_at', 'last_onboarding_step_at',
-        'emergency_contact_name', 'emergency_contact_phone',
-        'balance', 'loan_balance', 'member_code',
-        'registered_by_id', 'created_by_id',
-        'is_membership_paid', 'membership_paid_at', 'membership_amount',
-        'membership_payment_id', 'membership_type', 'membership_expiry_date',
-        'business_name', 'business_phone_number', 'business_email',
-        'business_address', 'business_whatsapp', 'business_logo',
-        'disabilities', 'skills', 'remarks',
-        'location_lat', 'location_long', 'address',
-        'about', 'intro', 'title',
+        'username',
+        'password',
+        'name',
+        'avatar',
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',
+        'phone_number_2',
+        'sex',
+        'dob',
+        'marital_status',
+        'household_size',
+        'education_level',
+        'occupation',
+        'national_id_number',
+        'nin',
+        'user_type',
+        'status',
+        'group_id',
+        'ip_id',
+        'district_id',
+        'subcounty_id',
+        'parish_id',
+        'village',
+        'district_name',
+        'is_group_admin',
+        'is_group_secretary',
+        'is_group_treasurer',
+        'onboarding_step',
+        'onboarding_completed_at',
+        'last_onboarding_step_at',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'balance',
+        'loan_balance',
+        'member_code',
+        'registered_by_id',
+        'created_by_id',
+        'is_membership_paid',
+        'membership_paid_at',
+        'membership_amount',
+        'membership_payment_id',
+        'membership_type',
+        'membership_expiry_date',
+        'business_name',
+        'business_phone_number',
+        'business_email',
+        'business_address',
+        'business_whatsapp',
+        'business_logo',
+        'disabilities',
+        'skills',
+        'remarks',
+        'location_lat',
+        'location_long',
+        'address',
+        'about',
+        'intro',
+        'title',
     ];
     protected $guarded = [];
 
     /**
      * Boot method to handle model events - Simplified for FAO FFS-MIS
      */
-    public static function boot() 
+    public static function boot()
     {
         parent::boot();
 
@@ -89,9 +131,8 @@ class User extends Administrator implements JWTSubject
             self::validateUniqueFields($user, true);
             self::preventCriticalFieldWipe($user);
         });
-        
     }
-    
+
     /**
      * Generate unique member code for FAO FFS-MIS
      */
@@ -100,13 +141,13 @@ class User extends Administrator implements JWTSubject
         if (!empty($user->member_code)) {
             return;
         }
-        
+
         // Format: XXX-MEM-YY-NNNN
         // XXX = District code (first 3 letters)
         // MEM = Member
         // YY = Year (25 for 2025)
         // NNNN = Sequential number
-        
+
         $districtCode = 'XXX';
         if ($user->district_id) {
             $district = \App\Models\Location::find($user->district_id);
@@ -114,20 +155,20 @@ class User extends Administrator implements JWTSubject
                 $districtCode = strtoupper(substr($district->name, 0, 3));
             }
         }
-        
+
         $year = date('y');
-        
+
         // Get the last member code for this district and year
         $lastMember = self::where('member_code', 'like', "$districtCode-MEM-$year-%")
             ->orderBy('member_code', 'desc')
             ->first();
-        
+
         if ($lastMember && preg_match('/-(\d{4})$/', $lastMember->member_code, $matches)) {
             $nextNumber = intval($matches[1]) + 1;
         } else {
             $nextNumber = 1;
         }
-        
+
         $user->member_code = sprintf('%s-MEM-%s-%04d', $districtCode, $year, $nextNumber);
     }
 
@@ -140,37 +181,32 @@ class User extends Administrator implements JWTSubject
         if (!empty($user->phone_number)) {
             $user->phone_number = self::normalizePhoneNumber($user->phone_number);
         }
-        
-        // Normalize and validate business_phone_number
-        if (!empty($user->business_phone_number)) {
-            $user->business_phone_number = self::normalizePhoneNumber($user->business_phone_number);
-        }
-        
+
         // Normalize emergency contact phone
         if (!empty($user->emergency_contact_phone)) {
             $user->emergency_contact_phone = self::normalizePhoneNumber($user->emergency_contact_phone);
         }
-        
+
         // Trim email if not empty
         if (!empty($user->email)) {
             $user->email = trim($user->email);
         }
-        
+
         // Trim name if not empty
         if (!empty($user->name)) {
             $user->name = trim($user->name);
         }
-        
+
         // Trim first_name if not empty
         if (!empty($user->first_name)) {
             $user->first_name = trim($user->first_name);
         }
-        
+
         // Trim last_name if not empty
         if (!empty($user->last_name)) {
             $user->last_name = trim($user->last_name);
         }
-        
+
         // Trim address if not empty
         if (!empty($user->address)) {
             $user->address = trim($user->address);
@@ -219,6 +255,24 @@ class User extends Administrator implements JWTSubject
         ) {
             $user->email = $user->getOriginal('email');
         }
+
+        // Protect username: never allow it to be wiped
+        if (
+            $user->isDirty('username')
+            && (empty($user->username) || trim($user->username) === '')
+            && !empty($user->getOriginal('username'))
+        ) {
+            $user->username = $user->getOriginal('username');
+        }
+
+        // Protect phone_number: never allow it to be wiped
+        if (
+            $user->isDirty('phone_number')
+            && (empty($user->phone_number) || trim($user->phone_number) === '')
+            && !empty($user->getOriginal('phone_number'))
+        ) {
+            $user->phone_number = $user->getOriginal('phone_number');
+        }
     }
 
     /**
@@ -228,30 +282,30 @@ class User extends Administrator implements JWTSubject
     {
         // Remove all spaces, dashes, parentheses
         $phone = preg_replace('/[\s\-\(\)]+/', '', trim($phone));
-        
+
         // If empty after cleaning, return null
         if (empty($phone)) {
             return null;
         }
-        
+
         // Remove leading zeros
         $phone = ltrim($phone, '0');
-        
+
         // If it starts with 256, add +
         if (substr($phone, 0, 3) === '256') {
             return '+' . $phone;
         }
-        
+
         // If it starts with +256, return as is
         if (substr($phone, 0, 4) === '+256') {
             return $phone;
         }
-        
+
         // If it's 9 digits (Uganda mobile without country code), add +256
         if (strlen($phone) === 9) {
             return '+256' . $phone;
         }
-        
+
         // Otherwise, assume it needs +256 prefix
         return '+256' . $phone;
     }
@@ -264,21 +318,21 @@ class User extends Administrator implements JWTSubject
         // If name is provided but first_name or last_name is empty, split the name
         if (!empty($user->name) && (empty($user->first_name) || empty($user->last_name))) {
             $nameParts = self::splitFullName($user->name);
-            
+
             if (empty($user->first_name)) {
                 $user->first_name = $nameParts['first_name'];
             }
-            
+
             if (empty($user->last_name)) {
                 $user->last_name = $nameParts['last_name'];
             }
         }
-        
+
         // If first_name and last_name are provided but name is empty, combine them
         if (!empty($user->first_name) && !empty($user->last_name) && empty($user->name)) {
             $user->name = trim($user->first_name . ' ' . $user->last_name);
         }
-        
+
         // If only name is provided during update, always split it
         if (!empty($user->name) && $user->isDirty('name')) {
             $nameParts = self::splitFullName($user->name);
@@ -294,10 +348,10 @@ class User extends Administrator implements JWTSubject
     {
         // Trim and remove extra spaces
         $fullName = preg_replace('/\s+/', ' ', trim($fullName));
-        
+
         // Split by space
         $parts = explode(' ', $fullName);
-        
+
         if (count($parts) == 1) {
             // Only one name provided - use it for both
             return [
@@ -314,7 +368,7 @@ class User extends Administrator implements JWTSubject
             // Three or more names - first name is first part, last name is everything else
             $firstName = array_shift($parts);
             $lastName = implode(' ', $parts);
-            
+
             return [
                 'first_name' => $firstName,
                 'last_name' => $lastName
@@ -327,29 +381,30 @@ class User extends Administrator implements JWTSubject
      */
     protected static function validateUniqueFields($user, $isUpdate = false)
     {
+
         // Validate email uniqueness (if provided and not null)
-        if (!empty($user->email) && $user->email !== null) {
+        if (!empty($user->email) && $user->email !== null && strlen($user->email) > 6) {
             $emailQuery = self::where('email', $user->email);
-            
+
             // Exclude current user ID when updating
             if ($isUpdate && $user->id) {
                 $emailQuery->where('id', '!=', $user->id);
             }
-            
+
             if ($emailQuery->exists()) {
                 throw new \Exception("The email '{$user->email}' is already registered. Please use a different email address.");
             }
         }
 
         // Validate phone_number uniqueness (if provided and not null)
-        if (!empty($user->phone_number) && $user->phone_number !== null) {
+        if (!empty($user->phone_number) && $user->phone_number !== null && strlen($user->phone_number) > 6) {
             $phoneQuery = self::where('phone_number', $user->phone_number);
-            
+
             // Exclude current user ID when updating
             if ($isUpdate && $user->id) {
                 $phoneQuery->where('id', '!=', $user->id);
             }
-            
+
             if ($phoneQuery->exists()) {
                 throw new \Exception("The phone number '{$user->phone_number}' is already registered. Please use a different phone number.");
             }
@@ -395,7 +450,6 @@ class User extends Administrator implements JWTSubject
             }
 
             $user->business_name = $dipId;
-
         } catch (\Exception $e) {
             // If generation fails, log the error but don't block user creation
             \Log::error('DIP ID generation failed: ' . $e->getMessage());
@@ -448,7 +502,6 @@ class User extends Administrator implements JWTSubject
             if (empty($user->dtehm_member_membership_date)) {
                 $user->dtehm_member_membership_date = now();
             }
-
         } catch (\Exception $e) {
             \Log::error('DTEHM Member ID generation failed: ' . $e->getMessage());
         }
@@ -468,12 +521,12 @@ class User extends Administrator implements JWTSubject
 
             // Find the sponsor (parent_1) - try DIP ID first, then DTEHM ID
             $currentParent = self::where('business_name', $user->sponsor_id)->first();
-            
+
             // If not found by DIP ID, try DTEHM Member ID
             if (!$currentParent) {
                 $currentParent = self::where('dtehm_member_id', $user->sponsor_id)->first();
             }
-            
+
             if (!$currentParent) {
                 return; // Sponsor not found
             }
@@ -516,11 +569,10 @@ class User extends Administrator implements JWTSubject
             if (!empty($parents)) {
                 // Use update query to avoid triggering events again
                 self::where('id', $user->id)->update($parents);
-                
+
                 // Refresh the model instance to reflect changes
                 $user->refresh();
             }
-
         } catch (\Exception $e) {
             \Log::error("Parent hierarchy population failed for user ID {$user->id}: " . $e->getMessage());
         }
@@ -539,7 +591,7 @@ class User extends Administrator implements JWTSubject
 
         // Try to find by DIP ID (business_name) first
         $sponsor = self::where('business_name', $this->sponsor_id)->first();
-        
+
         // If not found, try DTEHM Member ID
         if (!$sponsor) {
             $sponsor = self::where('dtehm_member_id', $this->sponsor_id)->first();
@@ -556,14 +608,14 @@ class User extends Administrator implements JWTSubject
     public function sponsoredUsers()
     {
         $users = collect([]);
-        
+
         // Get users by DIP ID
         if (!empty($this->business_name)) {
             $users = $users->merge(
                 self::where('sponsor_id', $this->business_name)->get()
             );
         }
-        
+
         // Get users by DTEHM Member ID
         if (!empty($this->dtehm_member_id)) {
             $users = $users->merge(
@@ -628,7 +680,7 @@ class User extends Administrator implements JWTSubject
     public function getAllGenerations()
     {
         $generations = [];
-        
+
         for ($i = 1; $i <= 10; $i++) {
             $generations["gen_{$i}"] = $this->getGenerationUsers($i);
         }
@@ -644,7 +696,7 @@ class User extends Administrator implements JWTSubject
     public function getTotalDownlineCount()
     {
         $total = 0;
-        
+
         for ($i = 1; $i <= 10; $i++) {
             $total += $this->getGenerationCount($i);
         }
@@ -682,7 +734,7 @@ class User extends Administrator implements JWTSubject
     public function getAllParents()
     {
         $parents = [];
-        
+
         for ($i = 1; $i <= 10; $i++) {
             $parent = $this->getParentAtLevel($i);
             if ($parent) {
@@ -783,7 +835,7 @@ class User extends Administrator implements JWTSubject
     {
         $u = $this;
         $u->intro = rand(100000, 999999);
-        $u->save(); 
+        $u->save();
         $data['email'] = $email;
         if ($email == null || $email == "") {
             throw new \Exception("Email is required.");
@@ -816,7 +868,7 @@ class User extends Administrator implements JWTSubject
     {
         return $this->hasMany(UserHasProgram::class, 'user_id');
     }
-    
+
     /**
      * Get the Implementing Partner this user belongs to
      */
@@ -832,7 +884,7 @@ class User extends Administrator implements JWTSubject
     {
         return $this->belongsTo(\App\Models\FfsGroup::class, 'group_id');
     }
-    
+
     /**
      * Get the district
      */
@@ -840,7 +892,7 @@ class User extends Administrator implements JWTSubject
     {
         return $this->belongsTo(\App\Models\Location::class, 'district_id');
     }
-    
+
     /**
      * Get the subcounty
      */
@@ -848,7 +900,7 @@ class User extends Administrator implements JWTSubject
     {
         return $this->belongsTo(\App\Models\Location::class, 'subcounty_id');
     }
-    
+
     /**
      * Get the parish
      */
@@ -1085,7 +1137,7 @@ class User extends Administrator implements JWTSubject
 
             // Hash and save password
             $this->password = password_hash($newPassword, PASSWORD_DEFAULT);
-            
+
             try {
                 $this->save();
             } catch (\Exception $e) {
@@ -1096,11 +1148,11 @@ class User extends Administrator implements JWTSubject
             // Prepare welcome message with credentials
             $appName = env('APP_NAME', 'DTEHM Insurance');
             $userName = $this->name ?? $this->first_name ?? 'User';
-            
+
             $message = "Welcome to {$appName}! Your login credentials:\n"
-                     . "Email: {$this->email}\n"
-                     . "Password: {$newPassword}\n"
-                     . "Download our app to get started!";
+                . "Email: {$this->email}\n"
+                . "Password: {$newPassword}\n"
+                . "Download our app to get started!";
 
             // Send SMS
             $smsResponse = Utils::sendSMS($this->phone_number, $message);
@@ -1116,7 +1168,6 @@ class User extends Administrator implements JWTSubject
             }
 
             return $response;
-
         } catch (\Exception $e) {
             $response->message = 'Error during password reset: ' . $e->getMessage();
             return $response;
@@ -1160,8 +1211,8 @@ class User extends Administrator implements JWTSubject
                 $message = $customMessage;
             } else {
                 $message = "Hello {$userName}! Welcome to {$appName}. "
-                         . "Get comprehensive insurance coverage at your fingertips. "
-                         . "Download our app today and secure your future!";
+                    . "Get comprehensive insurance coverage at your fingertips. "
+                    . "Download our app today and secure your future!";
             }
 
             // Send SMS
@@ -1176,7 +1227,6 @@ class User extends Administrator implements JWTSubject
             }
 
             return $response;
-
         } catch (\Exception $e) {
             $response->message = 'Error sending welcome SMS: ' . $e->getMessage();
             return $response;
@@ -1261,5 +1311,27 @@ class User extends Administrator implements JWTSubject
             return; // silently keep existing value
         }
         $this->attributes['email'] = $value !== null ? trim($value) : null;
+    }
+
+    // ── Username protection mutator ──────────────────────────────────────────
+
+    public function setUsernameAttribute($value): void
+    {
+        // Never allow username to be wiped if it already has a value
+        if (($value === null || trim($value) === '') && !empty($this->attributes['username'] ?? null)) {
+            return; // silently keep existing value
+        }
+        $this->attributes['username'] = $value !== null ? trim($value) : null;
+    }
+
+    // ── Phone number protection mutator ──────────────────────────────────────
+
+    public function setPhoneNumberAttribute($value): void
+    {
+        // Never allow phone_number to be wiped if it already has a value
+        if (($value === null || trim($value) === '') && !empty($this->attributes['phone_number'] ?? null)) {
+            return; // silently keep existing value
+        }
+        $this->attributes['phone_number'] = $value !== null ? trim($value) : null;
     }
 }

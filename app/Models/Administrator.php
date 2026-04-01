@@ -5,13 +5,88 @@ namespace App\Models;
 use Encore\Admin\Auth\Database\Administrator as BaseAdministrator;
 
 /**
- * Extended Administrator Model with SMS functionality
+ * Extended Administrator Model with SMS functionality and critical field protection.
+ *
+ * IMPORTANT: This model is used by the admin guard (config/admin.php) and many
+ * controllers. Any save() on an Administrator instance goes through these mutators.
+ * The User model has its own identical mutators (it extends the vendor class directly).
  */
 class Administrator extends BaseAdministrator
 {
+    use \App\Traits\TitleCase;
+
+    // ── Critical field protection mutators ────────────────────────────────────
+    // These prevent username, email, name, phone_number from being wiped to null
+    // when a save() is triggered on an Administrator instance (admin guard, APIs, etc.)
+
+    public function setNameAttribute($value): void
+    {
+        if (($value === null || trim($value) === '') && !empty($this->attributes['name'] ?? null)) {
+            return;
+        }
+        $this->attributes['name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setFirstNameAttribute($value): void
+    {
+        if (($value === null || trim($value) === '') && !empty($this->attributes['first_name'] ?? null)) {
+            return;
+        }
+        $this->attributes['first_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setLastNameAttribute($value): void
+    {
+        if (($value === null || trim($value) === '') && !empty($this->attributes['last_name'] ?? null)) {
+            return;
+        }
+        $this->attributes['last_name'] = $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function setEmailAttribute($value): void
+    {
+        if (($value === null || trim($value) === '') && !empty($this->attributes['email'] ?? null)) {
+            return;
+        }
+        $this->attributes['email'] = $value !== null ? trim($value) : null;
+    }
+
+    public function setUsernameAttribute($value): void
+    {
+        if (($value === null || trim($value) === '') && !empty($this->attributes['username'] ?? null)) {
+            return;
+        }
+        $this->attributes['username'] = $value !== null ? trim($value) : null;
+    }
+
+    public function setPhoneNumberAttribute($value): void
+    {
+        if (($value === null || trim($value) === '') && !empty($this->attributes['phone_number'] ?? null)) {
+            return;
+        }
+        $this->attributes['phone_number'] = $value !== null ? trim($value) : null;
+    }
+
+    // ── Title Case accessors ─────────────────────────────────────────────────
+
+    public function getNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getFirstNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
+    public function getLastNameAttribute($value): ?string
+    {
+        return $value !== null ? $this->toTitleCase($value) : null;
+    }
+
     /**
      * Reset user password and send credentials via SMS
-     * 
+     *
      * @return object Response object with success status and message
      */
     public function resetPasswordAndSendSMS()

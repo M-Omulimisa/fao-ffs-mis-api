@@ -622,11 +622,15 @@ class VslaTransactionController extends Controller
                 ], 404);
             }
 
-            // Get all users who have shares in this project (investors/members)
-            $members = User::whereHas('projectShares', function ($query) use ($projectId) {
-                    $query->where('project_id', $projectId);
+            // Get all group members for this project's group
+            // Include members who haven't bought shares yet so they can participate
+            // NOTE: whereNotIn excludes NULL status rows in SQL, so we must explicitly allow NULL
+            $blockedStatuses = ['Inactive', 'Suspended', 'Banned', 'Deleted', 'Disabled'];
+            $members = User::where('group_id', $project->group_id)
+                ->where(function ($q) use ($blockedStatuses) {
+                    $q->whereNull('status')
+                      ->orWhereNotIn('status', $blockedStatuses);
                 })
-                ->where('status', 1)
                 ->select('id', 'name', 'member_code', 'phone_number', 'email')
                 ->orderBy('name', 'asc')
                 ->get();

@@ -10,7 +10,7 @@ use App\Models\Utils;
 use App\Traits\ApiResponser;
 use App\Traits\PhoneNumberNormalization;
 use Carbon\Carbon;
-use Encore\Admin\Auth\Database\Administrator;
+use App\Models\Administrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -199,21 +199,6 @@ class ApiAuthController extends Controller
             'password' => trim($r->password),
         ]);
 
-        // If login fails but account exists, auto-reset password to 4321 and retry
-        if ($token == null) {
-            try {
-                $u->password = password_hash('4321', PASSWORD_DEFAULT);
-                $u->save();
-            } catch (\Throwable $e) {
-                \Log::error('Auto-reset password save failed for user ' . $u->id . ': ' . $e->getMessage());
-            }
-
-            $token = auth('api')->attempt([
-                'id' => $u->id,
-                'password' => '4321',
-            ]);
-        }
-
         if ($token == null) {
             return $this->error('Wrong credentials.');
         }
@@ -338,7 +323,7 @@ class ApiAuthController extends Controller
             return $this->error('Registration failed: ' . $e->getMessage());
         }
 
-        $new_user = Administrator::find($user->id);
+        $new_user = User::find($user->id);
         if ($new_user == null) {
             return $this->error('Account created successfully but failed to log you in.');
         }

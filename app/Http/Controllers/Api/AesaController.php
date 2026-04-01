@@ -737,7 +737,6 @@ class AesaController extends Controller
                 ->pluck('facilitator_id');
 
             $facilitatorQuery = User::select('id', 'first_name', 'last_name', 'name')
-                ->where('user_type', 'Customer')
                 ->where(function ($q) use ($facilitatorIds) {
                     $q->whereNotNull('facilitator_start_date')
                       ->orWhereIn('id', $facilitatorIds);
@@ -759,7 +758,6 @@ class AesaController extends Controller
 
             // Registered farmers for owner selection (scoped to IP)
             $farmerQuery = User::select('id', 'first_name', 'last_name')
-                ->where('user_type', 'Customer')
                 ->orderBy('first_name');
             if ($ipId) {
                 $farmerQuery->where('ip_id', $ipId);

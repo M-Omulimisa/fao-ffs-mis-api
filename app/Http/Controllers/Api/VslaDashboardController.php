@@ -380,7 +380,6 @@ class VslaDashboardController extends Controller
     {
         $totalMembers = User::where('group_id', $groupId)->count();
         $activeMembers = User::where('group_id', $groupId)
-            ->where('status', 'Active')
             ->count();
         
         $membersWithSavings = AccountTransaction::where('group_id', $groupId)

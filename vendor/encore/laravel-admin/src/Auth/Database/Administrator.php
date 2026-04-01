@@ -58,15 +58,20 @@ class Administrator extends Model implements AuthenticatableContract, JWTSubject
         parent::boot();
 
         self::creating(function ($m) {
-            $n = $m->first_name . " " . $m->last_name;
-            if (strlen(trim($n)) > 1) {
-                $m->name = trim($n);
+            $first = isset($m->attributes['first_name']) ? trim($m->attributes['first_name']) : '';
+            $last  = isset($m->attributes['last_name']) ? trim($m->attributes['last_name']) : '';
+            if ($first !== '' && $last !== '') {
+                $m->name = trim($first . ' ' . $last);
             }
         });
         self::updating(function ($m) {
-            $n = $m->first_name . " " . $m->last_name;
-            if (strlen(trim($n)) > 1) {
-                $m->name = trim($n);
+            // Only rebuild name if first_name or last_name actually changed
+            if ($m->isDirty('first_name') || $m->isDirty('last_name')) {
+                $first = isset($m->attributes['first_name']) ? trim($m->attributes['first_name']) : '';
+                $last  = isset($m->attributes['last_name']) ? trim($m->attributes['last_name']) : '';
+                if ($first !== '' && $last !== '') {
+                    $m->name = trim($first . ' ' . $last);
+                }
             }
         });
     }

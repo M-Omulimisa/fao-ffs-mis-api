@@ -31,7 +31,7 @@ use App\Models\Utils;
 use App\Services\PesapalService;
 use App\Traits\ApiResponser;
 use Carbon\Carbon;
-use Encore\Admin\Auth\Database\Administrator;
+use App\Models\Administrator;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +47,7 @@ class ApiResurceController extends Controller
     {
         $administrator_id = $request->user;
 
-        $u = Administrator::find($administrator_id);
+        $u = User::find($administrator_id);
         if ($u == null) {
             return $this->error('User not found.');
         }
@@ -154,7 +154,7 @@ class ApiResurceController extends Controller
     {
         $administrator_id = $request->user;
 
-        $u = Administrator::find($administrator_id);
+        $u = User::find($administrator_id);
         if ($u == null) {
             return $this->error('User not found.');
         }
@@ -300,7 +300,7 @@ class ApiResurceController extends Controller
             $u->save();
 
             // Return updated user data
-            $updatedUser = Administrator::find($u->id);
+            $updatedUser = User::find($u->id);
             return $this->success($updatedUser, "Profile updated successfully.", 1);
         } catch (\Throwable $th) {
             return $this->error('Failed to update profile: ' . $th->getMessage());
@@ -317,7 +317,7 @@ class ApiResurceController extends Controller
     {
         $administrator_id = $request->user;
 
-        $u = Administrator::find($administrator_id);
+        $u = User::find($administrator_id);
         if ($u == null) {
             return $this->error('User not found.');
         }
@@ -800,7 +800,7 @@ class ApiResurceController extends Controller
     {
         $administrator_id = $request->user;
 
-        $u = Administrator::find($administrator_id);
+        $u = User::find($administrator_id);
         if ($u == null) {
             return $this->error('User not found.');
         }
@@ -929,7 +929,7 @@ class ApiResurceController extends Controller
     {
         $administrator_id = $request->user;
 
-        $u = Administrator::find($administrator_id);
+        $u = User::find($administrator_id);
         if ($u == null) {
             return $this->error('User not found.');
         }

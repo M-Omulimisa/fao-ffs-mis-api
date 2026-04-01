@@ -211,20 +211,49 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
-        // Get the authenticated user
-        $authUser = User::find($request->header('user_id'));
+        // Get the authenticated user (set by EnsureTokenIsValid middleware)
+        $authUser = $request->userModel ?? User::find($request->header('User-Id') ?? $request->header('user_id'));
 
-        $query = User::where('user_type', 'Customer')
-            ->with(['group', 'district', 'subcounty', 'parish']);
+        // Build base query — include ALL users in the group, not just user_type='Customer'
+        // Some members may have null/empty user_type due to how they were registered
+        $query = User::with(['group', 'district', 'subcounty', 'parish']);
 
-        // If user is a Customer (group member), show only members from their group
-        if ($authUser && $authUser->user_type === 'Customer' && $authUser->group_id) {
-            $query->where('group_id', $authUser->group_id);
-        } else {
-            // For admins/other users, allow filtering by group
-            if ($request->has('group_id') && $request->group_id != '') {
-                $query->where('group_id', $request->group_id);
+        // Determine the user's group — chairpersons/members see only their group
+        $groupId = null;
+
+        if ($authUser) {
+            $groupId = $authUser->group_id;
+
+            // Fallback: if group_id is missing, resolve from officer role in ffs_groups
+            if (empty($groupId)) {
+                $leaderGroup = \App\Models\FfsGroup::where('admin_id', $authUser->id)
+                    ->orWhere('secretary_id', $authUser->id)
+                    ->orWhere('treasurer_id', $authUser->id)
+                    ->first();
+                if ($leaderGroup) {
+                    $groupId = $leaderGroup->id;
+                    // Auto-correct the user's group_id for future requests
+                    User::where('id', $authUser->id)->update(['group_id' => $groupId]);
+                }
             }
+
+            // Also check is_group_admin flag as another fallback
+            if (empty($groupId) && $authUser->is_group_admin === 'Yes') {
+                $leaderGroup = \App\Models\FfsGroup::where('admin_id', $authUser->id)->first();
+                if ($leaderGroup) {
+                    $groupId = $leaderGroup->id;
+                    User::where('id', $authUser->id)->update(['group_id' => $groupId]);
+                }
+            }
+        }
+
+        // Apply group filter
+        if ($request->has('group_id') && $request->group_id != '') {
+            // Explicit group_id from request — honour it
+            $query->where('group_id', $request->group_id);
+        } elseif ($groupId) {
+            // Default to the authenticated user's group
+            $query->where('group_id', $groupId);
         }
 
         // Search by name or phone
@@ -322,8 +351,7 @@ class MemberController extends Controller
      */
     public function show($id)
     {
-        $member = User::where('user_type', 'Customer')
-            ->with(['group', 'district', 'subcounty', 'parish'])
+        $member = User::with(['group', 'district', 'subcounty', 'parish'])
             ->find($id);
 
         if (!$member) {
@@ -394,7 +422,7 @@ class MemberController extends Controller
      */
     public function sendCredentials($id)
     {
-        $member = User::where('user_type', 'Customer')->find($id);
+        $member = User::find($id);
 
         if (!$member) {
             return response()->json([
@@ -448,7 +476,7 @@ class MemberController extends Controller
      */
     public function sendWelcomeMessage($id)
     {
-        $member = User::where('user_type', 'Customer')->find($id);
+        $member = User::find($id);
 
         if (!$member) {
             return response()->json([

@@ -59,7 +59,7 @@ class ImportTaskController extends AdminController
 
         $grid->column('initiated_by', __('Initiated By'))
             ->display(function ($id) {
-                $user = \Encore\Admin\Auth\Database\Administrator::find($id);
+                $user = \App\Models\Administrator::find($id);
                 return $user ? $user->name : 'N/A';
             });
 

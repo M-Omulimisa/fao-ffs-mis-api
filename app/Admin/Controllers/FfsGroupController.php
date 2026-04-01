@@ -570,8 +570,11 @@ class FfsGroupController extends AdminController
         $form->divider('Group Officers (Optional – can be set after member registration)');
         $form->row(function ($row) use ($ipId) {
             // Scope officer list: show members from same IP, or all for super admin
-            $memberQuery = User::where('user_type', 'Customer')
-                ->where('status', 1);
+            $blockedStatuses = ['Inactive', 'Suspended', 'Banned', 'Deleted', 'Disabled'];
+            $memberQuery = User::where(function ($q) use ($blockedStatuses) {
+                    $q->whereNull('status')
+                      ->orWhereNotIn('status', $blockedStatuses);
+                });
             if ($ipId !== null) {
                 $memberQuery->where('ip_id', $ipId);
             }

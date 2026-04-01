@@ -703,6 +703,16 @@ class MemberController extends AdminController
                     unset($form->username); // keep existing DB value, don't blank it
                 }
 
+                // Protect email from being wiped on update
+                if (empty(trim((string) ($form->email ?? '')))) {
+                    unset($form->email);
+                }
+
+                // Protect phone_number from being wiped on update
+                if (empty(trim((string) ($form->phone_number ?? '')))) {
+                    unset($form->phone_number);
+                }
+
                 if (!empty($form->password)) {
                     $form->password = bcrypt($form->password);
                 } else {

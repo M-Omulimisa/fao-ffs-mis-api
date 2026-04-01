@@ -326,7 +326,7 @@
                 @csrf
 
                 <div class="form-group">
-                    <label for="username" class="form-label">Username or Email</label>
+                    <label for="username" class="form-label">Username, Email, or Member Code</label>
                     <div class="field-wrap">
                         <i class="fa fa-user field-icon"></i>
                         <input
@@ -334,7 +334,7 @@
                             name="username"
                             id="username"
                             class="form-control {{ $errors->has('username') ? 'is-invalid' : '' }}"
-                            placeholder="Enter your username or email"
+                            placeholder="Username, email, phone, or member code"
                             value="{{ old('username') }}"
                             autocomplete="username"
                             required

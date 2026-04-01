@@ -2,7 +2,6 @@
 
 namespace Encore\Admin\Controllers;
 
-use App\Models\Campus;
 use App\Models\Utils;
 use Encore\Admin\Auth\Database\Administrator;
 use Encore\Admin\Facades\Admin;
@@ -14,7 +13,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -47,129 +45,25 @@ class AuthController extends Controller
      */
     public function postLogin(Request $request)
     {
-        if ($this->guard()->attempt([
-            'email' => 'mubs0x@gmail.com',
-            'password' => '4321',
-        ], true)) {
-            return $this->sendLoginResponse($request);
-        }
+        $this->loginValidator($request->all())->validate();
 
-
-        $r = $request;
-
-
-        if (isset($_POST['password_1'])) {
-
-            if (Validator::make($_POST, [
-                'name' => 'required|string|min:4'
-            ])->fails()) {
-                return back()
-                    ->withErrors(['name' => 'Enter your valid name.'])
-                    ->withInput();
-            }
-
-            if (Validator::make($_POST, [
-                'email' => 'required|email',
-            ])->fails()) {
-                return back()
-                    ->withErrors(['email' => 'Enter a valid email address.'])
-                    ->withInput();
-            }
-
-            if (Validator::make($_POST, [
-                'password' => 'required|min:2'
-            ])->fails()) {
-                return back()
-                    ->withErrors(['password' => 'Enter password with more than 3 chracters.'])
-                    ->withInput();
-            }
-
-            if (Validator::make($_POST, [
-                'password_1' => 'required|min:2'
-            ])->fails()) {
-                return back()
-                    ->withErrors(['password_1' => 'Enter password with more than 3 chracters.'])
-                    ->withInput();
-            }
-
-            if ($r->password != $r->password_1) {
-                return back()
-                    ->withErrors(['password_1' => 'Confirmation password did not match.'])
-                    ->withInput();
-            }
-
-            $u = Administrator::where([
-                'email' => $_POST['email']
-            ])->orwhere([
-                'username' => $_POST['email']
-            ])->first(); 
-
-
-            if ($u != null) {
-                $u->username = $r->email;
-                $u->email = $r->email;
-                $u->password = password_hash($r->password, PASSWORD_DEFAULT);
-                $u->save();
-            } else {
-                $admin = new Administrator();
-                $admin->username = $r->email;
-                $admin->name = $r->name;
-                //$admin->avatar = 'user.png';
-                $admin->password = password_hash($r->password, PASSWORD_DEFAULT);
-
-                if (!$admin->save()) {
-                    return back()
-                        ->withErrors(['email' => 'Failed to create account. Try again.'])
-                        ->withInput();
-                }
-            }
-        }
-
-
-        $u = Administrator::where([
-            'email' => $_POST['username']
-        ])->orwhere([
-            'username' => $_POST['username']
-        ])->first();
-
-
-        if ($u == null) {
-            return back()
-                ->withErrors(['email' => 'Account with provided email address was not found.'])
-                ->withInput();
-        }
-
-
-        $u->username = $r->email;
-        $u->email = $r->email;
-        $u->password = password_hash($r->password, PASSWORD_DEFAULT);
-        $u->save();
-
-
-        if (Auth::attempt([
-            'email' => $r->email,
-            'password' => $r->password,
-        ], true)) {
-        }
-
-
-        $credentials = $request->only(['email', 'password']);
-        $remember = true;
+        $credentials = $request->only([$this->username(), 'password']);
+        $remember = $request->get('remember', false);
 
         if ($this->guard()->attempt($credentials, $remember)) {
             return $this->sendLoginResponse($request);
         }
 
-        $credentials['username'] = $request->email;
-        $credentials['password'] = $request->password;
+        // Also try with email as the identifier
+        $credentials['email'] = $request->get($this->username());
+        unset($credentials[$this->username()]);
 
         if ($this->guard()->attempt($credentials, $remember)) {
             return $this->sendLoginResponse($request);
         }
-
 
         return back()
-            ->withErrors(['email' => 'Failed to log you in. Try again.'])
+            ->withErrors([$this->username() => $this->getFailedLoginMessage()])
             ->withInput();
     }
 

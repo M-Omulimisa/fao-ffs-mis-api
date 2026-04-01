@@ -182,15 +182,18 @@ class VslaGroupManifestController extends Controller
     private function getGroupStatistics($group)
     {
         $members = User::where('group_id', $group->id)->get();
-        
+
+        // Count members as active unless explicitly blocked
+        $blockedStatuses = ['Inactive', 'Suspended', 'Banned', 'Deleted', 'Disabled'];
+
         return [
             'total_members' => $members->count(),
             'male_members' => $members->where('sex', 'Male')->count(),
             'female_members' => $members->where('sex', 'Female')->count(),
             'youth_members' => $members->where('is_youth', 1)->count(),
             'pwd_members' => $members->where('is_pwd', 1)->count(),
-            'active_members' => $members->where('status', 'Active')->count(),
-            'inactive_members' => $members->where('status', '!=', 'Active')->count(),
+            'active_members' => $members->filter(fn($m) => !in_array($m->status, $blockedStatuses))->count(),
+            'inactive_members' => $members->filter(fn($m) => in_array($m->status, $blockedStatuses))->count(),
         ];
     }
     
@@ -327,6 +330,8 @@ class VslaGroupManifestController extends Controller
         
         $membersList = [];
         
+        $blockedStatuses = ['Inactive', 'Suspended', 'Banned', 'Deleted', 'Disabled'];
+
         foreach ($members as $member) {
             $membersList[] = [
                 'id' => $member->id,
@@ -335,7 +340,7 @@ class VslaGroupManifestController extends Controller
                 'email' => $member->email,
                 'member_code' => $member->member_code ?? 'N/A',
                 'role' => $this->getMemberRole($member, $group),
-                'is_active' => $member->status === 'Active',
+                'is_active' => !in_array($member->status, $blockedStatuses),
                 'joined_date' => $member->created_at ? $member->created_at->format('Y-m-d') : null,
                 
                 'financial_summary' => $this->getMemberFinancialSummary($member, $cycle),
@@ -822,7 +827,6 @@ class VslaGroupManifestController extends Controller
                 'time' => $group->meeting_time,
                 'days_until' => (int) $daysUntil,
                 'expected_attendees' => User::where('group_id', $group->id)
-                    ->where('status', 'Active')
                     ->count(),
             ];
         }
@@ -1093,12 +1097,14 @@ class VslaGroupManifestController extends Controller
      */
     private function canAccessGroup($user, $group)
     {
-        // User must be a member of the group (via group_id or role assignment) or a system admin
+        // User must be a member of the group, assigned as an officer, facilitator, or system admin
         return $user->group_id == $group->id
             || $group->admin_id == $user->id
             || $group->secretary_id == $user->id
             || $group->treasurer_id == $user->id
-            || $user->user_type === 'admin';
+            || $group->facilitator_id == $user->id
+            || $user->user_type === 'admin'
+            || ($user->is_group_admin === 'Yes' && $user->group_id == $group->id);
     }
 
     /**

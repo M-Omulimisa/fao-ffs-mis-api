@@ -107,9 +107,13 @@ class VslaOpeningBalanceController extends Controller
                     . "did not belong to group #{$groupId}; auto-corrected to cycle #{$project->id}");
             }
 
+            // NOTE: whereNotIn excludes NULL status in SQL, so explicitly allow NULL
+            $blockedStatuses = ['Inactive', 'Suspended', 'Banned', 'Deleted', 'Disabled'];
             $members = User::where('group_id', $groupId)
-                ->where('status', 1)
-                ->where('user_type', 'Customer')
+                ->where(function ($q) use ($blockedStatuses) {
+                    $q->whereNull('status')
+                      ->orWhereNotIn('status', $blockedStatuses);
+                })
                 ->whereNotNull('group_id')
                 ->select('id', 'name', 'first_name', 'last_name', 'member_code', 'phone_number', 'sex')
                 ->orderBy('name', 'asc')
@@ -310,7 +314,6 @@ class VslaOpeningBalanceController extends Controller
 
             $validGroupMemberIds = User::where('group_id', $groupId)
                 ->whereIn('id', $submittedMemberIds)
-                ->where('user_type', 'Customer')
                 ->pluck('id')
                 ->map(fn($id) => (int) $id)
                 ->toArray();

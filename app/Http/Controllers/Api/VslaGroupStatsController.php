@@ -43,7 +43,6 @@ class VslaGroupStatsController extends Controller
             
             $activeMembers = DB::table('users')
                 ->where('group_id', $groupId)
-                ->where('status', 'Active')
                 ->count();
 
             if (!$group || !$cycle) {

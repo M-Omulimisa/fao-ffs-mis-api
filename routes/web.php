@@ -9,6 +9,7 @@ use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Models\Gen;
 use App\Models\Order;
+use App\Models\User;
 use App\Models\Utils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,6 +18,12 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
+Route::get('tests', function () {
+    $u = User::find(1);
+    $u->password = password_has
+    DD('$u->password');
+    die("testihin....");
+});
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes

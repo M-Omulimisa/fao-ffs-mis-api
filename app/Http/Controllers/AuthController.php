@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Encore\Admin\Auth\Database\Administrator;
+use App\Models\Administrator;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -33,7 +33,7 @@ class AuthController extends Controller
             'username' => 'required|string',
             'password' => 'required|string|min:4',
         ], [
-            'username.required' => 'Username, email, or phone number is required',
+            'username.required' => 'Username, email, phone number, or member code is required',
             'password.required' => 'Password is required',
             'password.min' => 'Password must be at least 4 characters',
         ]);
@@ -48,15 +48,16 @@ class AuthController extends Controller
         $password = $request->input('password');
         $remember = $request->filled('remember');
 
-        // Try to find user by username, email, OR phone number
+        // Try to find user by username, email, phone number, OR member code
         $user = Administrator::where('username', $identifier)
             ->orWhere('email', $identifier)
             ->orWhere('phone_number', $identifier)
+            ->orWhere('member_code', $identifier)
             ->first();
 
         if (!$user) {
             return back()
-                ->withErrors(['username' => 'Invalid username, email, or phone number.'])
+                ->withErrors(['username' => 'Invalid username, email, phone number, or member code.'])
                 ->withInput($request->only('username', 'remember'));
         }
 

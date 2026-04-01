@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Event;
 use App\Models\NewsPost;
-use Encore\Admin\Auth\Database\Administrator;
+use App\Models\Administrator;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;

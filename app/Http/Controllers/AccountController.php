@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Encore\Admin\Auth\Database\Administrator;
+use App\Models\Administrator;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
