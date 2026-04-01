@@ -155,6 +155,11 @@ Route::prefix('agent-vsla')->middleware(EnsureTokenIsValid::class)->group(functi
     Route::get('/all-meetings',                     [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'allMeetings']);
     Route::get('/my-groups/{id}/meetings',          [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'groupMeetings']);
     Route::get('/my-groups/{id}/manifest',          [\App\Http\Controllers\Api\VslaFacilitatorController::class, 'groupManifest']);
+
+    // ── Facilitator Group Management (delete group, set member password) ──
+    Route::get('/my-groups/{id}/delete-preview',                    [\App\Http\Controllers\Api\VslaGroupManagementController::class, 'deleteGroupPreview']);
+    Route::post('/my-groups/{id}/delete',                           [\App\Http\Controllers\Api\VslaGroupManagementController::class, 'deleteGroup']);
+    Route::post('/my-groups/{id}/members/{member_id}/set-password', [\App\Http\Controllers\Api\VslaGroupManagementController::class, 'setMemberPassword']);
 });
 
 // ========================================
@@ -168,6 +173,15 @@ Route::prefix('vsla')->middleware(EnsureTokenIsValid::class)->group(function () 
     Route::get('groups/{group_id}', [VslaConfigurationController::class, 'getGroupInfo']);
     Route::put('groups/{group_id}/basic-info', [VslaConfigurationController::class, 'updateGroupBasicInfo']);
     
+    // Group Reset (chairperson only)
+    Route::get('groups/{group_id}/reset-preview', [\App\Http\Controllers\Api\VslaGroupResetController::class, 'resetPreview']);
+    Route::post('groups/{group_id}/reset', [\App\Http\Controllers\Api\VslaGroupResetController::class, 'resetGroupData']);
+
+    // Member Management (chairperson: delete member, reset password)
+    Route::get('groups/{group_id}/members/{member_id}/delete-preview', [\App\Http\Controllers\Api\VslaGroupManagementController::class, 'deleteMemberPreview']);
+    Route::post('groups/{group_id}/members/{member_id}/delete', [\App\Http\Controllers\Api\VslaGroupManagementController::class, 'deleteMember']);
+    Route::post('groups/{group_id}/members/{member_id}/reset-password', [\App\Http\Controllers\Api\VslaGroupManagementController::class, 'resetMemberPassword']);
+
     // Group Manifest - Offline Data Sync
     Route::get('groups/{group_id}/manifest', [VslaGroupManifestController::class, 'getManifest']);
     Route::get('groups/{group_id}/manifest/incremental', [VslaGroupManifestController::class, 'getIncrementalUpdates']);
