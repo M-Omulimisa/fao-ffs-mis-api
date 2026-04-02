@@ -19,14 +19,51 @@ class SystemHealthCheckController extends AdminController
 
     private $ipId;
     private $isSuperAdmin;
+    private $filterIpId = null;
 
     /**
-     * Initialize IP scoping context
+     * Initialize IP scoping context.
+     * Super admins can optionally filter by a specific IP via ?filter_ip_id=
      */
     private function initContext()
     {
         $this->ipId = $this->getAdminIpId();
         $this->isSuperAdmin = $this->isSuperAdmin();
+
+        // Allow super admins to filter by a specific IP
+        if ($this->isSuperAdmin && request()->filled('filter_ip_id')) {
+            $this->filterIpId = (int) request('filter_ip_id');
+        }
+    }
+
+    /**
+     * Scope a query by IP — respects the optional super-admin filter.
+     * Overrides the trait's scopeQuery when a filter is active.
+     */
+    private function applyScopeQuery($query)
+    {
+        if ($this->filterIpId) {
+            $query->where('ip_id', $this->filterIpId);
+        } elseif ($this->ipId) {
+            $query->where('ip_id', $this->ipId);
+        }
+        return $query;
+    }
+
+    /**
+     * Get the effective IP id (filter or natural scope).
+     */
+    private function effectiveIpId()
+    {
+        return $this->filterIpId ?: $this->ipId;
+    }
+
+    /**
+     * Whether an IP scope is active (either natural or filtered).
+     */
+    private function hasIpScope(): bool
+    {
+        return $this->filterIpId || ($this->ipId && !$this->isSuperAdmin);
     }
 
     /**
@@ -86,6 +123,8 @@ class SystemHealthCheckController extends AdminController
                 'summary' => $summary,
                 'facilitators' => $facilitators,
                 'ips' => $ips,
+                'filterIpId' => $this->filterIpId,
+                'isSuperAdmin' => $this->isSuperAdmin,
             ]));
     }
 
@@ -107,8 +146,8 @@ class SystemHealthCheckController extends AdminController
 
         try {
             $query = FfsGroup::whereIn('id', $ids);
-            if (!$this->isSuperAdmin && $this->ipId) {
-                $query->where('ip_id', $this->ipId);
+            if ($this->hasIpScope()) {
+                $query->where('ip_id', $this->effectiveIpId());
             }
 
             $count = $query->count();
@@ -138,8 +177,8 @@ class SystemHealthCheckController extends AdminController
 
         try {
             $query = User::whereIn('id', $ids);
-            if (!$this->isSuperAdmin && $this->ipId) {
-                $query->where('ip_id', $this->ipId);
+            if ($this->hasIpScope()) {
+                $query->where('ip_id', $this->effectiveIpId());
             }
 
             $count = $query->count();
@@ -175,8 +214,8 @@ class SystemHealthCheckController extends AdminController
 
         try {
             $query = FfsGroup::whereIn('id', $ids);
-            if (!$this->isSuperAdmin && $this->ipId) {
-                $query->where('ip_id', $this->ipId);
+            if ($this->hasIpScope()) {
+                $query->where('ip_id', $this->effectiveIpId());
             }
 
             $count = $query->update(['facilitator_id' => $facilitatorId]);
@@ -237,8 +276,8 @@ class SystemHealthCheckController extends AdminController
 
         try {
             $query = User::whereIn('id', $ids);
-            if (!$this->isSuperAdmin && $this->ipId) {
-                $query->where('ip_id', $this->ipId);
+            if ($this->hasIpScope()) {
+                $query->where('ip_id', $this->effectiveIpId());
             }
 
             $count = $query->update([$field => null]);
@@ -269,8 +308,8 @@ class SystemHealthCheckController extends AdminController
 
         try {
             $query = FfsGroup::whereIn('id', $ids);
-            if (!$this->isSuperAdmin && $this->ipId) {
-                $query->where('ip_id', $this->ipId);
+            if ($this->hasIpScope()) {
+                $query->where('ip_id', $this->effectiveIpId());
             }
 
             $count = $query->update(['status' => $status]);
@@ -308,8 +347,8 @@ class SystemHealthCheckController extends AdminController
             $deleteIds = array_diff($ids, [$keepId]);
             $query = User::whereIn('id', $deleteIds);
 
-            if (!$this->isSuperAdmin && $this->ipId) {
-                $query->where('ip_id', $this->ipId);
+            if ($this->hasIpScope()) {
+                $query->where('ip_id', $this->effectiveIpId());
             }
 
             $count = $query->delete();
@@ -337,7 +376,7 @@ class SystemHealthCheckController extends AdminController
     private function checkGroupsSimilarNames()
     {
         $query = FfsGroup::query()->withCount('members');
-        $query = $this->scopeQuery($query);
+        $query = $this->applyScopeQuery($query);
 
         $groups = $query->get()
             ->groupBy(fn($g) => soundex($g->name))
@@ -372,7 +411,7 @@ class SystemHealthCheckController extends AdminController
     private function checkGroupsOversized()
     {
         $query = FfsGroup::query()->withCount('members');
-        $query = $this->scopeQuery($query);
+        $query = $this->applyScopeQuery($query);
 
         $items = $query->get()
             ->filter(fn($g) => $g->members_count > 35)
@@ -402,7 +441,7 @@ class SystemHealthCheckController extends AdminController
     private function checkGroupsEmpty()
     {
         $query = FfsGroup::query()->withCount('members');
-        $query = $this->scopeQuery($query);
+        $query = $this->applyScopeQuery($query);
 
         $items = $query->get()
             ->filter(fn($g) => $g->members_count === 0)
@@ -438,7 +477,7 @@ class SystemHealthCheckController extends AdminController
             ->whereNull('facilitator_id')
             ->orderBy('name');
 
-        $query = $this->scopeQuery($query);
+        $query = $this->applyScopeQuery($query);
 
         $items = $query->get()
             ->map(fn($g) => [
@@ -518,7 +557,7 @@ class SystemHealthCheckController extends AdminController
             ->whereNotNull($field)
             ->where($field, '!=', '')
             ->when(!empty($filters), fn($q) => $q->where($filters))
-            ->when($this->ipId && !$this->isSuperAdmin, fn($q) => $q->where('ip_id', $this->ipId))
+            ->when($this->hasIpScope(), fn($q) => $q->where('ip_id', $this->effectiveIpId()))
             ->groupBy($field)
             ->havingRaw('COUNT(*) > 1')
             ->pluck($field);
@@ -531,7 +570,7 @@ class SystemHealthCheckController extends AdminController
             ->whereIn($field, $duplicateValues)
             ->select('id', 'name', $field, 'email', 'phone_number', 'group_id')
             ->with(['group' => fn($q) => $q->select('id', 'name')])
-            ->when($this->ipId && !$this->isSuperAdmin, fn($q) => $q->where('ip_id', $this->ipId))
+            ->when($this->hasIpScope(), fn($q) => $q->where('ip_id', $this->effectiveIpId()))
             ->get()
             ->groupBy($field);
 
@@ -563,8 +602,8 @@ class SystemHealthCheckController extends AdminController
             ->with(['group' => fn($q) => $q->select('id', 'name')])
             ->orderBy('name');
 
-        if (!$this->isSuperAdmin && $this->ipId) {
-            $query->whereIn('group_id', FfsGroup::where('ip_id', $this->ipId)->pluck('id'));
+        if ($this->hasIpScope()) {
+            $query->whereIn('group_id', FfsGroup::where('ip_id', $this->effectiveIpId())->pluck('id'));
         }
 
         $items = $query->get()
@@ -600,7 +639,7 @@ class SystemHealthCheckController extends AdminController
             ->select('id', 'name', 'email', 'phone_number', 'ip_id')
             ->orderBy('name');
 
-        $query = $this->scopeQuery($query);
+        $query = $this->applyScopeQuery($query);
 
         $items = $query->get()
             ->map(fn($u) => [
@@ -631,7 +670,7 @@ class SystemHealthCheckController extends AdminController
             ->withCount('members')
             ->where('status', '!=', 'Active');
 
-        $query = $this->scopeQuery($query);
+        $query = $this->applyScopeQuery($query);
 
         $items = $query->get()
             ->filter(fn($g) => $g->members_count > 0)

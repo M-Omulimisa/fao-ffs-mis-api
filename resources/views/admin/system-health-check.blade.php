@@ -43,6 +43,24 @@
     </div>
 </div>
 
+@if($isSuperAdmin)
+<!-- IP Filter -->
+<div class="shc-ip-filter">
+    <i class="fa fa-building" style="color:#888;font-size:12px;"></i>
+    <select id="shc-ip-filter" class="form-control input-sm" style="width:auto;display:inline-block;min-width:200px;font-size:12px;height:26px;padding:2px 8px;">
+        <option value="">All Implementing Partners</option>
+        @foreach($ips as $ip)
+            <option value="{{ $ip->id }}" {{ $filterIpId == $ip->id ? 'selected' : '' }}>{{ $ip->name }}{{ $ip->short_name ? " ({$ip->short_name})" : '' }}</option>
+        @endforeach
+    </select>
+    @if($filterIpId)
+        <a href="{{ admin_url('system-health-check') }}" class="btn btn-default btn-xs" title="Clear filter" style="margin-left:4px;"><i class="fa fa-times"></i> Clear</a>
+        @php $selectedIp = $ips->firstWhere('id', $filterIpId); @endphp
+        <span class="label label-primary" style="font-size:11px;margin-left:4px;">Filtered: {{ $selectedIp->name ?? 'IP #'.$filterIpId }}</span>
+    @endif
+</div>
+@endif
+
 <!-- Toolbar -->
 <div class="shc-toolbar">
     <div class="shc-toolbar-left">
@@ -209,6 +227,13 @@
 /* ═══════════════  STAT CARDS  ═══════════════ */
 .shc-stats { margin-bottom: 10px; }
 .shc-stats .col-lg-3 { padding-left: 5px; padding-right: 5px; }
+
+/* ═══════════════  IP FILTER  ═══════════════ */
+.shc-ip-filter {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 8px; padding: 6px 10px;
+    background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 3px;
+}
 .shc-stat-card {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 14px; border-radius: 4px;
@@ -535,5 +560,14 @@ var HC = {
     }
 };
 
-$(document).ready(function() { HC.init(); });
+$(document).ready(function() {
+    HC.init();
+
+    // IP Filter — navigate on change
+    $('#shc-ip-filter').on('change', function() {
+        var val = $(this).val();
+        var base = '{{ admin_url("system-health-check") }}';
+        window.location.href = val ? (base + '?filter_ip_id=' + val) : base;
+    });
+});
 </script>
