@@ -1,26 +1,26 @@
 @php
-    $isGroupEntity = ($entity ?? 'group') === 'group';
     $adminUrl = config('admin.route.prefix', 'admin');
 @endphp
 
 @if ($checkKey === 'groups_similar_names')
 {{-- Similar Group Names --}}
-<div class="health-check-item {{ $severity }}" data-entity="group">
-    <div class="health-check-item-header">
-        <i class="fa fa-clone text-warning"></i>
-        <strong>{{ collect($item['groups'])->pluck('name')->implode(', ') }}</strong>
+<div class="shc-item severity-{{ $severity }}" data-entity="group">
+    <div class="shc-item-row">
+        <i class="fa fa-clone" style="color:#f39c12;font-size:11px;"></i>
+        <strong style="font-size:12px;">{{ collect($item['groups'])->pluck('name')->implode(' / ') }}</strong>
+        <span class="label label-warning" style="font-size:10px;">{{ count($item['groups']) }} groups</span>
     </div>
-    <div class="health-check-item-details">
-        <table class="table table-condensed table-hover">
-            <thead><tr><th><input type="checkbox" class="group-select-all"></th><th>Group Name</th><th>Type</th><th>Members</th><th>IP</th></tr></thead>
+    <div class="shc-item-detail">
+        <table class="shc-tbl">
+            <thead><tr><th style="width:24px;"><input type="checkbox" class="group-select-all"></th><th>Name</th><th>Type</th><th>Mem</th><th>IP</th></tr></thead>
             <tbody>
-            @foreach ($item['groups'] as $group)
+            @foreach ($item['groups'] as $g)
                 <tr>
-                    <td><input type="checkbox" class="item-checkbox" value="{{ $group['id'] }}" data-entity="group" data-name="{{ $group['name'] }}"></td>
-                    <td><a href="/{{ $adminUrl }}/ffs-all-groups/{{ $group['id'] }}" class="action-link">{{ $group['name'] }}</a></td>
-                    <td><span class="label label-default">{{ $group['type'] }}</span></td>
-                    <td>{{ $group['members'] ?? 0 }}</td>
-                    <td>{{ $group['ip'] ?? '-' }}</td>
+                    <td><input type="checkbox" class="item-checkbox" value="{{ $g['id'] }}" data-entity="group" data-name="{{ $g['name'] }}"></td>
+                    <td><a href="/{{ $adminUrl }}/ffs-all-groups/{{ $g['id'] }}">{{ $g['name'] }}</a></td>
+                    <td><span class="label label-default" style="font-size:9px;">{{ $g['type'] }}</span></td>
+                    <td>{{ $g['members'] ?? 0 }}</td>
+                    <td>{{ $g['ip'] ?? '-' }}</td>
                 </tr>
             @endforeach
             </tbody>
@@ -30,57 +30,50 @@
 
 @elseif (in_array($checkKey, ['groups_oversized', 'groups_empty', 'groups_no_facilitator', 'inactive_groups_with_members']))
 {{-- Group-based checks --}}
-<div class="health-check-item {{ $severity }}" data-entity="group">
-    <div class="health-check-item-header">
+<div class="shc-item severity-{{ $severity }}" data-entity="group">
+    <div class="shc-item-row">
         <input type="checkbox" class="item-checkbox" value="{{ $item['id'] }}" data-entity="group" data-name="{{ $item['name'] }}">
-        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}" class="action-link"><strong>{{ $item['name'] }}</strong></a>
-        <span class="label label-default badge-type">{{ $item['type'] ?? 'Group' }}</span>
+        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}"><strong>{{ $item['name'] }}</strong></a>
+        <span class="label label-default">{{ $item['type'] ?? 'Group' }}</span>
         @if(isset($item['members']))
-            <span class="label label-info">{{ $item['members'] }} members</span>
+            <span class="label label-info">{{ $item['members'] }} mem</span>
         @endif
         @if(isset($item['status']))
             <span class="label label-{{ $item['status'] === 'Active' ? 'success' : 'warning' }}">{{ $item['status'] }}</span>
         @endif
     </div>
-    <div class="health-check-item-details">
-        <table class="table table-condensed">
-            @if(isset($item['male']) && isset($item['female']))
-            <tr><td width="120"><strong>Gender:</strong></td><td>{{ $item['male'] ?? 0 }} M / {{ $item['female'] ?? 0 }} F</td></tr>
-            @endif
-            @if(isset($item['registration_date']))
-            <tr><td><strong>Registered:</strong></td><td>{{ $item['registration_date'] ?? 'N/A' }}</td></tr>
-            @endif
-            <tr><td><strong>IP:</strong></td><td>{{ $item['ip'] ?? '-' }}</td></tr>
-        </table>
-        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}/edit" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Edit</a>
-        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}" class="btn btn-xs btn-info"><i class="fa fa-eye"></i> View</a>
+    <div class="shc-item-detail">
+        @if(isset($item['registration_date']))
+            <span class="shc-kv"><span class="shc-kv-label">Reg:</span> {{ $item['registration_date'] }}</span>
+        @endif
+        <span class="shc-kv"><span class="shc-kv-label">IP:</span> {{ $item['ip'] ?? '-' }}</span>
+        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}/edit" class="btn btn-default btn-xs"><i class="fa fa-edit"></i></a>
+        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}" class="btn btn-default btn-xs"><i class="fa fa-eye"></i></a>
     </div>
 </div>
 
 @elseif (in_array($checkKey, ['duplicate_chairperson', 'duplicate_phone', 'duplicate_email']))
-{{-- Duplicate field checks (users) --}}
-<div class="health-check-item {{ $severity }}" data-entity="user">
-    <div class="health-check-item-header">
-        <i class="fa fa-{{ $checkKey === 'duplicate_email' ? 'envelope' : 'phone' }} text-danger"></i>
-        <strong>{{ $item['phone'] ?? $item['email'] ?? 'Unknown' }}</strong>
+{{-- Duplicate field checks --}}
+<div class="shc-item severity-{{ $severity }}" data-entity="user">
+    <div class="shc-item-row">
+        <i class="fa fa-{{ $checkKey === 'duplicate_email' ? 'envelope' : 'phone' }}" style="color:#dd4b39;font-size:11px;"></i>
+        <strong>{{ $item['phone'] ?? $item['email'] ?? '—' }}</strong>
         <span class="label label-danger">{{ count($item['users']) }} users</span>
     </div>
-    <div class="health-check-item-details">
-        <table class="table table-condensed table-hover">
-            <thead><tr><th><input type="checkbox" class="user-select-all"></th><th>Name</th><th>Email</th><th>Phone</th><th>Group</th></tr></thead>
+    <div class="shc-item-detail">
+        <table class="shc-tbl">
+            <thead><tr><th style="width:24px;"><input type="checkbox" class="user-select-all"></th><th>Name</th><th>Email</th><th>Phone</th><th>Group</th></tr></thead>
             <tbody>
-            @foreach ($item['users'] as $user)
+            @foreach ($item['users'] as $u)
                 <tr>
-                    <td><input type="checkbox" class="user-checkbox" value="{{ $user['id'] }}" data-name="{{ $user['name'] }}"></td>
-                    <td><a href="/{{ $adminUrl }}/ffs-members/{{ $user['id'] }}" class="action-link">{{ $user['name'] }}</a></td>
-                    <td>{{ $user['email'] ?? '-' }}</td>
-                    <td>{{ $user['phone'] ?? '-' }}</td>
+                    <td><input type="checkbox" class="user-checkbox" value="{{ $u['id'] }}" data-name="{{ $u['name'] }}"></td>
+                    <td><a href="/{{ $adminUrl }}/ffs-members/{{ $u['id'] }}">{{ $u['name'] }}</a></td>
+                    <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $u['email'] ?? '-' }}</td>
+                    <td>{{ $u['phone'] ?? '-' }}</td>
                     <td>
-                        @if($user['group_id'])
-                            <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $user['group_id'] }}">{{ $user['group'] ?? 'View' }}</a>
-                        @else
-                            -
-                        @endif
+                        @if(!empty($u['group_id']))
+                            <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $u['group_id'] }}">{{ $u['group'] ?? 'View' }}</a>
+                        @else - @endif
                     </td>
                 </tr>
             @endforeach
@@ -91,37 +84,39 @@
 
 @elseif (in_array($checkKey, ['users_no_ip', 'orphaned_members']))
 {{-- User-based checks --}}
-<div class="health-check-item {{ $severity }}" data-entity="user">
-    <div class="health-check-item-header">
+<div class="shc-item severity-{{ $severity }}" data-entity="user">
+    <div class="shc-item-row">
         <input type="checkbox" class="item-checkbox" value="{{ $item['id'] }}" data-entity="user" data-name="{{ $item['name'] }}">
-        <a href="/{{ $adminUrl }}/ffs-members/{{ $item['id'] }}" class="action-link"><strong>{{ $item['name'] }}</strong></a>
+        <a href="/{{ $adminUrl }}/ffs-members/{{ $item['id'] }}"><strong>{{ $item['name'] }}</strong></a>
         @if($checkKey === 'users_no_ip')
             <span class="label label-danger">No IP</span>
         @else
             <span class="label label-warning">No Group</span>
         @endif
+        @if(!empty($item['phone']))
+            <span style="color:#888;font-size:11px;"><i class="fa fa-phone" style="font-size:10px;"></i> {{ $item['phone'] }}</span>
+        @endif
+        @if(!empty($item['email']))
+            <span style="color:#888;font-size:11px;"><i class="fa fa-envelope-o" style="font-size:10px;"></i> {{ $item['email'] }}</span>
+        @endif
     </div>
-    <div class="health-check-item-details">
-        <table class="table table-condensed">
-            <tr><td width="80"><strong>Email:</strong></td><td>{{ $item['email'] ?? '-' }}</td></tr>
-            <tr><td><strong>Phone:</strong></td><td>{{ $item['phone'] ?? '-' }}</td></tr>
-            @if(isset($item['group']))
-            <tr><td><strong>Group:</strong></td><td>{{ $item['group'] ?? '-' }}</td></tr>
-            @endif
-        </table>
-        <a href="/{{ $adminUrl }}/ffs-members/{{ $item['id'] }}/edit" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Edit</a>
+    <div class="shc-item-detail">
+        @if(isset($item['group']))
+            <span class="shc-kv"><span class="shc-kv-label">Group:</span> {{ $item['group'] ?? '-' }}</span>
+        @endif
+        <a href="/{{ $adminUrl }}/ffs-members/{{ $item['id'] }}/edit" class="btn btn-default btn-xs"><i class="fa fa-edit"></i></a>
     </div>
 </div>
 
 @else
-{{-- Fallback for unknown check types --}}
-<div class="health-check-item {{ $severity }}">
-    <div class="health-check-item-header">
-        <i class="fa fa-question-circle"></i>
+{{-- Fallback --}}
+<div class="shc-item severity-{{ $severity }}">
+    <div class="shc-item-row">
+        <i class="fa fa-question-circle" style="color:#aaa;"></i>
         <strong>Item #{{ $idx ?? 0 }}</strong>
     </div>
-    <div class="health-check-item-details">
-        <pre>{{ json_encode($item, JSON_PRETTY_PRINT) }}</pre>
+    <div class="shc-item-detail">
+        <pre style="font-size:10px;margin:0;max-height:100px;overflow:auto;">{{ json_encode($item, JSON_PRETTY_PRINT) }}</pre>
     </div>
 </div>
 @endif

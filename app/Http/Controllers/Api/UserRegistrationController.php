@@ -26,7 +26,7 @@ class UserRegistrationController extends Controller
             $rules = [
                 'role' => 'required|string',
                 'name' => 'required|string|min:3|max:255',
-                'phone_number' => 'nullable|string',
+                'phone_number' => 'nullable|string|unique:users,phone_number',
                 'email' => 'nullable|email|unique:users,email',
                 'password' => 'required|string|min:4|confirmed',
                 'sex' => 'nullable|in:Male,Female',

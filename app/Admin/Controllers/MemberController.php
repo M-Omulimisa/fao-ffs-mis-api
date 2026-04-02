@@ -517,8 +517,8 @@ class MemberController extends AdminController
                 ->placeholder('e.g. 0781234567');
             $row->width(4)->email('email', 'Email Address')
                 ->placeholder('e.g. member@example.com')
-                ->creationRules(['nullable', 'email'])
-                ->updateRules(['nullable', 'email'])
+                ->creationRules(['nullable', 'email', 'unique:users,email'])
+                ->updateRules(['nullable', 'email', 'unique:users,email,{{id}}'])
                 ->help('Optional — for notifications and password recovery');
         });
 

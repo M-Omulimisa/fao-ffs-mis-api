@@ -335,7 +335,9 @@ class FacilitatorController extends AdminController
                 ->updateRules(['nullable', 'unique:users,phone_number,{{id}}'])
                 ->help('Leave blank if facilitator has no phone — member code will be used as identifier');
             $row->width(6)->email('email', 'Email Address')
-                ->placeholder('e.g. facilitator@example.com');
+                ->placeholder('e.g. facilitator@example.com')
+                ->creationRules(['nullable', 'email', 'unique:users,email'])
+                ->updateRules(['nullable', 'email', 'unique:users,email,{{id}}']);
         });
 
         $form->row(function ($row) {

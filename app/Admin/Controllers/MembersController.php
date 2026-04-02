@@ -226,7 +226,9 @@ class MembersController extends AdminController
         $form->text('last_name', __('Last name'));
         $form->text('reg_date', __('Reg date'));
         $form->text('last_seen', __('Last seen'));
-        $form->email('email', __('Email'));
+        $form->email('email', __('Email'))
+            ->creationRules(['nullable', 'email', 'unique:users,email'])
+            ->updateRules(['nullable', 'email', 'unique:users,email,{{id}}']);
         $form->switch('approved', __('Approved'));
         $form->text('profile_photo', __('Profile photo'));
         $form->text('user_type', __('User type'));
@@ -235,7 +237,9 @@ class MembersController extends AdminController
         $form->text('country', __('Country'));
         $form->text('occupation', __('Occupation'));
         $form->textarea('profile_photo_large', __('Profile photo large'));
-        $form->text('phone_number', __('Phone number'));
+        $form->text('phone_number', __('Phone number'))
+            ->creationRules(['nullable', 'unique:users,phone_number'])
+            ->updateRules(['nullable', 'unique:users,phone_number,{{id}}']);
         $form->text('location_lat', __('Location lat'));
         $form->text('location_long', __('Location long'));
         $form->text('facebook', __('Facebook'));

@@ -193,7 +193,9 @@ class IPUserController extends AdminController
                 ->creationRules(['nullable', 'unique:users,phone_number'])
                 ->updateRules(['nullable', 'unique:users,phone_number,{{id}}']);
             $row->width(6)->email('email', 'Email Address')
-                ->placeholder('e.g. user@example.com');
+                ->placeholder('e.g. user@example.com')
+                ->creationRules(['nullable', 'email', 'unique:users,email'])
+                ->updateRules(['nullable', 'email', 'unique:users,email,{{id}}']);
         });
 
         // ── User Type & Status ────────────────────────────────────────────
