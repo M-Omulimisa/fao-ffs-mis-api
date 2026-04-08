@@ -73,19 +73,8 @@ class VslaAgentOnboardingController extends Controller
 
         DB::beginTransaction();
         try {
-            $district     = Location::find($request->district_id);
-            $districtCode = strtoupper(substr($district->name, 0, 3));
-            $year         = date('y');
-
-            $lastGroup = FfsGroup::where('code', 'like', "$districtCode-VSLA-$year-%")
-                ->orderBy('code', 'desc')
-                ->first();
-
-            $nextNumber = 1;
-            if ($lastGroup && preg_match('/-(\d{4})$/', $lastGroup->code, $m)) {
-                $nextNumber = intval($m[1]) + 1;
-            }
-            $groupCode = sprintf('%s-VSLA-%s-%04d', $districtCode, $year, $nextNumber);
+            // Generate unique group code via the model's centralized method
+            $groupCode = FfsGroup::generateGroupCode('VSLA', $request->district_id, 'VSLA');
 
             // Smart defaults
             $meetingFrequency  = $request->meeting_frequency ?? 'Weekly';

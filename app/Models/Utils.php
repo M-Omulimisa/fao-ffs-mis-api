@@ -269,6 +269,12 @@ class Utils extends Model
             throw new Exception('User has no valid email address.');
         }
 
+        // Skip sending to auto-generated placeholder emails — they have no real mailbox
+        if (str_ends_with($email, '@faoffsmis.org')) {
+            \Log::info("Skipping credentials email for auto-generated address: {$email}");
+            return;
+        }
+
         $name     = $user->name ?: trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
         $username = $user->username ?: $email;
         $loginUrl = url('/auth/login');
@@ -306,6 +312,12 @@ class Utils extends Model
         $email = $user->email ?? $user->username ?? null;
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new Exception('User has no valid email address.');
+        }
+
+        // Skip sending to auto-generated placeholder emails
+        if (str_ends_with($email, '@faoffsmis.org')) {
+            \Log::info("Skipping welcome email for auto-generated address: {$email}");
+            return;
         }
 
         $name = $user->name ?: trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));

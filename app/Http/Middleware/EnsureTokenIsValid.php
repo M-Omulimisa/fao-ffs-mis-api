@@ -67,11 +67,12 @@ class EnsureTokenIsValid
         $u = User::find($user_id);
 
         if ($u == null) {
-            \Log::error('EnsureTokenIsValid - User ' . $user_id . ' not found in users table');
+            // Use warning level — this is expected for deleted/deactivated users, not a system error
+            \Log::warning('EnsureTokenIsValid - User ' . $user_id . ' not found (deleted or deactivated). Path: ' . $request->method() . ' ' . $request->path());
             return response()->json([
                 'code'    => 0,
                 'status'  => 0,
-                'message' => 'User not found.',
+                'message' => 'Your account was not found. Please log in again or contact your administrator.',
                 'data'    => null,
             ], 401);
         }

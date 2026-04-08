@@ -101,6 +101,13 @@ class User extends Administrator implements JWTSubject
             self::validateUniqueFields($user);
             self::generateMemberCode($user);
 
+            // Final safety: if the generated member_code already exists, regenerate
+            if (!empty($user->member_code) && self::where('member_code', $user->member_code)->exists()) {
+                \Log::warning("User: member_code [{$user->member_code}] already exists, regenerating...");
+                $user->member_code = null; // clear so generateMemberCode runs fresh
+                self::generateMemberCode($user);
+            }
+
             // Auto-assign ip_id from group or current admin user
             if (empty($user->ip_id)) {
                 // First try: inherit ip_id from the group
@@ -169,7 +176,16 @@ class User extends Administrator implements JWTSubject
             $nextNumber = 1;
         }
 
-        $user->member_code = sprintf('%s-MEM-%s-%04d', $districtCode, $year, $nextNumber);
+        // Retry loop: increment if the generated code already exists (race condition)
+        $attempts = 0;
+        $code = sprintf('%s-MEM-%s-%04d', $districtCode, $year, $nextNumber);
+        while (self::where('member_code', $code)->exists() && $attempts < 10) {
+            $nextNumber++;
+            $code = sprintf('%s-MEM-%s-%04d', $districtCode, $year, $nextNumber);
+            $attempts++;
+        }
+
+        $user->member_code = $code;
     }
 
     /**
@@ -210,6 +226,14 @@ class User extends Administrator implements JWTSubject
         // Trim address if not empty
         if (!empty($user->address)) {
             $user->address = trim($user->address);
+        }
+
+        // Sanitize dob: convert empty strings to null, validate date format
+        if ($user->isDirty('dob')) {
+            $dob = $user->dob;
+            if (empty($dob) || $dob === '0000-00-00' || $dob === '0000-00-00 00:00:00') {
+                $user->dob = null;
+            }
         }
     }
 
@@ -405,8 +429,11 @@ class User extends Administrator implements JWTSubject
     protected static function validateUniqueFields($user, $isUpdate = false)
     {
 
-        // Validate email uniqueness (if provided and not null)
-        if (!empty($user->email) && $user->email !== null && strlen($user->email) > 6) {
+        // Validate email uniqueness (skip auto-generated @faoffsmis.org emails)
+        if (
+            !empty($user->email) && strlen($user->email) > 6
+            && !str_ends_with($user->email, '@faoffsmis.org')
+        ) {
             $emailQuery = self::where('email', $user->email);
 
             // Exclude current user ID when updating
@@ -421,6 +448,11 @@ class User extends Administrator implements JWTSubject
 
         // Validate phone_number uniqueness (if provided and not null)
         if (!empty($user->phone_number) && $user->phone_number !== null && strlen($user->phone_number) > 6) {
+            // Skip validation for member_code-based phone numbers (no real phone)
+            if (preg_match('/^[A-Z]{3}-MEM-/', $user->phone_number)) {
+                return;
+            }
+
             $phoneQuery = self::where('phone_number', $user->phone_number);
 
             // Exclude current user ID when updating

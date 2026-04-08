@@ -331,7 +331,32 @@ class FfsGroup extends Model
         static::creating(function ($group) {
             // Auto-generate group code if not provided
             if (empty($group->code)) {
-                $group->code = self::generateGroupCode($group->type, $group->district_id);
+                $group->code = self::generateGroupCode(
+                    $group->type ?? 'VSLA',
+                    $group->district_id
+                );
+            }
+
+            // Final safety: if the code was set by a controller but already exists
+            // in the DB (race condition between generate and save), regenerate now
+            // IMPORTANT: withTrashed() because the unique constraint covers soft-deleted rows
+            if (self::withTrashed()->where('code', $group->code)->exists()) {
+                \Log::warning("FfsGroup: code [{$group->code}] already exists, regenerating...");
+                // Determine typeCode from existing code pattern (e.g. 'VSLA' from 'MOR-VSLA-26-0001')
+                $typeCode = null;
+                if (preg_match('/^[A-Z]{3}-([A-Z]+)-\d{2}-\d{4}$/', $group->code, $m)) {
+                    $typeCode = $m[1];
+                }
+                $group->code = self::generateGroupCode(
+                    $group->type ?? 'VSLA',
+                    $group->district_id,
+                    $typeCode
+                );
+            }
+
+            // Default meeting_frequency to 'Weekly' if null/empty (enum column rejects null)
+            if (empty($group->meeting_frequency)) {
+                $group->meeting_frequency = 'Weekly';
             }
 
             // Set created_by_id if not set
@@ -420,27 +445,50 @@ class FfsGroup extends Model
     }
 
     /**
-     * Generate unique group code (retries if duplicate exists)
+     * Generate a guaranteed-unique group code.
+     *
+     * Strategy:
+     *  1. Find the highest existing sequence number for this prefix via ORDER BY DESC.
+     *  2. Start from max+1 and loop until the code doesn't exist in the DB.
+     *  3. Up to 20 attempts — more than enough to skip any gaps or race-condition leftovers.
+     *
+     * @param  string      $type        Group type, e.g. 'VSLA', 'FFS'
+     * @param  int|null    $districtId  District ID (for the 3-letter prefix)
+     * @param  string|null $typeCode    Optional override for the type portion (e.g. 'VSLA' instead of 'VSL')
+     * @return string
      */
-    public static function generateGroupCode($type, $districtId)
+    public static function generateGroupCode($type, $districtId, ?string $typeCode = null)
     {
         $district = Location::find($districtId);
         $districtCode = $district ? strtoupper(substr($district->name, 0, 3)) : 'XXX';
-        
-        $typeCode = substr($type, 0, 3);
+
+        // Default type code: first 3 chars of type (VSL, FFS, etc.)
+        // Controllers can pass 'VSLA' explicitly to get the 4-letter form
+        $typeCode = $typeCode ?? strtoupper(substr($type, 0, 3));
         $year = date('y');
-        
-        // Start from count+1 and increment until a unique code is found
-        $count = self::where('type', $type)
-            ->where('district_id', $districtId)
-            ->whereYear('created_at', date('Y'))
-            ->count() + 1;
-        
-        do {
-            $code = sprintf('%s-%s-%s-%04d', $districtCode, $typeCode, $year, $count);
-            $count++;
-        } while (self::where('code', $code)->exists());
-        
+        $prefix = "$districtCode-$typeCode-$year-";
+
+        // Find the highest sequence number for this prefix
+        // IMPORTANT: use withTrashed() because the DB unique constraint covers soft-deleted rows too
+        $lastGroup = self::withTrashed()
+            ->where('code', 'like', $prefix . '%')
+            ->orderBy('code', 'desc')
+            ->first();
+
+        $nextNumber = 1;
+        if ($lastGroup && preg_match('/-(\d{4})$/', $lastGroup->code, $m)) {
+            $nextNumber = intval($m[1]) + 1;
+        }
+
+        // Loop until we find a code that doesn't exist (including soft-deleted rows)
+        $attempts = 0;
+        $code = sprintf('%s%04d', $prefix, $nextNumber);
+        while (self::withTrashed()->where('code', $code)->exists() && $attempts < 20) {
+            $nextNumber++;
+            $code = sprintf('%s%04d', $prefix, $nextNumber);
+            $attempts++;
+        }
+
         return $code;
     }
 

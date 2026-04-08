@@ -395,25 +395,10 @@ class VslaOnboardingController extends Controller
             
             if (!$group) {
                 $group = new FfsGroup();
-                
-                // Generate unique group code: DISTRICT-VSLA-YEAR-NUMBER
-                $district = Location::find($request->district_id);
-                $districtCode = strtoupper(substr($district->name, 0, 3));
-                $year = date('y');
-                
-                // Get last group code for this district
-                $lastGroup = FfsGroup::where('code', 'like', "$districtCode-VSLA-$year-%")
-                    ->orderBy('code', 'desc')
-                    ->first();
-                
-                if ($lastGroup && preg_match('/-(\\d{4})$/', $lastGroup->code, $matches)) {
-                    $nextNumber = intval($matches[1]) + 1;
-                } else {
-                    $nextNumber = 1;
-                }
-                
-                $groupCode = sprintf('%s-VSLA-%s-%04d', $districtCode, $year, $nextNumber);
-                
+
+                // Generate unique group code via the model's centralized method
+                $groupCode = FfsGroup::generateGroupCode('VSLA', $request->district_id, 'VSLA');
+
                 // Set initial fields for new group
                 $group->code = $groupCode;
                 $group->type = 'VSLA';
