@@ -336,6 +336,11 @@ class AdminUserController extends AdminController
             $status = $actions->row->status;
             $isActive = in_array($status, ['1', 'Active'], true);
 
+            // Protected admin account (ID 1) — cannot be deleted
+            if ((int) $id === 1) {
+                $actions->disableDelete();
+            }
+
             // Activate / Deactivate toggle
             if ($isActive) {
                 $deactivateUrl = admin_url("admin-users/{$id}/deactivate");

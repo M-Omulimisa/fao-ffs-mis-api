@@ -109,6 +109,7 @@ Route::group([
     $router->post('system-health-check/batch-clear-field', 'SystemHealthCheckController@batchClearField');
     $router->post('system-health-check/batch-update-group-status', 'SystemHealthCheckController@batchUpdateGroupStatus');
     $router->post('system-health-check/merge-duplicate-users', 'SystemHealthCheckController@mergeDuplicateUsers');
+    $router->post('system-health-check/delete-all-orphaned-members', 'SystemHealthCheckController@deleteAllOrphanedMembers');
 
     // Users management
     $router->resource('users', UserController::class);

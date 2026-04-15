@@ -240,8 +240,10 @@ class VslaFacilitatorController extends Controller
                     'district'            => $group->district_text,
                     'district_id'         => $group->district_id,
                     'subcounty'           => $group->subcounty_text,
+                    'subcounty_text'      => $group->subcounty_text,
                     'subcounty_id'        => $group->subcounty_id,
                     'parish'              => $group->parish_text,
+                    'parish_text'         => $group->parish_text,
                     'parish_id'           => $group->parish_id,
                     'village'             => $group->village,
                     'meeting_frequency'   => $group->meeting_frequency,
@@ -304,9 +306,12 @@ class VslaFacilitatorController extends Controller
                 'meeting_frequency'  => 'nullable|string|in:Weekly,Bi-weekly,Monthly',
                 'meeting_day'        => 'nullable|string',
                 'meeting_venue'      => 'nullable|string|max:500',
+                'subcounty_text'     => 'nullable|string|max:255',
+                'parish_text'        => 'nullable|string|max:255',
                 'village'            => 'nullable|string|max:255',
                 'estimated_members'  => 'nullable|integer|min:5|max:100',
                 'establishment_date' => 'nullable|date',
+                'year_of_establishment' => 'nullable|integer|min:1900|max:' . date('Y'),
             ]);
 
             if ($validator->fails()) {
@@ -316,6 +321,7 @@ class VslaFacilitatorController extends Controller
             $fillable = [
                 'name', 'description', 'meeting_frequency', 'meeting_day',
                 'meeting_venue', 'village', 'estimated_members', 'establishment_date',
+                'subcounty_text', 'parish_text',
             ];
 
             foreach ($fillable as $field) {
@@ -324,11 +330,26 @@ class VslaFacilitatorController extends Controller
                 }
             }
 
+            // Handle year_of_establishment → establishment_date conversion
+            if ($request->has('year_of_establishment') && !$request->has('establishment_date')) {
+                $group->establishment_date = $request->input('year_of_establishment') . '-01-01';
+            }
+
             $group->save();
+            $group->refresh();
 
             return $this->success([
-                'id'   => $group->id,
-                'name' => $group->name,
+                'id'                  => $group->id,
+                'name'                => $group->name,
+                'description'         => $group->description,
+                'meeting_frequency'   => $group->meeting_frequency,
+                'meeting_day'         => $group->meeting_day,
+                'meeting_venue'       => $group->meeting_venue,
+                'village'             => $group->village,
+                'subcounty_text'      => $group->subcounty_text,
+                'parish_text'         => $group->parish_text,
+                'estimated_members'   => $group->estimated_members,
+                'establishment_date'  => $group->establishment_date,
             ], 'Group updated successfully');
         } catch (\Exception $e) {
             Log::error('Facilitator updateGroup error: ' . $e->getMessage());

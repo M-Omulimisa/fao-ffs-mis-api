@@ -144,14 +144,37 @@ class VslaMeetingController extends Controller
             } else {
                 // No group resolved — fall back to direct cycle lookup
                 $cycle = Project::find($submittedCycleId);
-                if (!$cycle) {
-                    return $this->error('Cycle not found', 404);
+
+                // If cycle found, try to resolve the group from it
+                if ($cycle && $cycle->group_id) {
+                    $group   = FfsGroup::find($cycle->group_id);
+                    $groupId = $group ? (int) $group->id : ($cycle->group_id ?? $groupId);
                 }
+
+                if (!$cycle) {
+                    return $this->error('Cycle not found. Please ensure the group has an active cycle.', 404);
+                }
+
                 $cycleId = (int) $cycle->id;
                 $groupId = $cycle->group_id ?? $groupId;
             }
 
-            // Validate cycle is active
+            // ── Safety net: auto-create/activate cycle if current one is invalid ──
+            // If the resolved cycle is not active or not a VSLA cycle, and we have
+            // a group, use VslaService::ensureActiveCycle() to auto-create one
+            // instead of hard-failing the meeting submission.
+            if ($group && ($cycle->is_active_cycle !== 'Yes' || $cycle->is_vsla_cycle !== 'Yes')) {
+                Log::warning("[Meeting submit] cycle #{$cycleId} is invalid "
+                    . "(active={$cycle->is_active_cycle}, vsla={$cycle->is_vsla_cycle}); "
+                    . "auto-resolving for group #{$groupId} (user #{$user->id})");
+
+                $cycle   = VslaService::ensureActiveCycle($group, $user->id ?? null);
+                $cycleId = (int) $cycle->id;
+
+                Log::info("[Meeting submit] auto-resolved to cycle #{$cycleId} for group #{$groupId}");
+            }
+
+            // Validate cycle is active (hard fail only if we couldn't auto-resolve)
             if ($cycle->is_active_cycle !== 'Yes') {
                 return $this->error('This cycle is not active. Please select an active cycle.', 422, [
                     'error_type' => 'inactive_cycle',

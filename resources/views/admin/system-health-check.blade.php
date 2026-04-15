@@ -146,6 +146,7 @@
                 <button class="btn btn-warning" onclick="HC.batchClearField('phone_number')"><i class="fa fa-phone"></i> Clear Phone</button>
                 <button class="btn btn-info" onclick="HC.batchClearField('email')"><i class="fa fa-envelope-o"></i> Clear Email</button>
                 <button class="btn btn-success" onclick="HC.showMergeModal()"><i class="fa fa-compress"></i> Merge</button>
+                <button class="btn btn-danger" onclick="HC.deleteAllOrphans()" title="Delete all orphaned members (no group, excluding admins & facilitators)"><i class="fa fa-user-times"></i> Delete All Orphans</button>
             </div>
             <button class="btn btn-default btn-xs" onclick="HC.clearSelection()"><i class="fa fa-times"></i></button>
         </div>
@@ -557,6 +558,11 @@ var HC = {
         if (!confirm('Keep user #' + v + ' and DELETE all others?')) return;
         $('#mergeUsersModal').modal('hide');
         this.ajax('merge-duplicate-users', { ids: Array.from(this.selUsers), keep_id: v });
+    },
+
+    deleteAllOrphans: function() {
+        if (!confirm('Delete ALL orphaned members (no group assigned)? This excludes admins and facilitators. This action cannot be undone.')) return;
+        this.ajax('delete-all-orphaned-members', {});
     }
 };
 

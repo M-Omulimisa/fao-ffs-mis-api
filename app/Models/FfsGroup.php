@@ -377,70 +377,114 @@ class FfsGroup extends Model
             }
         });
 
-        // Commenting out updating hook until members() relationship is available
-        // static::updating(function ($group) {
-        //     // Update member counts automatically
-        //     $group->calculateMemberCounts();
-        // });
-        
+        // Auto-inherit IP from facilitator whenever facilitator_id is set or changed
+        static::saving(function ($group) {
+            if ($group->isDirty('facilitator_id') && $group->facilitator_id) {
+                $facilitator = \DB::table('users')->where('id', $group->facilitator_id)->first();
+                if ($facilitator && $facilitator->ip_id) {
+                    $group->ip_id = $facilitator->ip_id;
+                }
+            }
+        });
+
         // Cascade delete group data when a group is deleted
         // Users/members are intentionally preserved (only unlinked)
         static::deleting(function ($group) {
             $id = $group->id;
 
-            // Unlink members (keep the user accounts, just remove group association)
-            \DB::table('users')->where('group_id', $id)->update(['group_id' => null]);
+            // ── 1. Gather IDs ────────────────────────────────────────────
+            $cycleIds = \DB::table('projects')
+                ->where('group_id', $id)
+                ->pluck('id');
 
-            // Delete action plans linked to meetings before meetings are removed
-            $meetingIds = \DB::table('vsla_meetings')->where('group_id', $id)->pluck('id');
+            $meetingIds = \DB::table('vsla_meetings')
+                ->where('group_id', $id)
+                ->pluck('id');
+
+            $loanIds = $cycleIds->isNotEmpty()
+                ? \DB::table('vsla_loans')->whereIn('cycle_id', $cycleIds)->pluck('id')
+                : collect();
+
+            $shareoutIds = \DB::table('vsla_shareouts')
+                ->where('group_id', $id)
+                ->pluck('id');
+
+            $openingBalanceIds = \DB::table('vsla_opening_balances')
+                ->where('group_id', $id)
+                ->pluck('id');
+
+            $aesaSessionIds = \DB::table('aesa_sessions')
+                ->where('group_id', $id)
+                ->pluck('id');
+
+            // ── 2. Delete deepest children first (FK order) ──────────────
+
+            // Loan transactions → loans
+            if ($loanIds->isNotEmpty()) {
+                \DB::table('loan_transactions')->whereIn('loan_id', $loanIds)->delete();
+            }
+            if ($cycleIds->isNotEmpty()) {
+                \DB::table('vsla_loans')->whereIn('cycle_id', $cycleIds)->delete();
+            }
+
+            // Project transactions & shares
+            if ($cycleIds->isNotEmpty()) {
+                \DB::table('project_transactions')->whereIn('project_id', $cycleIds)->delete();
+                \DB::table('project_shares')->whereIn('project_id', $cycleIds)->delete();
+            }
+
+            // Shareout distributions → shareouts
+            if ($shareoutIds->isNotEmpty()) {
+                \DB::table('vsla_shareout_distributions')->whereIn('shareout_id', $shareoutIds)->delete();
+            }
+            \DB::table('vsla_shareouts')->where('group_id', $id)->delete();
+
+            // Action plans (linked via meeting_id and/or cycle_id)
             if ($meetingIds->isNotEmpty()) {
                 \DB::table('vsla_action_plans')->whereIn('meeting_id', $meetingIds)->delete();
             }
-
-            // Delete VSLA meetings
-            \DB::table('vsla_meetings')->where('group_id', $id)->delete();
-
-            // Delete cycles (projects) and their related data
-            // vsla_loans link to a group via cycle_id (not group_id), so handle them here
-            $cycleIds = \DB::table('projects')->where('group_id', $id)->pluck('id');
             if ($cycleIds->isNotEmpty()) {
-                // Delete loan transactions first (FK child of vsla_loans)
-                $loanIds = \DB::table('vsla_loans')->whereIn('cycle_id', $cycleIds)->pluck('id');
-                if ($loanIds->isNotEmpty()) {
-                    \DB::table('loan_transactions')->whereIn('loan_id', $loanIds)->delete();
-                }
-                \DB::table('vsla_loans')->whereIn('cycle_id', $cycleIds)->delete();
-
-                \DB::table('project_transactions')->whereIn('project_id', $cycleIds)->delete();
-                \DB::table('project_shares')->whereIn('project_id', $cycleIds)->delete();
-                \DB::table('vsla_shareouts')->whereIn('cycle_id', $cycleIds)->delete();
-
-                // Delete action plans linked to cycles
                 \DB::table('vsla_action_plans')->whereIn('cycle_id', $cycleIds)->delete();
             }
-            \DB::table('projects')->where('group_id', $id)->delete();
 
-            // Delete account transactions owned by this group
-            \DB::table('account_transactions')
-                ->where('owner_type', 'group')
-                ->where('group_id', $id)
-                ->delete();
+            // Meeting attendance → meetings
+            if ($meetingIds->isNotEmpty()) {
+                \DB::table('vsla_meeting_attendance')->whereIn('meeting_id', $meetingIds)->delete();
+            }
+            \DB::table('vsla_meetings')->where('group_id', $id)->delete();
 
-            // Delete social fund transactions
+            // Social fund & account transactions
             \DB::table('social_fund_transactions')->where('group_id', $id)->delete();
+            \DB::table('account_transactions')->where('group_id', $id)->delete();
 
-            // Delete VSLA profiles and opening balances
-            \DB::table('vsla_profiles')->where('group_id', $id)->delete();
+            // Opening balance members → opening balances
+            if ($openingBalanceIds->isNotEmpty()) {
+                \DB::table('vsla_opening_balance_members')->whereIn('opening_balance_id', $openingBalanceIds)->delete();
+            }
             \DB::table('vsla_opening_balances')->where('group_id', $id)->delete();
 
-            // Delete AESA sessions
+            // VSLA profiles
+            \DB::table('vsla_profiles')->where('group_id', $id)->delete();
+
+            // AESA observations → sessions
+            if ($aesaSessionIds->isNotEmpty()) {
+                \DB::table('aesa_observations')->whereIn('aesa_session_id', $aesaSessionIds)->delete();
+                \DB::table('aesa_crop_observations')->whereIn('aesa_session_id', $aesaSessionIds)->delete();
+            }
             \DB::table('aesa_sessions')->where('group_id', $id)->delete();
 
-            // Detach from training sessions pivot
+            // Training session pivot & KPI entries
             \DB::table('ffs_session_target_groups')->where('group_id', $id)->delete();
+            \DB::table('ffs_kpi_ip_entries')->where('group_id', $id)->delete();
+            \DB::table('ffs_kpi_facilitator_entries')->where('group_id', $id)->delete();
 
-            // Delete shareouts
-            \DB::table('vsla_shareouts')->where('group_id', $id)->delete();
+            // Delete cycles
+            if ($cycleIds->isNotEmpty()) {
+                \DB::table('projects')->whereIn('id', $cycleIds)->delete();
+            }
+
+            // ── 3. Delete all group members ──────────────────────────────
+            \DB::table('users')->where('group_id', $id)->delete();
         });
     }
 

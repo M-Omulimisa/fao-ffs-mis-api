@@ -146,13 +146,14 @@ class VslaConfigurationController extends Controller
                 return $this->error('Group not found', 404);
             }
 
-            // Check authorization - only chairperson can update
+            // Check authorization - chairperson, member, or facilitator can update
             $user = Auth::user();
             $isChairperson = ($group->admin_id == $user->id);
             $isMember = ($user->group_id == $group->id);
-            
-            if (!$user || (!$isChairperson && !$isMember)) {
-                return $this->error('Only group chairperson can update group information', 403);
+            $isFacilitator = ($group->facilitator_id == $user->id);
+
+            if (!$user || (!$isChairperson && !$isMember && !$isFacilitator)) {
+                return $this->error('Only group chairperson or facilitator can update group information', 403);
             }
 
             // Validation rules

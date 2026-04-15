@@ -628,6 +628,10 @@ class FfsGroupController extends AdminController
                     if ($facilitator->sex) {
                         $form->facilitator_sex = $facilitator->sex;
                     }
+                    // Inherit IP from facilitator
+                    if ($facilitator->ip_id) {
+                        $form->ip_id = $facilitator->ip_id;
+                    }
                 }
             }
         });

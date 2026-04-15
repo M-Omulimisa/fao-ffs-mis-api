@@ -138,6 +138,13 @@ class User extends Administrator implements JWTSubject
             self::validateUniqueFields($user, true);
             self::preventCriticalFieldWipe($user);
         });
+
+        // Prevent deletion of protected admin account (ID 1)
+        static::deleting(function ($user) {
+            if ((int) $user->id === 1) {
+                throw new \Exception('This account is protected and cannot be deleted.');
+            }
+        });
     }
 
     /**

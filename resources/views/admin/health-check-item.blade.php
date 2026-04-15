@@ -1,7 +1,3 @@
-@php
-    $adminUrl = config('admin.route.prefix', 'admin');
-@endphp
-
 @if ($checkKey === 'groups_similar_names')
 {{-- Similar Group Names --}}
 <div class="shc-item severity-{{ $severity }}" data-entity="group">
@@ -17,7 +13,7 @@
             @foreach ($item['groups'] as $g)
                 <tr>
                     <td><input type="checkbox" class="item-checkbox" value="{{ $g['id'] }}" data-entity="group" data-name="{{ $g['name'] }}"></td>
-                    <td><a href="/{{ $adminUrl }}/ffs-all-groups/{{ $g['id'] }}" target="_blank">{{ $g['name'] }}</a></td>
+                    <td><a href="{{ admin_url('ffs-all-groups/' . $g['id']) }}" target="_blank">{{ $g['name'] }}</a></td>
                     <td>{{ $g['members'] ?? 0 }}</td>
                     <td>{{ $g['ip'] ?? '-' }}</td>
                 </tr>
@@ -32,7 +28,7 @@
 <div class="shc-item severity-{{ $severity }}" data-entity="group">
     <div class="shc-item-row">
         <input type="checkbox" class="item-checkbox" value="{{ $item['id'] }}" data-entity="group" data-name="{{ $item['name'] }}">
-        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}" target="_blank"><strong>{{ $item['name'] }}</strong></a>
+        <a href="{{ admin_url('ffs-all-groups/' . $item['id']) }}" target="_blank"><strong>{{ $item['name'] }}</strong></a>
         <span class="label label-default">{{ $item['type'] ?? 'Group' }}</span>
         @if(isset($item['members']))
             <span class="label label-info">{{ $item['members'] }} mem</span>
@@ -46,8 +42,8 @@
             <span class="shc-kv"><span class="shc-kv-label">Reg:</span> {{ $item['registration_date'] }}</span>
         @endif
         <span class="shc-kv"><span class="shc-kv-label">IP:</span> {{ $item['ip'] ?? '-' }}</span>
-        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}/edit" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-edit"></i></a>
-        <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $item['id'] }}" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-eye"></i></a>
+        <a href="{{ admin_url('ffs-all-groups/' . $item['id'] . '/edit') }}" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-edit"></i></a>
+        <a href="{{ admin_url('ffs-all-groups/' . $item['id']) }}" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-eye"></i></a>
     </div>
 </div>
 
@@ -66,12 +62,12 @@
             @foreach ($item['users'] as $u)
                 <tr>
                     <td><input type="checkbox" class="user-checkbox" value="{{ $u['id'] }}" data-name="{{ $u['name'] }}"></td>
-                    <td><a href="/{{ $adminUrl }}/ffs-members/{{ $u['id'] }}" target="_blank">{{ $u['name'] }}</a></td>
+                    <td><a href="{{ admin_url('ffs-members/' . $u['id']) }}" target="_blank">{{ $u['name'] }}</a></td>
                     <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $u['email'] ?? '-' }}</td>
                     <td>{{ $u['phone'] ?? '-' }}</td>
                     <td>
                         @if(!empty($u['group_id']))
-                            <a href="/{{ $adminUrl }}/ffs-all-groups/{{ $u['group_id'] }}" target="_blank">{{ $u['group'] ?? 'View' }}</a>
+                            <a href="{{ admin_url('ffs-all-groups/' . $u['group_id']) }}" target="_blank">{{ $u['group'] ?? 'View' }}</a>
                         @else - @endif
                     </td>
                 </tr>
@@ -86,7 +82,7 @@
 <div class="shc-item severity-{{ $severity }}" data-entity="user">
     <div class="shc-item-row">
         <input type="checkbox" class="item-checkbox" value="{{ $item['id'] }}" data-entity="user" data-name="{{ $item['name'] }}">
-        <a href="/{{ $adminUrl }}/ffs-members/{{ $item['id'] }}" target="_blank"><strong>{{ $item['name'] }}</strong></a>
+        <a href="{{ admin_url('ffs-members/' . $item['id']) }}" target="_blank"><strong>{{ $item['name'] }}</strong></a>
         @if($checkKey === 'users_no_ip')
             <span class="label label-danger">No IP</span>
         @else
@@ -103,7 +99,7 @@
         @if(isset($item['group']))
             <span class="shc-kv"><span class="shc-kv-label">Group:</span> {{ $item['group'] ?? '-' }}</span>
         @endif
-        <a href="/{{ $adminUrl }}/ffs-members/{{ $item['id'] }}/edit" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-edit"></i></a>
+        <a href="{{ admin_url('ffs-members/' . $item['id'] . '/edit') }}" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-edit"></i></a>
     </div>
 </div>
 

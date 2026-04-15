@@ -361,17 +361,13 @@ class VslaGroupManagementController extends Controller
 
             $memberName = $member->name ?: trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? ''));
 
-            // Require exact member name as confirmation
-            $confirmationText = trim($request->input('confirmation_text', ''));
-            if (strtolower($confirmationText) !== strtolower($memberName)) {
-                return $this->error('You must type the member\'s name "' . $memberName . '" to confirm', 422);
-            }
-
-            $newPassword = $request->input('new_password');
+            // Require new_password from request
+            $newPassword = trim($request->input('new_password', ''));
             if (empty($newPassword)) {
-                $newPassword = !empty($member->phone_number)
-                    ? preg_replace('/[^0-9]/', '', $member->phone_number)
-                    : str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+                return $this->error('Please provide a new password', 422);
+            }
+            if (strlen($newPassword) < 4) {
+                return $this->error('Password must be at least 4 characters', 422);
             }
 
             $member->password = Hash::make($newPassword);

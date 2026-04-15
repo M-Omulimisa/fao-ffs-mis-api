@@ -54,6 +54,11 @@ class VslaGroupResetController extends Controller
                 return $this->error('You do not belong to this group', 403);
             }
 
+            // Only chairperson can preview/reset group data
+            if ((int) $group->admin_id !== (int) $user->id) {
+                return $this->error('Only the group chairperson can reset group data', 403);
+            }
+
             $cycleIds = DB::table('projects')
                 ->where('group_id', $groupId)
                 ->where('is_vsla_cycle', 'Yes')
@@ -182,6 +187,11 @@ class VslaGroupResetController extends Controller
             // User must belong to this group
             if ((int) $user->group_id !== (int) $groupId) {
                 return $this->error('You do not belong to this group', 403);
+            }
+
+            // Only chairperson can reset group data
+            if ((int) $group->admin_id !== (int) $user->id) {
+                return $this->error('Only the group chairperson can reset group data', 403);
             }
 
             // Require explicit confirmation

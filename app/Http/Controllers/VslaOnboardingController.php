@@ -359,9 +359,9 @@ class VslaOnboardingController extends Controller
             'establishment_date' => 'required|date|before_or_equal:today',
             'district_id' => 'required|exists:locations,id',
             'estimated_members' => 'required|integer|min:10|max:50',
-            'subcounty_text' => 'nullable|string|max:100',
-            'parish_text' => 'nullable|string|max:100',
-            'village' => 'nullable|string|max:100',
+            'subcounty_text' => 'required|string|min:2|max:100',
+            'parish_text' => 'required|string|min:2|max:100',
+            'village' => 'required|string|min:2|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -406,6 +406,10 @@ class VslaOnboardingController extends Controller
                 $group->admin_id = $user->id;
                 $group->created_by_id = $user->id;
                 $group->facilitator_id = $user->id;
+                // Inherit IP from chairperson
+                if ($user->ip_id) {
+                    $group->ip_id = $user->ip_id;
+                }
             }
 
             // ========== UPDATE GROUP FIELDS (both create and update) ==========

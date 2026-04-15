@@ -102,8 +102,14 @@ class SystemHealthCheckController extends AdminController
             ->distinct()
             ->pluck('facilitator_id');
 
-        $facilitators = User::whereIn('id', $facilitatorIds)
-            ->orWhere('user_type', 'facilitator')
+        // Also include users with field_facilitator role (role_id = 3)
+        $facilitatorRoleUserIds = \DB::table('admin_role_users')
+            ->where('role_id', 3)
+            ->pluck('user_id');
+
+        $allFacilitatorIds = $facilitatorIds->merge($facilitatorRoleUserIds)->unique();
+
+        $facilitators = User::whereIn('id', $allFacilitatorIds)
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
@@ -187,6 +193,53 @@ class SystemHealthCheckController extends AdminController
             return response()->json([
                 'success' => true,
                 'message' => "{$count} user(s) deleted successfully",
+                'deleted' => $count
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Delete all orphaned members (no group, excluding admins and facilitators)
+     */
+    public function deleteAllOrphanedMembers(Request $request)
+    {
+        $this->initContext();
+
+        try {
+            // Staff/admin role IDs — must match checkOrphanedMembers()
+            $staffRoleIds = [1, 2, 3, 6, 7];
+
+            $staffUserIds = \DB::table('admin_role_users')
+                ->whereIn('role_id', $staffRoleIds)
+                ->pluck('user_id')
+                ->unique();
+
+            $query = User::query()
+                ->where(function($q) {
+                    $q->whereNull('group_id')->orWhere('group_id', 0);
+                });
+
+            if ($staffUserIds->isNotEmpty()) {
+                $query->whereNotIn('id', $staffUserIds);
+            }
+
+            if ($this->hasIpScope()) {
+                $query->where('ip_id', $this->effectiveIpId());
+            }
+
+            $count = $query->count();
+
+            if ($count === 0) {
+                return response()->json(['success' => true, 'message' => 'No orphaned members found', 'deleted' => 0]);
+            }
+
+            $query->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} orphaned member(s) deleted successfully",
                 'deleted' => $count
             ]);
         } catch (\Exception $e) {
@@ -367,6 +420,123 @@ class SystemHealthCheckController extends AdminController
     }
 
     // ─────────────────────────────────────────────────────────────
+    // HELPERS
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Resolve accurate IP name and district for a group.
+     * Falls back to the relationship data when the stored text columns are empty.
+     * If the group still has no IP, attempts auto-fix from created_by or facilitator.
+     */
+    private function resolveGroupDisplayData(FfsGroup $g): array
+    {
+        // --- IP resolution ---
+        $ipName = null;
+
+        // 1. Try the relationship (ip_id → implementing_partners.name)
+        if ($g->ip_id && $g->relationLoaded('implementingPartner') && $g->implementingPartner) {
+            $ipName = $g->implementingPartner->name;
+        }
+
+        // 2. Fall back to the stored ip_name text column
+        if (!$ipName && $g->ip_name) {
+            $ipName = $g->ip_name;
+        }
+
+        // 3. Auto-fix: no ip_id at all — try to derive from created_by or facilitator
+        if (!$g->ip_id) {
+            $ipName = $this->autoFixGroupIp($g);
+        }
+
+        // --- District resolution ---
+        $district = null;
+
+        // 1. Try the relationship (district_id → locations.name)
+        if ($g->district_id && $g->relationLoaded('district') && $g->district) {
+            $district = $g->district->name;
+        }
+
+        // 2. Fall back to the stored district_text column
+        if (!$district && $g->district_text) {
+            $district = $g->district_text;
+        }
+
+        return [
+            'ip' => $ipName ?: 'No IP',
+            'district' => $district ?: 'N/A',
+        ];
+    }
+
+    /**
+     * Auto-fix a group's missing IP by looking up the user who created or facilitates the group.
+     * Returns the resolved IP name (or null).
+     */
+    private function autoFixGroupIp(FfsGroup $g): ?string
+    {
+        $resolvedIpId = null;
+
+        // Try 1: created_by_id user's IP
+        if ($g->created_by_id) {
+            $creatorIpId = DB::table('users')->where('id', $g->created_by_id)->value('ip_id');
+            if ($creatorIpId) {
+                $resolvedIpId = $creatorIpId;
+            }
+        }
+
+        // Try 2: facilitator's IP (if creator had no IP)
+        if (!$resolvedIpId && $g->facilitator_id) {
+            $facilitatorIpId = DB::table('users')->where('id', $g->facilitator_id)->value('ip_id');
+            if ($facilitatorIpId) {
+                $resolvedIpId = $facilitatorIpId;
+            }
+        }
+
+        // Try 3: the group admin (chairperson) — any member with is_group_admin = 'Yes'
+        if (!$resolvedIpId) {
+            $chairIpId = DB::table('users')
+                ->where('group_id', $g->id)
+                ->where('is_group_admin', 'Yes')
+                ->whereNotNull('ip_id')
+                ->where('ip_id', '>', 0)
+                ->value('ip_id');
+            if ($chairIpId) {
+                $resolvedIpId = $chairIpId;
+            }
+        }
+
+        if ($resolvedIpId) {
+            // Persist the fix
+            DB::table('ffs_groups')->where('id', $g->id)->update(['ip_id' => $resolvedIpId]);
+
+            // Also update ip_name text column for future reads
+            $ipName = DB::table('implementing_partners')->where('id', $resolvedIpId)->value('name');
+            if ($ipName) {
+                DB::table('ffs_groups')->where('id', $g->id)->update(['ip_name' => $ipName]);
+            }
+
+            return $ipName;
+        }
+
+        return null;
+    }
+
+    /**
+     * Build the standard group data array used by all check item views.
+     */
+    private function buildGroupItem(FfsGroup $g, array $extraFields = []): array
+    {
+        $display = $this->resolveGroupDisplayData($g);
+
+        return array_merge([
+            'id' => $g->id,
+            'name' => $g->name,
+            'type' => $g->type,
+            'ip' => $display['ip'],
+            'district' => $display['district'],
+        ], $extraFields);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // CHECK FUNCTIONS
     // ─────────────────────────────────────────────────────────────
 
@@ -375,7 +545,9 @@ class SystemHealthCheckController extends AdminController
      */
     private function checkGroupsSimilarNames()
     {
-        $query = FfsGroup::query()->withCount('members');
+        $query = FfsGroup::query()
+            ->with(['implementingPartner:id,name', 'district:id,name'])
+            ->withCount('members');
         $query = $this->applyScopeQuery($query);
 
         $groups = $query->get()
@@ -384,13 +556,9 @@ class SystemHealthCheckController extends AdminController
 
         $items = $groups->map(fn($soundexGroup) => [
             'title' => 'Similar Group Names Detected',
-            'groups' => $soundexGroup->map(fn($g) => [
-                'id' => $g->id,
-                'name' => $g->name,
-                'type' => $g->type,
+            'groups' => $soundexGroup->map(fn($g) => $this->buildGroupItem($g, [
                 'members' => $g->members_count,
-                'ip' => $g->ip_name,
-            ])->values()->toArray(),
+            ]))->values()->toArray(),
             'action' => 'review',
         ])->values()->toArray();
 
@@ -410,19 +578,17 @@ class SystemHealthCheckController extends AdminController
      */
     private function checkGroupsOversized()
     {
-        $query = FfsGroup::query()->withCount('members');
+        $query = FfsGroup::query()
+            ->with(['implementingPartner:id,name', 'district:id,name'])
+            ->withCount('members');
         $query = $this->applyScopeQuery($query);
 
         $items = $query->get()
             ->filter(fn($g) => $g->members_count > 35)
             ->sortByDesc('members_count')
-            ->map(fn($g) => [
-                'id' => $g->id,
-                'name' => $g->name,
-                'type' => $g->type,
+            ->map(fn($g) => $this->buildGroupItem($g, [
                 'members' => $g->members_count,
-                'ip' => $g->ip_name,
-            ])->values()->toArray();
+            ]))->values()->toArray();
 
         return [
             'title' => 'Oversized Groups (35+ Members)',
@@ -632,9 +798,24 @@ class SystemHealthCheckController extends AdminController
      */
     private function checkOrphanedMembers()
     {
+        // Staff/admin role IDs that should never appear as orphaned members:
+        // 1 = Super Admin, 2 = IP Manager, 3 = Field Facilitator,
+        // 6 = M&E Officer, 7 = Content Manager
+        $staffRoleIds = [1, 2, 3, 6, 7];
+
+        // Get user IDs that have any staff/admin role
+        $staffUserIds = \DB::table('admin_role_users')
+            ->whereIn('role_id', $staffRoleIds)
+            ->pluck('user_id')
+            ->unique();
+
         $query = User::query()
             ->where(function($q) {
                 $q->whereNull('group_id')->orWhere('group_id', 0);
+            })
+            // Exclude users with staff/admin roles
+            ->when($staffUserIds->isNotEmpty(), function($q) use ($staffUserIds) {
+                $q->whereNotIn('id', $staffUserIds);
             })
             ->select('id', 'name', 'email', 'phone_number', 'ip_id')
             ->orderBy('name');

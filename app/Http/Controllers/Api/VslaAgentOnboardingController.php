@@ -58,13 +58,13 @@ class VslaAgentOnboardingController extends Controller
             'name'                  => 'required|string|min:3|max:255',
             'description'           => 'nullable|string|max:1000',
             'meeting_frequency'     => 'nullable|in:Weekly,Bi-weekly,Monthly',
-            'establishment_date'    => 'nullable|date|before_or_equal:today',
-            'year_of_establishment' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'establishment_date'    => 'required_without:year_of_establishment|date|before_or_equal:today',
+            'year_of_establishment' => 'required_without:establishment_date|integer|min:1900|max:' . date('Y'),
             'district_id'           => 'required|exists:locations,id',
             'estimated_members'     => 'nullable|integer|min:5|max:100',
-            'subcounty_text'        => 'nullable|string|max:100',
-            'parish_text'           => 'nullable|string|max:100',
-            'village'               => 'nullable|string|max:100',
+            'subcounty_text'        => 'required|string|min:2|max:100',
+            'parish_text'           => 'required|string|min:2|max:100',
+            'village'               => 'required|string|min:2|max:100',
         ]);
 
         if ($validator->fails()) {
