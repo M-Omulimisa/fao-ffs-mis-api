@@ -281,11 +281,7 @@ class VslaMeetingController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             
-            return $this->error('Failed to submit meeting: ' . $e->getMessage(), 500, [
-                'exception' => get_class($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
+            return $this->error('Failed to submit meeting: ' . $e->getMessage(), 500);
         }
     }
 
@@ -582,10 +578,14 @@ class VslaMeetingController extends Controller
 
             // Reprocess
             DB::beginTransaction();
-            
+
             $processingResult = $this->meetingProcessor->processMeeting($meeting);
-            
-            DB::commit();
+
+            if ($processingResult['success']) {
+                DB::commit();
+            } else {
+                DB::rollBack();
+            }
 
             $meeting->refresh();
 
@@ -712,14 +712,16 @@ class VslaMeetingController extends Controller
      */
     private function generateMeetingNumber($cycleId, $groupId = null)
     {
+        // Use lockForUpdate to prevent race conditions when two meetings
+        // for the same cycle are submitted concurrently.
         $query = VslaMeeting::where('cycle_id', $cycleId);
-        
+
         if ($groupId) {
             $query->where('group_id', $groupId);
         }
-        
-        $lastMeetingNumber = $query->max('meeting_number') ?? 0;
-        
+
+        $lastMeetingNumber = $query->lockForUpdate()->max('meeting_number') ?? 0;
+
         return $lastMeetingNumber + 1;
     }
 }

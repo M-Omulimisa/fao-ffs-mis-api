@@ -110,6 +110,11 @@ Route::group([
     $router->post('system-health-check/batch-update-group-status', 'SystemHealthCheckController@batchUpdateGroupStatus');
     $router->post('system-health-check/merge-duplicate-users', 'SystemHealthCheckController@mergeDuplicateUsers');
     $router->post('system-health-check/delete-all-orphaned-members', 'SystemHealthCheckController@deleteAllOrphanedMembers');
+    $router->post('system-health-check/resolve-item', 'SystemHealthCheckController@resolveItem');
+    $router->post('system-health-check/unresolve-item', 'SystemHealthCheckController@unresolveItem');
+    $router->post('system-health-check/auto-fix-orphaned-members', 'SystemHealthCheckController@autoFixOrphanedMembers');
+    $router->post('system-health-check/auto-fix-users-no-ip', 'SystemHealthCheckController@autoFixUsersNoIp');
+    $router->post('system-health-check/auto-fix-groups-no-facilitator', 'SystemHealthCheckController@autoFixGroupsNoFacilitator');
 
     // Users management
     $router->resource('users', UserController::class);

@@ -85,7 +85,7 @@
 <!-- Health Check Cards -->
 <div class="row" id="shc-container">
     @foreach($checks as $checkKey => $check)
-        @php $count = count($check['items']); $empty = $count === 0; @endphp
+        @php $count = count($check['items']); $empty = $count === 0; $resolvedCount = $check['resolved_count'] ?? 0; @endphp
         <div class="col-md-6 shc-card-wrap" data-severity="{{ $check['severity'] }}">
             <div class="shc-card {{ $empty ? 'shc-card-clean' : 'shc-card-'.$check['color'] }}">
                 <div class="shc-card-header" onclick="HC.toggle(this)">
@@ -96,10 +96,16 @@
                     <div class="shc-card-meta">
                         @if($count > 0)
                             <span class="shc-badge shc-badge-{{ $check['color'] }}">{{ $count }}</span>
+                            @if($resolvedCount > 0)
+                                <span class="shc-badge shc-badge-resolved" title="{{ $resolvedCount }} resolved (hidden)">{{ $resolvedCount }} <i class="fa fa-check-circle"></i></span>
+                            @endif
                             <label class="shc-select-all" onclick="event.stopPropagation();">
                                 <input type="checkbox" class="select-all-check" data-check="{{ $checkKey }}" data-entity="{{ $check['entity'] ?? 'group' }}"> All
                             </label>
                         @else
+                            @if($resolvedCount > 0)
+                                <span class="shc-badge shc-badge-resolved" title="{{ $resolvedCount }} resolved (hidden)">{{ $resolvedCount }} <i class="fa fa-check-circle"></i></span>
+                            @endif
                             <span class="shc-badge shc-badge-success"><i class="fa fa-check"></i></span>
                         @endif
                         <i class="fa {{ $empty ? 'fa-chevron-right' : 'fa-chevron-down' }} shc-chevron"></i>
@@ -109,6 +115,22 @@
                     <div class="shc-card-desc">{{ $check['description'] }}</div>
 
                     @if($count > 0)
+                        {{-- Auto-fix toolbar for specific checks --}}
+                        <div class="shc-autofix-bar">
+                            @if($checkKey === 'orphaned_members')
+                                <button class="btn btn-success btn-xs" onclick="HC.autoFix('orphaned_members')"><i class="fa fa-magic"></i> Intelligent Fix</button>
+                                <button class="btn btn-danger btn-xs" onclick="HC.quickDeleteAll('orphaned_members', {{ $count }})"><i class="fa fa-trash"></i> Delete All Orphans</button>
+                            @elseif($checkKey === 'users_no_ip')
+                                <button class="btn btn-success btn-xs" onclick="HC.autoFix('users_no_ip')"><i class="fa fa-magic"></i> Auto-Assign IP from Group</button>
+                            @elseif($checkKey === 'groups_no_facilitator')
+                                <button class="btn btn-success btn-xs" onclick="HC.autoFix('groups_no_facilitator')"><i class="fa fa-magic"></i> Auto-Assign Facilitators</button>
+                            @elseif($checkKey === 'groups_empty')
+                                <button class="btn btn-danger btn-xs" onclick="HC.quickDeleteAllEmpty({{ $count }})"><i class="fa fa-trash"></i> Delete All Empty Groups</button>
+                            @elseif($checkKey === 'inactive_groups_with_members')
+                                <button class="btn btn-success btn-xs" onclick="HC.quickActivateAll({{ $count }})"><i class="fa fa-check"></i> Activate All</button>
+                            @endif
+                        </div>
+
                         <div class="shc-items" data-check="{{ $checkKey }}" data-entity="{{ $check['entity'] ?? 'group' }}">
                             @foreach($check['items'] as $idx => $item)
                                 @include('admin.health-check-item', [
@@ -224,6 +246,55 @@
     </div>
 </div>
 
+<!-- Auto-Fix Modal -->
+<div class="modal fade" id="autoFixModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#00a65a;color:#fff;padding:10px 15px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;">&times;</button>
+                <h5 class="modal-title"><i class="fa fa-magic"></i> <span id="auto-fix-title">Intelligent Fix</span></h5>
+            </div>
+            <div class="modal-body" style="padding:12px 15px;max-height:500px;overflow-y:auto;">
+                <div id="auto-fix-loading" class="text-center" style="padding:30px;">
+                    <i class="fa fa-spinner fa-spin fa-2x" style="color:#00a65a;"></i>
+                    <p style="margin-top:10px;color:#666;">Scanning for potential fixes&hellip;</p>
+                </div>
+                <div id="auto-fix-results" style="display:none;">
+                    <div id="auto-fix-summary" class="shc-alert-info" style="margin-bottom:10px;"></div>
+                    <div id="auto-fix-table-wrap"></div>
+                </div>
+            </div>
+            <div class="modal-footer" id="auto-fix-footer" style="display:none;padding:8px 15px;">
+                <button class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-success btn-sm" id="auto-fix-apply-btn" onclick="HC.applyAutoFixAction()">
+                    <i class="fa fa-check"></i> Apply Selected (<span id="auto-fix-count">0</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Action Modal -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#dd4b39;color:#fff;padding:10px 15px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;">&times;</button>
+                <h5 class="modal-title" id="confirm-action-title"><i class="fa fa-exclamation-triangle"></i> Confirm</h5>
+            </div>
+            <div class="modal-body" style="padding:12px 15px;">
+                <p id="confirm-action-msg"></p>
+            </div>
+            <div class="modal-footer" style="padding:8px 15px;">
+                <button class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="confirm-action-btn" onclick="HC.executeConfirmedAction()">
+                    <i class="fa fa-check"></i> <span id="confirm-action-label">Confirm</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 /* ═══════════════  STAT CARDS  ═══════════════ */
 .shc-stats { margin-bottom: 10px; }
@@ -303,6 +374,8 @@
 .shc-badge-warning { background: #f39c12; }
 .shc-badge-info    { background: #00c0ef; }
 .shc-badge-success { background: #00a65a; }
+.shc-badge-resolved { background: #8bc34a; font-size: 10px; }
+.shc-badge-resolved i { margin-left: 2px; font-size: 9px; }
 
 .shc-select-all { font-size: 11px; font-weight: normal; cursor: pointer; margin: 0; color: #888; }
 .shc-select-all input { margin-right: 2px; }
@@ -348,6 +421,28 @@
 /* Detail kv pairs */
 .shc-kv { display: inline-flex; gap: 4px; margin-right: 10px; }
 .shc-kv-label { font-weight: 600; color: #888; }
+
+/* Resolve button */
+.shc-resolve-btn { margin-left: auto; font-size: 10px !important; padding: 1px 6px !important; color: #888; border-color: #ddd; }
+.shc-resolve-btn:hover { color: #fff; background: #8bc34a; border-color: #8bc34a; }
+.shc-resolve-btn i { font-size: 10px; }
+
+/* Auto-fix bar */
+.shc-autofix-bar {
+    display: flex; gap: 6px; padding: 6px 0 4px; margin-bottom: 4px;
+    border-bottom: 1px dashed #e0e0e0; flex-wrap: wrap;
+}
+.shc-autofix-bar .btn { font-size: 11px; }
+.shc-alert-info {
+    background: #d9edf7; border: 1px solid #bce8f1; color: #31708f;
+    padding: 8px 12px; border-radius: 3px; font-size: 12px;
+}
+.shc-alert-info strong { color: #286090; }
+
+/* Confidence labels */
+.shc-confidence-high { color: #00a65a; font-weight: 600; }
+.shc-confidence-medium { color: #f39c12; font-weight: 600; }
+.shc-confidence-low { color: #dd4b39; font-weight: 600; }
 
 /* ═══════════════  CLEAN MESSAGE  ═══════════════ */
 .shc-clean-msg { padding: 6px 0; font-size: 12px; color: #00a65a; }
@@ -563,7 +658,309 @@ var HC = {
     deleteAllOrphans: function() {
         if (!confirm('Delete ALL orphaned members (no group assigned)? This excludes admins and facilitators. This action cannot be undone.')) return;
         this.ajax('delete-all-orphaned-members', {});
-    }
+    },
+
+    resolveItem: function(checkKey, entityType, entityIds) {
+        var $btn = event ? $(event.target).closest('.shc-resolve-btn') : null;
+        if ($btn) $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+        $.ajax({
+            url: this.url + '/resolve-item', type: 'POST',
+            data: { _token: this.csrf, check_key: checkKey, entity_type: entityType, entity_ids: entityIds },
+            dataType: 'json',
+            success: function(r) {
+                if (r.success) {
+                    toastr.success(r.message);
+                    if ($btn) $btn.closest('.shc-item').slideUp(200, function() { $(this).remove(); });
+                } else {
+                    toastr.error(r.message || 'Failed');
+                    if ($btn) $btn.prop('disabled', false).html('<i class="fa fa-check"></i>');
+                }
+            },
+            error: function(x) {
+                toastr.error('Error: ' + (x.responseJSON?.message || x.statusText));
+                if ($btn) $btn.prop('disabled', false).html('<i class="fa fa-check"></i>');
+            }
+        });
+    },
+
+    resolveCluster: function(checkKey, entityType, entityIds) {
+        this.resolveItem(checkKey, entityType, entityIds);
+    },
+
+    // ─────────────────────────────────────────────────
+    // AUTO-FIX (Intelligent Fix)
+    // ─────────────────────────────────────────────────
+    _autoFixType: null,
+    _autoFixData: null,
+
+    autoFix: function(checkKey) {
+        var self = this;
+        var endpoints = {
+            'orphaned_members': 'auto-fix-orphaned-members',
+            'users_no_ip': 'auto-fix-users-no-ip',
+            'groups_no_facilitator': 'auto-fix-groups-no-facilitator'
+        };
+        var titles = {
+            'orphaned_members': 'Fix Orphaned Members — Match to Groups',
+            'users_no_ip': 'Fix Users Without IP',
+            'groups_no_facilitator': 'Auto-Assign Facilitators'
+        };
+
+        self._autoFixType = checkKey;
+        self._autoFixData = null;
+
+        $('#auto-fix-title').text(titles[checkKey] || 'Intelligent Fix');
+        $('#auto-fix-loading').show();
+        $('#auto-fix-results, #auto-fix-footer').hide();
+        $('#autoFixModal').modal('show');
+
+        $.ajax({
+            url: this.url + '/' + endpoints[checkKey], type: 'POST',
+            data: { _token: this.csrf }, dataType: 'json',
+            success: function(r) {
+                if (!r.success) {
+                    toastr.error(r.message || 'Scan failed');
+                    $('#autoFixModal').modal('hide');
+                    return;
+                }
+                self.showAutoFixResults(checkKey, r);
+            },
+            error: function(x) {
+                toastr.error('Error: ' + (x.responseJSON?.message || x.statusText));
+                $('#autoFixModal').modal('hide');
+            }
+        });
+    },
+
+    showAutoFixResults: function(checkKey, data) {
+        var self = this;
+        $('#auto-fix-loading').hide();
+        $('#auto-fix-results, #auto-fix-footer').show();
+
+        if (checkKey === 'orphaned_members') {
+            self._autoFixData = data.fixes;
+            var html = '';
+            if (data.fixes.length > 0) {
+                html += '<div style="margin-bottom:6px;"><label style="font-size:11px;cursor:pointer;"><input type="checkbox" id="auto-fix-select-all" checked> Select All</label></div>';
+                html += '<table class="shc-tbl"><thead><tr>';
+                html += '<th style="width:24px;"><input type="checkbox" id="af-toggle-all" checked></th>';
+                html += '<th>Orphan</th><th>Phone</th><th>Match</th><th>Assign To Group</th><th>Confidence</th>';
+                html += '</tr></thead><tbody>';
+                data.fixes.forEach(function(f, i) {
+                    html += '<tr><td><input type="checkbox" class="af-check" data-idx="' + i + '" checked></td>';
+                    html += '<td><strong>' + self.esc(f.user_name) + '</strong></td>';
+                    html += '<td>' + (f.user_phone || '-') + '</td>';
+                    html += '<td><span class="label label-' + (f.match_type === 'phone' ? 'success' : 'warning') + '">' + f.match_type + '</span>';
+                    html += ' <small>' + self.esc(f.matched_user_name) + '</small></td>';
+                    html += '<td>' + self.esc(f.group_name) + '</td>';
+                    html += '<td class="shc-confidence-' + f.confidence + '">' + f.confidence + '</td></tr>';
+                });
+                html += '</tbody></table>';
+            }
+            var summary = '<strong>' + data.fixes.length + '</strong> orphan(s) matched to existing groups';
+            if (data.no_match_count > 0) {
+                summary += ' &middot; <strong>' + data.no_match_count + '</strong> could not be matched (can be deleted manually)';
+            }
+            summary += ' &middot; Total: <strong>' + data.total + '</strong>';
+            $('#auto-fix-summary').html(summary);
+            $('#auto-fix-table-wrap').html(html);
+            self.updateAutoFixCount();
+
+        } else if (checkKey === 'users_no_ip') {
+            self._autoFixData = data;
+            var summary = '<strong>' + data.fixable + '</strong> user(s) have a group but no IP — we\'ll assign the IP of their group.';
+            if (data.unfixable > 0) {
+                summary += '<br><strong>' + data.unfixable + '</strong> user(s) have neither group nor IP (cannot be auto-fixed).';
+            }
+            $('#auto-fix-summary').html(summary);
+            $('#auto-fix-table-wrap').html('');
+            $('#auto-fix-count').text(data.fixable);
+            if (data.fixable === 0) {
+                $('#auto-fix-apply-btn').prop('disabled', true);
+            }
+
+        } else if (checkKey === 'groups_no_facilitator') {
+            self._autoFixData = data.fixes;
+            var html = '';
+            if (data.fixes.length > 0) {
+                html += '<table class="shc-tbl"><thead><tr>';
+                html += '<th style="width:24px;"><input type="checkbox" id="af-toggle-all" checked></th>';
+                html += '<th>Group</th><th>Suggested Facilitator</th><th>Currently Manages</th>';
+                html += '</tr></thead><tbody>';
+                data.fixes.forEach(function(f, i) {
+                    html += '<tr><td><input type="checkbox" class="af-check" data-idx="' + i + '" checked></td>';
+                    html += '<td><strong>' + self.esc(f.group_name) + '</strong></td>';
+                    html += '<td>' + self.esc(f.facilitator_name) + '</td>';
+                    html += '<td>' + f.facilitator_groups + ' group(s)</td></tr>';
+                });
+                html += '</tbody></table>';
+            }
+            var summary = '<strong>' + data.fixes.length + '</strong> group(s) can be auto-assigned facilitators';
+            if (data.no_fix_count > 0) {
+                summary += ' &middot; <strong>' + data.no_fix_count + '</strong> have no facilitator in their IP (assign manually)';
+            }
+            $('#auto-fix-summary').html(summary);
+            $('#auto-fix-table-wrap').html(html);
+            self.updateAutoFixCount();
+        }
+
+        // Bind toggle-all
+        $(document).off('change', '#af-toggle-all').on('change', '#af-toggle-all', function() {
+            $('.af-check').prop('checked', this.checked);
+            self.updateAutoFixCount();
+        });
+        $(document).off('change', '.af-check').on('change', '.af-check', function() {
+            self.updateAutoFixCount();
+        });
+    },
+
+    updateAutoFixCount: function() {
+        var count = this._autoFixType === 'users_no_ip'
+            ? (this._autoFixData ? this._autoFixData.fixable : 0)
+            : $('.af-check:checked').length;
+        $('#auto-fix-count').text(count);
+        $('#auto-fix-apply-btn').prop('disabled', count === 0);
+    },
+
+    applyAutoFixAction: function() {
+        var self = this;
+        var type = self._autoFixType;
+        var btn = $('#auto-fix-apply-btn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Applying...');
+
+        if (type === 'orphaned_members') {
+            var selectedFixes = [];
+            $('.af-check:checked').each(function() {
+                var idx = +$(this).data('idx');
+                var f = self._autoFixData[idx];
+                selectedFixes.push({ user_id: f.user_id, group_id: f.group_id, ip_id: f.ip_id });
+            });
+            if (selectedFixes.length === 0) { toastr.warning('No fixes selected'); btn.prop('disabled', false).html('<i class="fa fa-check"></i> Apply'); return; }
+
+            $.ajax({
+                url: self.url + '/auto-fix-orphaned-members', type: 'POST',
+                data: { _token: self.csrf, apply: 1, fixes: selectedFixes }, dataType: 'json',
+                success: function(r) {
+                    $('#autoFixModal').modal('hide');
+                    if (r.success) { toastr.success(r.message); setTimeout(function(){ location.reload(); }, 1200); }
+                    else { toastr.error(r.message); btn.prop('disabled', false).html('<i class="fa fa-check"></i> Apply'); }
+                },
+                error: function(x) {
+                    toastr.error('Error: ' + (x.responseJSON?.message || x.statusText));
+                    btn.prop('disabled', false).html('<i class="fa fa-check"></i> Apply');
+                }
+            });
+
+        } else if (type === 'users_no_ip') {
+            $.ajax({
+                url: self.url + '/auto-fix-users-no-ip', type: 'POST',
+                data: { _token: self.csrf, apply: 1 }, dataType: 'json',
+                success: function(r) {
+                    $('#autoFixModal').modal('hide');
+                    if (r.success) { toastr.success(r.message); setTimeout(function(){ location.reload(); }, 1200); }
+                    else { toastr.error(r.message); btn.prop('disabled', false).html('<i class="fa fa-check"></i> Apply'); }
+                },
+                error: function(x) {
+                    toastr.error('Error: ' + (x.responseJSON?.message || x.statusText));
+                    btn.prop('disabled', false).html('<i class="fa fa-check"></i> Apply');
+                }
+            });
+
+        } else if (type === 'groups_no_facilitator') {
+            var selectedFixes = [];
+            $('.af-check:checked').each(function() {
+                var idx = +$(this).data('idx');
+                var f = self._autoFixData[idx];
+                selectedFixes.push({ group_id: f.group_id, facilitator_id: f.facilitator_id });
+            });
+            if (selectedFixes.length === 0) { toastr.warning('No fixes selected'); btn.prop('disabled', false).html('<i class="fa fa-check"></i> Apply'); return; }
+
+            $.ajax({
+                url: self.url + '/auto-fix-groups-no-facilitator', type: 'POST',
+                data: { _token: self.csrf, apply: 1, fixes: selectedFixes }, dataType: 'json',
+                success: function(r) {
+                    $('#autoFixModal').modal('hide');
+                    if (r.success) { toastr.success(r.message); setTimeout(function(){ location.reload(); }, 1200); }
+                    else { toastr.error(r.message); btn.prop('disabled', false).html('<i class="fa fa-check"></i> Apply'); }
+                },
+                error: function(x) {
+                    toastr.error('Error: ' + (x.responseJSON?.message || x.statusText));
+                    btn.prop('disabled', false).html('<i class="fa fa-check"></i> Apply');
+                }
+            });
+        }
+    },
+
+    // ─────────────────────────────────────────────────
+    // QUICK ACTIONS (with confirmation modals)
+    // ─────────────────────────────────────────────────
+    _confirmedAction: null,
+
+    showConfirm: function(title, msg, label, headerColor, action) {
+        this._confirmedAction = action;
+        $('#confirm-action-title').html('<i class="fa fa-exclamation-triangle"></i> ' + title);
+        $('#confirm-action-msg').html(msg);
+        $('#confirm-action-label').text(label);
+        var $btn = $('#confirm-action-btn');
+        $btn.removeClass('btn-danger btn-success btn-warning');
+        $btn.addClass(headerColor === 'success' ? 'btn-success' : headerColor === 'warning' ? 'btn-warning' : 'btn-danger');
+        $('#confirmActionModal .modal-header').css('background', headerColor === 'success' ? '#00a65a' : headerColor === 'warning' ? '#f39c12' : '#dd4b39');
+        $('#confirmActionModal').modal('show');
+    },
+
+    executeConfirmedAction: function() {
+        $('#confirmActionModal').modal('hide');
+        if (typeof this._confirmedAction === 'function') {
+            this._confirmedAction();
+        }
+    },
+
+    quickDeleteAll: function(checkKey, count) {
+        var self = this;
+        self.showConfirm(
+            'Delete All Orphaned Members',
+            'This will <strong>permanently delete ' + count + ' orphaned member(s)</strong> who have no group assigned.<br><br>' +
+            '<span style="color:#dd4b39;"><i class="fa fa-exclamation-triangle"></i> This action cannot be undone.</span><br><br>' +
+            'Admins and facilitators will be excluded from deletion.',
+            'Delete ' + count + ' Members',
+            'danger',
+            function() { self.ajax('delete-all-orphaned-members', {}); }
+        );
+    },
+
+    quickDeleteAllEmpty: function(count) {
+        var self = this;
+        // Collect all empty group IDs from checkboxes
+        var ids = [];
+        $('.shc-items[data-check="groups_empty"] .item-checkbox').each(function() {
+            ids.push(+$(this).val());
+        });
+        self.showConfirm(
+            'Delete All Empty Groups',
+            'This will <strong>permanently delete ' + ids.length + ' group(s)</strong> that have zero members.<br><br>' +
+            '<span style="color:#dd4b39;"><i class="fa fa-exclamation-triangle"></i> This action cannot be undone.</span>',
+            'Delete ' + ids.length + ' Groups',
+            'danger',
+            function() { self.ajax('batch-delete-groups', { ids: ids }); }
+        );
+    },
+
+    quickActivateAll: function(count) {
+        var self = this;
+        var ids = [];
+        $('.shc-items[data-check="inactive_groups_with_members"] .item-checkbox').each(function() {
+            ids.push(+$(this).val());
+        });
+        self.showConfirm(
+            'Activate All Inactive Groups',
+            'This will set <strong>' + ids.length + ' group(s)</strong> to <span class="label label-success">Active</span> status.',
+            'Activate ' + ids.length + ' Groups',
+            'success',
+            function() { self.ajax('batch-update-group-status', { ids: ids, status: 'Active' }); }
+        );
+    },
+
+    esc: function(s) { return $('<span>').text(s || '').html(); }
 };
 
 $(document).ready(function() {
