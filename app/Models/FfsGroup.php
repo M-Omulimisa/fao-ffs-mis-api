@@ -377,9 +377,9 @@ class FfsGroup extends Model
             }
         });
 
-        // Auto-inherit IP from facilitator whenever facilitator_id is set or changed
+        // Auto-inherit IP from facilitator only when ip_id was not explicitly changed
         static::saving(function ($group) {
-            if ($group->isDirty('facilitator_id') && $group->facilitator_id) {
+            if ($group->isDirty('facilitator_id') && $group->facilitator_id && !$group->isDirty('ip_id')) {
                 $facilitator = \DB::table('users')->where('id', $group->facilitator_id)->first();
                 if ($facilitator && $facilitator->ip_id) {
                     $group->ip_id = $facilitator->ip_id;
