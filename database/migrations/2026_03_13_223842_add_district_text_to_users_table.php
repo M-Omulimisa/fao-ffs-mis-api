@@ -13,16 +13,28 @@ class AddDistrictTextToUsersTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
             // Plain-text district name stored directly (no FK dependency on locations table)
-            $table->string('district', 100)->nullable()->after('village');
+            if (!Schema::hasColumn('users', 'district')) {
+                $table->string('district', 100)->nullable();
+            }
         });
     }
 
     public function down()
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('district');
+            if (Schema::hasColumn('users', 'district')) {
+                $table->dropColumn('district');
+            }
         });
     }
 }

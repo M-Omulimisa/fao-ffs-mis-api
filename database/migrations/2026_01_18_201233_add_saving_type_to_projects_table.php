@@ -17,16 +17,22 @@ class AddSavingTypeToProjectsTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('projects')) {
+            return;
+        }
+
         Schema::table('projects', function (Blueprint $table) {
-            // Add saving_type column after is_vsla_cycle
-            $table->enum('saving_type', ['shares', 'any_amount'])
-                ->default('shares')
-                ->after('is_vsla_cycle')
-                ->comment('Type of savings: shares (fixed amount) or any_amount (flexible)');
+            if (!Schema::hasColumn('projects', 'saving_type')) {
+                $table->enum('saving_type', ['shares', 'any_amount'])
+                    ->default('shares')
+                    ->comment('Type of savings: shares (fixed amount) or any_amount (flexible)');
+            }
         });
         
         // Update existing cycles to have 'shares' as default
-        \DB::statement("UPDATE projects SET saving_type = 'shares' WHERE is_vsla_cycle = 'Yes'");
+        if (Schema::hasColumn('projects', 'saving_type') && Schema::hasColumn('projects', 'is_vsla_cycle')) {
+            \DB::statement("UPDATE projects SET saving_type = 'shares' WHERE is_vsla_cycle = 'Yes'");
+        }
     }
 
     /**
@@ -36,8 +42,14 @@ class AddSavingTypeToProjectsTable extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('projects')) {
+            return;
+        }
+
         Schema::table('projects', function (Blueprint $table) {
-            $table->dropColumn('saving_type');
+            if (Schema::hasColumn('projects', 'saving_type')) {
+                $table->dropColumn('saving_type');
+            }
         });
     }
 }

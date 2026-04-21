@@ -14,10 +14,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            // Add facilitator start date after reg_date
+            // Add facilitator start date (schema-agnostic ordering)
             if (!Schema::hasColumn('users', 'facilitator_start_date')) {
-                $table->date('facilitator_start_date')->nullable()->after('reg_date');
+                $table->date('facilitator_start_date')->nullable();
             }
         });
 
@@ -41,6 +45,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
             if (Schema::hasColumn('users', 'facilitator_start_date')) {
                 $table->dropColumn('facilitator_start_date');

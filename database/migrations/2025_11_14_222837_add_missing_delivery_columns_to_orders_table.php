@@ -13,6 +13,10 @@ class AddMissingDeliveryColumnsToOrdersTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             // Add delivery_method if it doesn't exist
             if (!Schema::hasColumn('orders', 'delivery_method')) {
@@ -71,6 +75,10 @@ class AddMissingDeliveryColumnsToOrdersTable extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             $columns = [
                 'delivery_method',

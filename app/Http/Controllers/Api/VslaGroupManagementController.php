@@ -340,8 +340,8 @@ class VslaGroupManagementController extends Controller
     /**
      * POST /api/agent-vsla/my-groups/{group_id}/members/{member_id}/set-password
      *
-     * Sets a member's password. Only the group's facilitator or super admin.
-     * Requires: confirmation_text = member's full name.
+        * Sets a member's password directly from the app.
+        * Allowed for the group's facilitator, chairperson/group admin, or super admin.
      */
     public function setMemberPassword(Request $request, $groupId, $memberId)
     {
@@ -352,8 +352,8 @@ class VslaGroupManagementController extends Controller
             $group = FfsGroup::find($groupId);
             if (!$group) return $this->error('Group not found', 404);
 
-            if (!$this->canDeleteGroup($user, $group)) {
-                return $this->error('Only the facilitator of this group or a super admin can set member passwords', 403);
+            if (!$this->canDeleteGroup($user, $group) && !$this->canManageMembers($user, $group)) {
+                return $this->error('You are not allowed to set passwords for members in this group', 403);
             }
 
             $member = User::where('id', $memberId)->where('group_id', $groupId)->first();
@@ -373,22 +373,12 @@ class VslaGroupManagementController extends Controller
             $member->password = Hash::make($newPassword);
             $member->save();
 
-            Log::info("PASSWORD SET: member #{$memberId} ({$memberName}) by facilitator #{$user->id}");
-
-            $emailSent = false;
-            try {
-                Utils::send_credentials_email($member, $newPassword, 'Group Member');
-                $emailSent = true;
-            } catch (\Exception $e) {
-                Log::warning("Password set email failed for member #{$memberId}: " . $e->getMessage());
-            }
+            Log::info("PASSWORD SET: member #{$memberId} ({$memberName}) by user #{$user->id}");
 
             return $this->success('Password set successfully', [
                 'member_id' => (int) $memberId,
                 'member_name' => $memberName,
-                'email_sent' => $emailSent,
-                'message' => 'Password has been set for "' . $memberName . '".'
-                    . ($emailSent ? ' Login credentials have been emailed.' : ' No valid email on file — please share the new password manually.'),
+                'message' => 'Password has been set for "' . $memberName . '".',
             ]);
         } catch (\Exception $e) {
             Log::error("PASSWORD SET FAILED: member #{$memberId}: " . $e->getMessage());

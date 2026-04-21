@@ -379,6 +379,8 @@ class FfsGroup extends Model
 
         // Auto-inherit IP from facilitator only when ip_id was not explicitly changed
         static::saving(function ($group) {
+            self::normalizeCaseFields($group);
+
             if ($group->isDirty('facilitator_id') && $group->facilitator_id && !$group->isDirty('ip_id')) {
                 $facilitator = \DB::table('users')->where('id', $group->facilitator_id)->first();
                 if ($facilitator && $facilitator->ip_id) {
@@ -489,6 +491,20 @@ class FfsGroup extends Model
     }
 
     /**
+     * Normalize casing policy for group write-paths.
+     */
+    protected static function normalizeCaseFields($group): void
+    {
+        $group->name = $group->name !== null ? mb_strtoupper(trim($group->name)) : null;
+
+        foreach (['contact_person_name', 'ip_name', 'subcounty_text', 'parish_text', 'village'] as $field) {
+            if ($group->$field !== null) {
+                $group->$field = ucwords(mb_strtolower(trim($group->$field)));
+            }
+        }
+    }
+
+    /**
      * Generate a guaranteed-unique group code.
      *
      * Strategy:
@@ -555,12 +571,12 @@ class FfsGroup extends Model
 
     public function getNameAttribute($value): ?string
     {
-        return $value !== null ? $this->toTitleCase($value) : null;
+        return $value !== null ? $this->toUpperCase($value) : null;
     }
 
     public function setNameAttribute($value): void
     {
-        $this->attributes['name'] = $value !== null ? $this->toTitleCase($value) : null;
+        $this->attributes['name'] = $value !== null ? $this->toUpperCase($value) : null;
     }
 
     public function getContactPersonNameAttribute($value): ?string

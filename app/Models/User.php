@@ -18,6 +18,7 @@ class User extends Administrator implements JWTSubject
 {
     use HasFactory;
     use Notifiable;
+    use \App\Traits\TitleCase;
 
     /**
      * Override parent Administrator's restrictive $fillable.
@@ -137,6 +138,17 @@ class User extends Administrator implements JWTSubject
             self::handleNameSplitting($user);
             self::validateUniqueFields($user, true);
             self::preventCriticalFieldWipe($user);
+
+            // Keep facilitator groups aligned when facilitator IP changes.
+            if ($user->isDirty('ip_id') && !empty($user->ip_id)) {
+                try {
+                    \App\Models\FfsGroup::where('facilitator_id', $user->id)
+                        ->where('ip_id', '!=', $user->ip_id)
+                        ->update(['ip_id' => $user->ip_id]);
+                } catch (\Throwable $e) {
+                    \Log::warning('User IP sync to facilitator groups failed: ' . $e->getMessage());
+                }
+            }
         });
 
         // Prevent deletion of protected admin account (ID 1)
@@ -217,17 +229,22 @@ class User extends Administrator implements JWTSubject
 
         // Trim name if not empty
         if (!empty($user->name)) {
-            $user->name = trim($user->name);
+            $user->name = $user->toTitleCase(trim($user->name));
         }
 
         // Trim first_name if not empty
         if (!empty($user->first_name)) {
-            $user->first_name = trim($user->first_name);
+            $user->first_name = $user->toTitleCase(trim($user->first_name));
         }
 
         // Trim last_name if not empty
         if (!empty($user->last_name)) {
-            $user->last_name = trim($user->last_name);
+            $user->last_name = $user->toTitleCase(trim($user->last_name));
+        }
+
+        // Normalize emergency contact person name
+        if (!empty($user->emergency_contact_name)) {
+            $user->emergency_contact_name = $user->toTitleCase(trim($user->emergency_contact_name));
         }
 
         // Trim address if not empty
@@ -940,6 +957,14 @@ class User extends Administrator implements JWTSubject
     public function group()
     {
         return $this->belongsTo(\App\Models\FfsGroup::class, 'group_id');
+    }
+
+    /**
+     * User account that created this user.
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(self::class, 'created_by_id');
     }
 
     /**

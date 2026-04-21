@@ -26,7 +26,7 @@ class UserController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new User());
-        $grid->model()->orderBy('id', 'desc');
+        $grid->model()->with(['group', 'createdBy'])->orderBy('id', 'desc');
         $this->applyIpScope($grid);
 
         $grid->quickSearch('name', 'first_name', 'last_name', 'phone_number', 'email')
@@ -61,6 +61,10 @@ class UserController extends AdminController
                 'Admin' => 'Admin',
                 'Customer' => 'Member',
             ]);
+
+            $filter->equal('created_by_id', 'Created By')->select(
+                User::orderBy('name')->pluck('name', 'id')
+            );
 
             $filter->between('created_at', 'Registered')->date();
         });
@@ -155,6 +159,13 @@ class UserController extends AdminController
         $grid->column('created_at', 'Registered')->display(function ($date) {
             return \Carbon\Carbon::parse($date)->format('d M Y');
         })->sortable();
+
+        $grid->column('created_by_id', 'Created By')->display(function () {
+            if ($this->createdBy) {
+                return $this->createdBy->name;
+            }
+            return '<span class="text-muted">System/Unknown</span>';
+        });
 
         return $grid;
     }

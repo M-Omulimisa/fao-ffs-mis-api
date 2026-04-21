@@ -336,7 +336,7 @@ class VslaGroupManifestController extends Controller
             $membersList[] = [
                 'id' => $member->id,
                 'name' => $member->name,
-                'phone' => $member->phone,
+                'phone' => $member->phone_number ?? '',
                 'email' => $member->email,
                 'member_code' => $member->member_code ?? 'N/A',
                 'role' => $this->getMemberRole($member, $group),
@@ -909,6 +909,7 @@ class VslaGroupManifestController extends Controller
             $updatedMembers[] = [
                 'id' => $member->id,
                 'name' => $member->name,
+                'phone' => $member->phone_number ?? '',
                 'financial_summary' => $this->getMemberFinancialSummary($member, $cycle),
                 'updated_at' => $member->updated_at->toIso8601String(),
             ];
@@ -1087,7 +1088,7 @@ class VslaGroupManifestController extends Controller
         return [
             'id' => $user->id,
             'name' => $user->name,
-            'phone' => $user->phone,
+            'phone' => $user->phone_number ?? '',
             'email' => $user->email,
         ];
     }

@@ -13,7 +13,11 @@ class CreateSocialFundTransactionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('social_fund_transactions', function (Blueprint $table) {
+        $hasGroupsTable = Schema::hasTable('ffs_groups');
+        $hasProjectsTable = Schema::hasTable('projects');
+        $hasMeetingsTable = Schema::hasTable('vsla_meetings');
+
+        Schema::create('social_fund_transactions', function (Blueprint $table) use ($hasGroupsTable, $hasProjectsTable, $hasMeetingsTable) {
             $table->id();
             $table->unsignedBigInteger('group_id')->nullable();
             $table->unsignedBigInteger('cycle_id')->nullable();
@@ -28,9 +32,15 @@ class CreateSocialFundTransactionsTable extends Migration
             $table->timestamps();
 
             // Foreign keys (where possible)
-            $table->foreign('group_id')->references('id')->on('ffs_groups')->onDelete('cascade');
-            $table->foreign('cycle_id')->references('id')->on('projects')->onDelete('set null');
-            $table->foreign('meeting_id')->references('id')->on('vsla_meetings')->onDelete('set null');
+            if ($hasGroupsTable) {
+                $table->foreign('group_id')->references('id')->on('ffs_groups')->onDelete('cascade');
+            }
+            if ($hasProjectsTable) {
+                $table->foreign('cycle_id')->references('id')->on('projects')->onDelete('set null');
+            }
+            if ($hasMeetingsTable) {
+                $table->foreign('meeting_id')->references('id')->on('vsla_meetings')->onDelete('set null');
+            }
 
             // Indexes (for user references - can't use foreign key due to type mismatch)
             $table->index('group_id');

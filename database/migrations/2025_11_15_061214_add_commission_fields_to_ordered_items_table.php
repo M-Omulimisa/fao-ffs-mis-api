@@ -13,6 +13,10 @@ class AddCommissionFieldsToOrderedItemsTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('ordered_items')) {
+            return;
+        }
+
         Schema::table('ordered_items', function (Blueprint $table) {
             // Payment tracking for individual items
             if (!Schema::hasColumn('ordered_items', 'item_is_paid')) {
@@ -80,6 +84,10 @@ class AddCommissionFieldsToOrderedItemsTable extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('ordered_items')) {
+            return;
+        }
+
         Schema::table('ordered_items', function (Blueprint $table) {
             $columns = [
                 'item_is_paid',

@@ -13,8 +13,14 @@ class AddRegisteredByIdToMembershipPaymentsTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('membership_payments')) {
+            return;
+        }
+
         Schema::table('membership_payments', function (Blueprint $table) {
-            $table->foreignId('registered_by_id')->nullable()->after('confirmed_by');
+            if (!Schema::hasColumn('membership_payments', 'registered_by_id')) {
+                $table->foreignId('registered_by_id')->nullable()->after('confirmed_by');
+            }
         });
     }
 
@@ -25,8 +31,14 @@ class AddRegisteredByIdToMembershipPaymentsTable extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('membership_payments')) {
+            return;
+        }
+
         Schema::table('membership_payments', function (Blueprint $table) {
-            $table->dropColumn('registered_by_id');
+            if (Schema::hasColumn('membership_payments', 'registered_by_id')) {
+                $table->dropColumn('registered_by_id');
+            }
         });
     }
 }

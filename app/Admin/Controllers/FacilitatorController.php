@@ -28,6 +28,7 @@ class FacilitatorController extends AdminController
     {
         // Source 1: users assigned as facilitator on a group
         $fromGroups = DB::table('ffs_groups')
+            ->whereNull('deleted_at')
             ->whereNotNull('facilitator_id')
             ->distinct()
             ->pluck('facilitator_id');
@@ -65,7 +66,7 @@ class FacilitatorController extends AdminController
         $ids = $this->facilitatorIds();
         $grid->model()
             ->whereIn('id', $ids)
-            ->selectRaw('users.*, (SELECT COUNT(*) FROM ffs_groups WHERE ffs_groups.facilitator_id = users.id) AS groups_count_sql, (SELECT COUNT(*) FROM users AS m WHERE m.group_id IN (SELECT id FROM ffs_groups WHERE ffs_groups.facilitator_id = users.id)) AS members_profiled_sql')
+            ->selectRaw('users.*, (SELECT COUNT(*) FROM ffs_groups WHERE ffs_groups.facilitator_id = users.id AND ffs_groups.deleted_at IS NULL) AS groups_count_sql, (SELECT COUNT(*) FROM users AS m WHERE m.group_id IN (SELECT id FROM ffs_groups WHERE ffs_groups.facilitator_id = users.id AND ffs_groups.deleted_at IS NULL)) AS members_profiled_sql')
             ->orderBy('id', 'desc');
 
         // ── Three-tier access ──────────────────────────────────────────────

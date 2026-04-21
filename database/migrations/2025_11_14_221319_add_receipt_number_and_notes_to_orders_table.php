@@ -13,6 +13,10 @@ class AddReceiptNumberAndNotesToOrdersTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             // Add receipt_number for tracking
             if (!Schema::hasColumn('orders', 'receipt_number')) {
@@ -56,6 +60,10 @@ class AddReceiptNumberAndNotesToOrdersTable extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             $columns = ['receipt_number', 'invoice_number', 'order_date', 'notes', 'sub_total', 'tax', 'discount'];
             

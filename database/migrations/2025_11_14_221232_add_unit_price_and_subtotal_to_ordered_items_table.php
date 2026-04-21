@@ -13,6 +13,10 @@ class AddUnitPriceAndSubtotalToOrderedItemsTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('ordered_items')) {
+            return;
+        }
+
         Schema::table('ordered_items', function (Blueprint $table) {
             // Add unit_price column if it doesn't exist
             if (!Schema::hasColumn('ordered_items', 'unit_price')) {
@@ -33,6 +37,10 @@ class AddUnitPriceAndSubtotalToOrderedItemsTable extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('ordered_items')) {
+            return;
+        }
+
         Schema::table('ordered_items', function (Blueprint $table) {
             if (Schema::hasColumn('ordered_items', 'unit_price')) {
                 $table->dropColumn('unit_price');

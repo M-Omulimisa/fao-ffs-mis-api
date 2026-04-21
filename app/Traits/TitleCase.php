@@ -13,19 +13,33 @@ namespace App\Traits;
  */
 trait TitleCase
 {
-    protected function toTitleCase(?string $value): ?string
+    protected function normalizeCase(?string $value, string $mode = 'title'): ?string
     {
         if ($value === null) {
             return null;
         }
 
-        // Strip Unicode "format" characters (\p{Cf}: zero-width joiners, word
-        // joiners, BOM, soft hyphens, etc.) that are invisible but trip up
-        // ucwords / trim.
         $clean = preg_replace('/\p{Cf}+/u', '', $value);
-
         $clean = trim($clean ?? '');
 
-        return $clean !== '' ? ucwords(mb_strtolower($clean)) : null;
+        if ($clean === '') {
+            return null;
+        }
+
+        if ($mode === 'upper') {
+            return mb_strtoupper($clean);
+        }
+
+        return ucwords(mb_strtolower($clean));
+    }
+
+    protected function toTitleCase(?string $value): ?string
+    {
+        return $this->normalizeCase($value, 'title');
+    }
+
+    protected function toUpperCase(?string $value): ?string
+    {
+        return $this->normalizeCase($value, 'upper');
     }
 }

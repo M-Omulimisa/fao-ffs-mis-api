@@ -13,22 +13,34 @@ class AddIpIdToUsersGroupsAndSessions extends Migration
     public function up()
     {
         // ── Users ──────────────────────────────────────────
-        Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('ip_id')->nullable()->after('user_type');
-            $table->index('ip_id');
-        });
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (!Schema::hasColumn('users', 'ip_id')) {
+                    $table->unsignedBigInteger('ip_id')->nullable();
+                    $table->index('ip_id');
+                }
+            });
+        }
 
         // ── FFS Groups ─────────────────────────────────────
-        Schema::table('ffs_groups', function (Blueprint $table) {
-            $table->unsignedBigInteger('ip_id')->nullable()->after('id');
-            $table->index('ip_id');
-        });
+        if (Schema::hasTable('ffs_groups')) {
+            Schema::table('ffs_groups', function (Blueprint $table) {
+                if (!Schema::hasColumn('ffs_groups', 'ip_id')) {
+                    $table->unsignedBigInteger('ip_id')->nullable()->after('id');
+                    $table->index('ip_id');
+                }
+            });
+        }
 
         // ── FFS Training Sessions ──────────────────────────
-        Schema::table('ffs_training_sessions', function (Blueprint $table) {
-            $table->unsignedBigInteger('ip_id')->nullable()->after('id');
-            $table->index('ip_id');
-        });
+        if (Schema::hasTable('ffs_training_sessions')) {
+            Schema::table('ffs_training_sessions', function (Blueprint $table) {
+                if (!Schema::hasColumn('ffs_training_sessions', 'ip_id')) {
+                    $table->unsignedBigInteger('ip_id')->nullable()->after('id');
+                    $table->index('ip_id');
+                }
+            });
+        }
 
         // ── VSLA Meetings ──────────────────────────────────
         if (Schema::hasTable('vsla_meetings')) {
@@ -57,8 +69,15 @@ class AddIpIdToUsersGroupsAndSessions extends Migration
 
         foreach ($tables as $tableName) {
             if (Schema::hasTable($tableName) && Schema::hasColumn($tableName, 'ip_id')) {
-                Schema::table($tableName, function (Blueprint $table) {
-                    $table->dropIndex(['ip_id']);
+                Schema::table($tableName, function (Blueprint $table) use ($tableName) {
+                    try {
+                        $table->dropIndex($tableName . '_ip_id_index');
+                    } catch (\Throwable $e) {
+                        try {
+                            $table->dropIndex(['ip_id']);
+                        } catch (\Throwable $e) {
+                        }
+                    }
                     $table->dropColumn('ip_id');
                 });
             }

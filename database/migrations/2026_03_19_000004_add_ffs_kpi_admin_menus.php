@@ -2,12 +2,17 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AddFfsKpiAdminMenus extends Migration
 {
     public function up()
     {
         $table = config('admin.database.menu_table', 'admin_menu');
+
+        if (!Schema::hasTable($table)) {
+            return;
+        }
 
         // Find max order to place FFS KPIs after existing items
         $maxOrder = DB::table($table)->max('order') ?? 80;
@@ -69,6 +74,10 @@ class AddFfsKpiAdminMenus extends Migration
     public function down()
     {
         $table = config('admin.database.menu_table', 'admin_menu');
+
+        if (!Schema::hasTable($table)) {
+            return;
+        }
 
         $parent = DB::table($table)
             ->where('title', 'FFS KPIs')

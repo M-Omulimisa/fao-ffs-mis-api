@@ -13,15 +13,27 @@ class RenameDistrictToDistrictNameOnUsersTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->renameColumn('district', 'district_name');
+            if (Schema::hasColumn('users', 'district') && !Schema::hasColumn('users', 'district_name')) {
+                $table->renameColumn('district', 'district_name');
+            }
         });
     }
 
     public function down()
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->renameColumn('district_name', 'district');
+            if (Schema::hasColumn('users', 'district_name') && !Schema::hasColumn('users', 'district')) {
+                $table->renameColumn('district_name', 'district');
+            }
         });
     }
 }

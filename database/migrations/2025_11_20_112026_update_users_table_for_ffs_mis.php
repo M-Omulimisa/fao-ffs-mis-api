@@ -18,34 +18,34 @@ class UpdateUsersTableForFfsMis extends Migration
                     $table->string('member_code', 50)->nullable()->after('id')->unique()->comment('Auto-generated member code');
                 }
                 if (!Schema::hasColumn('users', 'district_id')) {
-                    $table->bigInteger('district_id')->unsigned()->nullable()->after('address');
+                    $table->bigInteger('district_id')->unsigned()->nullable();
                 }
                 if (!Schema::hasColumn('users', 'subcounty_id')) {
-                    $table->bigInteger('subcounty_id')->unsigned()->nullable()->after('district_id');
+                    $table->bigInteger('subcounty_id')->unsigned()->nullable();
                 }
                 if (!Schema::hasColumn('users', 'parish_id')) {
-                    $table->bigInteger('parish_id')->unsigned()->nullable()->after('subcounty_id');
+                    $table->bigInteger('parish_id')->unsigned()->nullable();
                 }
                 if (!Schema::hasColumn('users', 'village')) {
-                    $table->string('village', 100)->nullable()->after('parish_id');
+                    $table->string('village', 100)->nullable();
                 }
                 if (!Schema::hasColumn('users', 'education_level')) {
-                    $table->string('education_level', 50)->nullable()->after('dob')->comment('Primary, Secondary, Tertiary, None');
+                    $table->string('education_level', 50)->nullable()->comment('Primary, Secondary, Tertiary, None');
                 }
                 if (!Schema::hasColumn('users', 'marital_status')) {
-                    $table->string('marital_status', 20)->nullable()->after('sex')->comment('Single, Married, Divorced, Widowed');
+                    $table->string('marital_status', 20)->nullable()->comment('Single, Married, Divorced, Widowed');
                 }
                 if (!Schema::hasColumn('users', 'household_size')) {
-                    $table->decimal('household_size', 8, 0)->nullable()->after('marital_status')->comment('Number of people in household');
+                    $table->decimal('household_size', 8, 0)->nullable()->comment('Number of people in household');
                 }
                 if (!Schema::hasColumn('users', 'phone_number_2')) {
-                    $table->string('phone_number_2', 35)->nullable()->after('phone_number');
+                    $table->string('phone_number_2', 35)->nullable();
                 }
                 if (!Schema::hasColumn('users', 'emergency_contact_name')) {
-                    $table->string('emergency_contact_name', 100)->nullable()->after('phone_number_2');
+                    $table->string('emergency_contact_name', 100)->nullable();
                 }
                 if (!Schema::hasColumn('users', 'emergency_contact_phone')) {
-                    $table->string('emergency_contact_phone', 35)->nullable()->after('emergency_contact_name');
+                    $table->string('emergency_contact_phone', 35)->nullable();
                 }
                 if (!Schema::hasColumn('users', 'disabilities')) {
                     $table->text('disabilities')->nullable()->comment('Any disabilities or special needs');
@@ -57,12 +57,16 @@ class UpdateUsersTableForFfsMis extends Migration
                     $table->text('remarks')->nullable()->comment('Additional notes');
                 }
                 if (!Schema::hasColumn('users', 'created_by_id')) {
-                    $table->bigInteger('created_by_id')->unsigned()->nullable()->after('registered_by_id');
+                    $table->bigInteger('created_by_id')->unsigned()->nullable();
                 }
                 
                 // Add indexes
-                $table->index('district_id');
-                $table->index('member_code');
+                if (Schema::hasColumn('users', 'district_id')) {
+                    $table->index('district_id');
+                }
+                if (Schema::hasColumn('users', 'member_code')) {
+                    $table->index('member_code');
+                }
             });
         }
     }

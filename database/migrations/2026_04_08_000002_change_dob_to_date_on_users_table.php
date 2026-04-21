@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Change dob column from TIMESTAMP to DATE.
@@ -11,11 +12,19 @@ class ChangeDobToDateOnUsersTable extends Migration
 {
     public function up()
     {
+        if (!Schema::hasTable('users') || !Schema::hasColumn('users', 'dob')) {
+            return;
+        }
+
         DB::statement("ALTER TABLE `users` MODIFY `dob` DATE NULL DEFAULT NULL");
     }
 
     public function down()
     {
+        if (!Schema::hasTable('users') || !Schema::hasColumn('users', 'dob')) {
+            return;
+        }
+
         DB::statement("ALTER TABLE `users` MODIFY `dob` TIMESTAMP NULL DEFAULT NULL");
     }
 }

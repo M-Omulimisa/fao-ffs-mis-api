@@ -8,17 +8,40 @@ class AddContractFieldsToUsersTable extends Migration
 {
     public function up()
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('contract_type', ['Full Time', 'Part Time'])->nullable()->after('facilitator_start_date');
-            $table->string('position', 100)->nullable()->after('contract_type');
-            $table->string('department', 100)->nullable()->after('position');
+            if (!Schema::hasColumn('users', 'contract_type')) {
+                $table->enum('contract_type', ['Full Time', 'Part Time'])->nullable();
+            }
+            if (!Schema::hasColumn('users', 'position')) {
+                $table->string('position', 100)->nullable();
+            }
+            if (!Schema::hasColumn('users', 'department')) {
+                $table->string('department', 100)->nullable();
+            }
         });
     }
 
     public function down()
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['contract_type', 'position', 'department']);
+            $dropColumns = [];
+            foreach (['contract_type', 'position', 'department'] as $column) {
+                if (Schema::hasColumn('users', $column)) {
+                    $dropColumns[] = $column;
+                }
+            }
+
+            if (!empty($dropColumns)) {
+                $table->dropColumn($dropColumns);
+            }
         });
     }
 }

@@ -537,9 +537,6 @@ class VslaFacilitatorController extends Controller
 
             // Handle role assignment
             $role = $request->input('role', 'Member');
-            $user->is_group_admin     = ($role === 'Chairperson') ? 'Yes' : 'No';
-            $user->is_group_secretary = ($role === 'Secretary')   ? 'Yes' : 'No';
-            $user->is_group_treasurer = ($role === 'Treasurer')   ? 'Yes' : 'No';
 
             $user->save();
 
@@ -559,17 +556,10 @@ class VslaFacilitatorController extends Controller
                 }
             }
 
-            // Update group officer references if applicable
-            if ($role === 'Chairperson') {
-                $group->admin_id = $user->id;
-                $group->save();
-            } elseif ($role === 'Secretary') {
-                $group->secretary_id = $user->id;
-                $group->save();
-            } elseif ($role === 'Treasurer') {
-                $group->treasurer_id = $user->id;
-                $group->save();
-            }
+            // Enforce one leadership role per member and one holder per role
+            $this->assignExclusiveGroupRole($group, $user, $role);
+            $user->save();
+            $group->save();
 
             DB::commit();
 
@@ -623,11 +613,15 @@ class VslaFacilitatorController extends Controller
                 return $this->error($validator->errors()->first(), 422);
             }
 
+            $hasChanges = false;
+
             if ($request->filled('first_name')) {
                 $member->first_name = trim($request->input('first_name'));
+                $hasChanges = true;
             }
             if ($request->filled('last_name')) {
                 $member->last_name = trim($request->input('last_name'));
+                $hasChanges = true;
             }
             if ($request->filled('first_name') || $request->filled('last_name')) {
                 $member->name = trim($member->first_name . ' ' . $member->last_name);
@@ -644,9 +638,15 @@ class VslaFacilitatorController extends Controller
                 }
                 $member->phone_number = $phone;
                 $member->username     = $phone;
+                $hasChanges = true;
             }
             if ($request->filled('sex')) {
                 $member->sex = $request->input('sex');
+                $hasChanges = true;
+            }
+
+            if (!$hasChanges) {
+                return $this->error('No valid changes were provided', 422);
             }
 
             $member->save();
@@ -697,43 +697,8 @@ class VslaFacilitatorController extends Controller
 
             DB::beginTransaction();
 
-            // If assigning an officer role, clear it from the previous holder
-            if ($newRole === 'Chairperson') {
-                User::where('group_id', $group->id)
-                    ->where('is_group_admin', 'Yes')
-                    ->where('id', '!=', $member->id)
-                    ->update(['is_group_admin' => 'No']);
-                $group->admin_id = $member->id;
-            } elseif ($newRole === 'Secretary') {
-                User::where('group_id', $group->id)
-                    ->where('is_group_secretary', 'Yes')
-                    ->where('id', '!=', $member->id)
-                    ->update(['is_group_secretary' => 'No']);
-                $group->secretary_id = $member->id;
-            } elseif ($newRole === 'Treasurer') {
-                User::where('group_id', $group->id)
-                    ->where('is_group_treasurer', 'Yes')
-                    ->where('id', '!=', $member->id)
-                    ->update(['is_group_treasurer' => 'No']);
-                $group->treasurer_id = $member->id;
-            }
-
-            // Clear all role flags for this member first
-            $member->is_group_admin     = 'No';
-            $member->is_group_secretary = 'No';
-            $member->is_group_treasurer = 'No';
-
-            // Set the new role
-            if ($newRole === 'Chairperson') $member->is_group_admin = 'Yes';
-            if ($newRole === 'Secretary')   $member->is_group_secretary = 'Yes';
-            if ($newRole === 'Treasurer')   $member->is_group_treasurer = 'Yes';
-
-            // If demoting from officer, clear group FK too
-            if ($newRole === 'Member') {
-                if ($group->admin_id == $member->id) $group->admin_id = null;
-                if ($group->secretary_id == $member->id) $group->secretary_id = null;
-                if ($group->treasurer_id == $member->id) $group->treasurer_id = null;
-            }
+            // Enforce one leadership role per member and one holder per role
+            $this->assignExclusiveGroupRole($group, $member, $newRole);
 
             $member->save();
             $group->save();
@@ -1114,6 +1079,52 @@ class VslaFacilitatorController extends Controller
         } catch (\Exception $e) {
             Log::error('Facilitator groupManifest error: ' . $e->getMessage());
             return $this->error('Failed to load group manifest: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Ensure one-member-one-role consistency for group leadership assignments.
+     */
+    private function assignExclusiveGroupRole(FfsGroup $group, User $member, string $newRole): void
+    {
+        // Member can only hold one role; clear any officer slot references first.
+        if ((int) $group->admin_id === (int) $member->id) {
+            $group->admin_id = null;
+        }
+        if ((int) $group->secretary_id === (int) $member->id) {
+            $group->secretary_id = null;
+        }
+        if ((int) $group->treasurer_id === (int) $member->id) {
+            $group->treasurer_id = null;
+        }
+
+        // Clear all member role flags first.
+        $member->is_group_admin = 'No';
+        $member->is_group_secretary = 'No';
+        $member->is_group_treasurer = 'No';
+
+        // Assign target role and clear previous holder for that role.
+        if ($newRole === 'Chairperson') {
+            User::where('group_id', $group->id)
+                ->where('is_group_admin', 'Yes')
+                ->where('id', '!=', $member->id)
+                ->update(['is_group_admin' => 'No']);
+            $group->admin_id = $member->id;
+            $member->is_group_admin = 'Yes';
+        } elseif ($newRole === 'Secretary') {
+            User::where('group_id', $group->id)
+                ->where('is_group_secretary', 'Yes')
+                ->where('id', '!=', $member->id)
+                ->update(['is_group_secretary' => 'No']);
+            $group->secretary_id = $member->id;
+            $member->is_group_secretary = 'Yes';
+        } elseif ($newRole === 'Treasurer') {
+            User::where('group_id', $group->id)
+                ->where('is_group_treasurer', 'Yes')
+                ->where('id', '!=', $member->id)
+                ->update(['is_group_treasurer' => 'No']);
+            $group->treasurer_id = $member->id;
+            $member->is_group_treasurer = 'Yes';
         }
     }
 }

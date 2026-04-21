@@ -220,9 +220,15 @@ class MemberController extends Controller
 
         // Determine the user's group — chairpersons/members see only their group
         $groupId = null;
+        $facilitatorGroupIds = collect();
 
         if ($authUser) {
             $groupId = $authUser->group_id;
+
+            // Facilitator scope: if this user facilitates any groups,
+            // default member listing should be limited to those groups.
+            $facilitatorGroupIds = \App\Models\FfsGroup::where('facilitator_id', $authUser->id)
+                ->pluck('id');
 
             // Fallback: if group_id is missing, resolve from officer role in ffs_groups
             if (empty($groupId)) {
@@ -249,23 +255,46 @@ class MemberController extends Controller
 
         // Apply group filter
         if ($request->has('group_id') && $request->group_id != '') {
-            // Explicit group_id from request — honour it
-            $query->where('group_id', $request->group_id);
+            $requestedGroupId = (int) $request->group_id;
+
+            // If user is a facilitator, block access to groups outside their scope.
+            if ($facilitatorGroupIds->isNotEmpty() && !$facilitatorGroupIds->contains($requestedGroupId)) {
+                return response()->json([
+                    'code' => 0,
+                    'message' => 'Access denied for the requested group',
+                    'data' => [],
+                ], 403);
+            }
+
+            // Explicit group_id from request.
+            $query->where('group_id', $requestedGroupId);
+        } elseif ($facilitatorGroupIds->isNotEmpty()) {
+            // Facilitators should see only members from their own facilitated groups.
+            $query->whereIn('group_id', $facilitatorGroupIds);
         } elseif ($groupId) {
-            // Default to the authenticated user's group
+            // Default to the authenticated user's group.
             $query->where('group_id', $groupId);
         }
 
-        // Search by name or phone
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('first_name', 'LIKE', "%{$search}%")
-                  ->orWhere('last_name', 'LIKE', "%{$search}%")
-                  ->orWhere('phone_number', 'LIKE', "%{$search}%")
-                  ->orWhere('member_code', 'LIKE', "%{$search}%");
-            });
+        // Suggestive tokenized search by name/phone/member_code.
+        // Example: "Abi Ton" should match "Abilla Tonny".
+        if ($request->has('search') && trim((string) $request->search) !== '') {
+            $search = trim((string) $request->search);
+            $tokens = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+            if (empty($tokens)) {
+                $tokens = [$search];
+            }
+
+            foreach ($tokens as $token) {
+                $query->where(function ($q) use ($token) {
+                    $q->where('name', 'LIKE', "%{$token}%")
+                        ->orWhere('first_name', 'LIKE', "%{$token}%")
+                        ->orWhere('last_name', 'LIKE', "%{$token}%")
+                        ->orWhere('phone_number', 'LIKE', "%{$token}%")
+                        ->orWhere('member_code', 'LIKE', "%{$token}%");
+                });
+            }
         }
 
         // Filter by sex

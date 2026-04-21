@@ -13,6 +13,10 @@ class AddCommissionFieldsToOrdersTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             // Payment tracking
             if (!Schema::hasColumn('orders', 'order_is_paid')) {
@@ -45,6 +49,10 @@ class AddCommissionFieldsToOrdersTable extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             $columns = [
                 'order_is_paid',

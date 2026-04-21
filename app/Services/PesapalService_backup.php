@@ -219,6 +219,7 @@ class PesapalService
         }
     }
 }
+class PesapalServiceBackupLegacy
 {
     private $consumerKey;
     private $consumerSecret;

@@ -13,8 +13,14 @@ class AddNationalIdNumberToUsersTable extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->string('national_id_number', 50)->nullable()->after('nin');
+            if (!Schema::hasColumn('users', 'national_id_number')) {
+                $table->string('national_id_number', 50)->nullable();
+            }
         });
     }
 
@@ -25,8 +31,14 @@ class AddNationalIdNumberToUsersTable extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('users')) {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('national_id_number');
+            if (Schema::hasColumn('users', 'national_id_number')) {
+                $table->dropColumn('national_id_number');
+            }
         });
     }
 }

@@ -295,7 +295,12 @@ class SystemHealthCheckController extends AdminController
                 $query->where('ip_id', $this->effectiveIpId());
             }
 
-            $count = $query->update(['facilitator_id' => $facilitatorId]);
+            $update = ['facilitator_id' => $facilitatorId];
+            if (!empty($facilitator->ip_id)) {
+                $update['ip_id'] = $facilitator->ip_id;
+            }
+
+            $count = $query->update($update);
 
             return response()->json([
                 'success' => true,
@@ -764,9 +769,16 @@ class SystemHealthCheckController extends AdminController
 
             $count = 0;
             foreach ($fixes as $fix) {
+                $facilitator = User::find($fix['facilitator_id']);
+
+                $update = ['facilitator_id' => $fix['facilitator_id']];
+                if ($facilitator && !empty($facilitator->ip_id)) {
+                    $update['ip_id'] = $facilitator->ip_id;
+                }
+
                 $count += FfsGroup::where('id', $fix['group_id'])
                     ->whereNull('facilitator_id')
-                    ->update(['facilitator_id' => $fix['facilitator_id']]);
+                    ->update($update);
             }
 
             return response()->json(['success' => true, 'fixed' => $count, 'message' => "{$count} group(s) assigned facilitators"]);

@@ -9,6 +9,16 @@ use Illuminate\Support\Facades\DB;
 class Location extends Model
 {
     use HasFactory;
+    use \App\Traits\TitleCase;
+
+    protected static function booted()
+    {
+        static::saving(function ($location) {
+            if ($location->name !== null) {
+                $location->name = $location->toTitleCase($location->name);
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.

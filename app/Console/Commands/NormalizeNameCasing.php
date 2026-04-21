@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 class NormalizeNameCasing extends Command
 {
+    use \App\Traits\TitleCase;
+
     protected $signature = 'app:normalize-names
                             {--dry-run : Preview changes without saving to the database}';
 
@@ -18,45 +20,62 @@ class NormalizeNameCasing extends Command
      */
     private array $map = [
         'users' => [
-            'fields' => ['name', 'first_name', 'last_name', 'emergency_contact_name'],
+            'fields' => [
+                'name' => 'title',
+                'first_name' => 'title',
+                'last_name' => 'title',
+                'emergency_contact_name' => 'title',
+            ],
         ],
         'ffs_groups' => [
-            'fields' => ['name', 'contact_person_name', 'ip_name'],
+            'fields' => [
+                'name' => 'upper',
+                'contact_person_name' => 'title',
+                'ip_name' => 'title',
+                'subcounty_text' => 'title',
+                'parish_text' => 'title',
+                'village' => 'title',
+            ],
         ],
         'ffs_training_sessions' => [
-            'fields' => ['title'],
+            'fields' => ['title' => 'title'],
         ],
         'locations' => [
-            'fields' => ['name'],
+            'fields' => ['name' => 'title'],
         ],
         'implementing_partners' => [
-            'fields' => ['name', 'contact_person'],
+            'fields' => ['name' => 'title', 'contact_person' => 'title'],
         ],
         'projects' => [
-            'fields' => ['title', 'cycle_name'],
+            'fields' => ['title' => 'title', 'cycle_name' => 'title'],
         ],
         'vsla_profiles' => [
-            'fields' => ['group_name', 'cycle_name', 'chair_first_name', 'chair_last_name'],
+            'fields' => [
+                'group_name' => 'upper',
+                'cycle_name' => 'title',
+                'chair_first_name' => 'title',
+                'chair_last_name' => 'title',
+            ],
         ],
         'enterprises' => [
-            'fields' => ['name'],
+            'fields' => ['name' => 'title'],
         ],
         'insurance_programs' => [
-            'fields' => ['name'],
+            'fields' => ['name' => 'title'],
         ],
         'advisory_categories' => [
-            'fields' => ['name'],
+            'fields' => ['name' => 'title'],
         ],
         // advisory_posts and farmer_questions excluded: their titles/author_names
         // contain acronyms (FAO, FFS, AESA) that ucwords would incorrectly lowercase.
         'market_price_categories' => [
-            'fields' => ['name'],
+            'fields' => ['name' => 'title'],
         ],
         'market_price_products' => [
-            'fields' => ['name'],
+            'fields' => ['name' => 'title'],
         ],
         'farms' => [
-            'fields' => ['name'],
+            'fields' => ['name' => 'title'],
         ],
     ];
 
@@ -74,7 +93,7 @@ class NormalizeNameCasing extends Command
         foreach ($this->map as $table => $cfg) {
             $fields = $cfg['fields'];
 
-            $this->info("  [{$table}]  fields: " . implode(', ', $fields));
+            $this->info("  [{$table}]  fields: " . implode(', ', array_keys($fields)));
 
             DB::table($table)
                 ->orderBy('id')
@@ -82,14 +101,14 @@ class NormalizeNameCasing extends Command
                     foreach ($rows as $row) {
                         $changes = [];
 
-                        foreach ($fields as $field) {
+                        foreach ($fields as $field => $mode) {
                             $original = $row->$field ?? null;
 
                             if ($original === null) {
                                 continue;
                             }
 
-                            $normalized = $this->toTitleCase($original);
+                            $normalized = $this->normalizeCase($original, $mode);
 
                             if ($normalized === $original) {
                                 $skipped++;
@@ -132,14 +151,5 @@ class NormalizeNameCasing extends Command
         return 0;
     }
 
-    /** Strip invisible Unicode format chars, then apply Title Case. */
-    private function toTitleCase(?string $value): ?string
-    {
-        if ($value === null) {
-            return null;
-        }
-        $clean = preg_replace('/\p{Cf}+/u', '', $value);
-        $clean = trim($clean ?? '');
-        return $clean !== '' ? ucwords(mb_strtolower($clean)) : $value;
-    }
+    // Uses App\Traits\TitleCase::normalizeCase()
 }
