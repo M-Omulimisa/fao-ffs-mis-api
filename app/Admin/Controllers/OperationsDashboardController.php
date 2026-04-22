@@ -129,13 +129,17 @@ class OperationsDashboardController extends AdminController
 
     private function computeMetrics(array $p): array
     {
-        $ipId     = $p['filterIpId'];
+        $isSuperAdmin = (bool) ($p['isSuperAdmin'] ?? false);
+        $myIpId       = $p['myIpId'] ?? null;
+        // Security guard: non-super-admin users are always scoped to their own IP.
+        // If an IP admin has no IP assigned, force an empty scope (no data leakage).
+        $ipId         = $isSuperAdmin ? ($p['filterIpId'] ?? null) : ($myIpId ?: -1);
         $dateFrom = $p['dateFrom'];
         $dateTo   = $p['dateTo'];
 
         // ── Counts ────────────────────────────────────────────────────────────
-        // Active IPs: show 1 for IP-scoped views to avoid misleading global count
-        $totalIps = $ipId ? 1 : ImplementingPartner::active()->count();
+        // Active IPs card should never show global count for non-super-admin users.
+        $totalIps = $isSuperAdmin ? ImplementingPartner::active()->count() : ($myIpId ? 1 : 0);
 
         $totalGroups    = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
         $groupsInPeriod = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))
