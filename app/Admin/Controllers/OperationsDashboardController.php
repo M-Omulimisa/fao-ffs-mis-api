@@ -134,17 +134,31 @@ class OperationsDashboardController extends AdminController
         $dateTo   = $p['dateTo'];
 
         // ── Counts ────────────────────────────────────────────────────────────
-        $totalIps          = ImplementingPartner::active()->count();
-        $totalGroups       = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
-        $groupsInPeriod    = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))
-                                ->whereBetween('created_at', [$dateFrom, $dateTo])->count();
-        $totalMembers      = User::whereNotNull('group_id')
-                                ->when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
+        // Active IPs: show 1 for IP-scoped views to avoid misleading global count
+        $totalIps = $ipId ? 1 : ImplementingPartner::active()->count();
+
+        $totalGroups    = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+        $groupsInPeriod = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))
+                            ->whereBetween('created_at', [$dateFrom, $dateTo])->count();
+
+        // Members: use whereHas so soft-deleted groups are automatically excluded
+        $totalMembers = User::whereNotNull('group_id')
+                            ->whereHas('group', fn($g) => $g->when($ipId, fn($q) => $q->where('ip_id', $ipId)))
+                            ->count();
+
+        // Facilitator IDs: union of role + group assignment (matches FacilitatorController definition)
+        $allFacIds = DB::table('admin_role_users')
+            ->join('admin_roles', 'admin_roles.id', '=', 'admin_role_users.role_id')
+            ->where('admin_roles.slug', 'field_facilitator')
+            ->pluck('admin_role_users.user_id')
+            ->merge(
+                DB::table('ffs_groups')->whereNull('deleted_at')->whereNotNull('facilitator_id')->pluck('facilitator_id')
+            )->unique();
+
+        // Scope by users.ip_id — matches exactly what FacilitatorController table shows
+        $totalFacilitators = User::whereIn('id', $allFacIds)
+                                ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
                                 ->count();
-        $totalFacilitators = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))
-                                ->whereNotNull('facilitator_id')
-                                ->distinct('facilitator_id')
-                                ->count('facilitator_id');
         $activeCycles      = Project::where('is_vsla_cycle', 'Yes')
                                 ->where('is_active_cycle', 'Yes')
                                 ->when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
@@ -220,7 +234,8 @@ class OperationsDashboardController extends AdminController
             ->whereNull('g.deleted_at')
             ->whereNotNull('g.facilitator_id');
         if ($ipId) {
-            $lbQuery->where('g.ip_id', $ipId);
+            // Scope by BOTH group ip and facilitator's own ip_id to match FacilitatorController behavior
+            $lbQuery->where('g.ip_id', $ipId)->where('fac.ip_id', $ipId);
         }
         $leaderboard = $lbQuery
             ->selectRaw("
@@ -237,7 +252,11 @@ class OperationsDashboardController extends AdminController
             ->orderByDesc('total_groups')
             ->limit(25)
             ->get()
-            ->map(fn($r) => (array) $r)
+            ->map(function ($r) {
+                $r->facilitator_name = $this->titleCase($r->facilitator_name ?? '');
+                $r->ip_name          = mb_strtoupper(trim($r->ip_name ?? ''));
+                return (array) $r;
+            })
             ->toArray();
 
         // ── IP comparison ─────────────────────────────────────────────────────
@@ -246,14 +265,15 @@ class OperationsDashboardController extends AdminController
             ->orderBy('name')
             ->get();
 
-        $ipStats = $ips->map(function ($ip) use ($weekStart, $monthStart) {
-            $groups       = FfsGroup::where('ip_id', $ip->id)->count();
-            $groupsWeek   = FfsGroup::where('ip_id', $ip->id)->where('created_at', '>=', $weekStart)->count();
-            $groupsMonth  = FfsGroup::where('ip_id', $ip->id)->where('created_at', '>=', $monthStart)->count();
+        $ipStats = $ips->map(function ($ip) use ($weekStart, $monthStart, $allFacIds) {
+            $groups      = FfsGroup::where('ip_id', $ip->id)->count();
+            $groupsWeek  = FfsGroup::where('ip_id', $ip->id)->where('created_at', '>=', $weekStart)->count();
+            $groupsMonth = FfsGroup::where('ip_id', $ip->id)->where('created_at', '>=', $monthStart)->count();
+            // Members: whereHas excludes soft-deleted groups automatically
             $members      = User::whereNotNull('group_id')
                                 ->whereHas('group', fn($g) => $g->where('ip_id', $ip->id))->count();
-            $facilitators = FfsGroup::where('ip_id', $ip->id)->whereNotNull('facilitator_id')
-                                ->distinct('facilitator_id')->count('facilitator_id');
+            // Facilitators: use users.ip_id to match FacilitatorController — avoids group.ip_id vs users.ip_id drift
+            $facilitators = User::where('ip_id', $ip->id)->whereIn('id', $allFacIds)->count();
             $cycles       = Project::where('is_vsla_cycle', 'Yes')->where('is_active_cycle', 'Yes')
                                 ->whereHas('group', fn($g) => $g->where('ip_id', $ip->id))->count();
             $savings      = ProjectShare::whereHas('project', fn($pq) =>
@@ -293,11 +313,11 @@ class OperationsDashboardController extends AdminController
             ->limit(20)
             ->get()
             ->map(fn($g) => [
-                'name'        => $g->name,
+                'name'        => $this->titleCase($g->name),
                 'type'        => $g->type,
                 'district'    => $g->district_id,
                 'ip'          => $g->implementingPartner?->short_name ?? '—',
-                'facilitator' => $g->facilitator?->name ?? '—',
+                'facilitator' => $this->titleCase($g->facilitator?->name ?? ''),
                 'members'     => $g->total_members ?? 0,
                 'date'        => $g->created_at?->format('d M Y'),
             ])->toArray();
@@ -376,15 +396,17 @@ class OperationsDashboardController extends AdminController
 
     private function kpiStrip(array $m): string
     {
+        // For IP-scoped views totalIps==1 so label it clearly
+        $ipLabel = $m['totalIps'] === 1 ? 'My IP' : 'Active IPs';
         $cards = [
-            ['Active IPs',          number_format($m['totalIps']),           'fa-building',     self::PRIMARY,  ''],
-            ['Total Groups',        number_format($m['totalGroups']),         'fa-users',        self::INFO,     ''],
-            ['Groups (Period)',     number_format($m['groupsInPeriod']),      'fa-plus-circle',  self::SUCCESS,  'New in selected period'],
-            ['Total Members',       number_format($m['totalMembers']),        'fa-user',         '#7b1fa2',      ''],
-            ['Facilitators',        number_format($m['totalFacilitators']),   'fa-user-circle',  '#00838f',      ''],
-            ['Active Cycles',       number_format($m['activeCycles']),        'fa-refresh',      '#5d4037',      'VSLA cycles currently active'],
-            ['Meetings (Period)',    number_format($m['totalMeetings']),       'fa-calendar',     self::NEUTRAL,  ''],
-            ['Total Savings',       'UGX ' . $this->shortNum($m['totalSavings']), 'fa-money', self::SUCCESS, ''],
+            [$ipLabel,              number_format($m['totalIps']),            'fa-building',     self::PRIMARY,  ''],
+            ['Total Groups',        number_format($m['totalGroups']),          'fa-users',        self::INFO,     ''],
+            ['Groups (Period)',      number_format($m['groupsInPeriod']),      'fa-plus-circle',  self::SUCCESS,  'New in selected period'],
+            ['Total Members',       number_format($m['totalMembers']),         'fa-user',         '#7b1fa2',      ''],
+            ['Facilitators',        number_format($m['totalFacilitators']),    'fa-user-circle',  '#00838f',      'Registered under this IP'],
+            ['Active Cycles',       number_format($m['activeCycles']),         'fa-refresh',      '#5d4037',      'VSLA cycles currently active'],
+            ['Meetings (Period)',    number_format($m['totalMeetings']),        'fa-calendar',     self::NEUTRAL,  ''],
+            ['Total Savings',       'UGX ' . $this->shortNum($m['totalSavings']), 'fa-money',    self::SUCCESS,  ''],
         ];
 
         $html = "<div style='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;'>";
@@ -448,7 +470,7 @@ class OperationsDashboardController extends AdminController
 
             $html .= "<tr style='{$rowBg}'>
                 <td style='text-align:center;padding:6px 4px;'>{$rankBadge}</td>
-                <td style='padding:6px 8px;'><strong>" . e($row['facilitator_name']) . "</strong></td>
+                <td style='padding:6px 8px;'><strong>" . e($this->titleCase($row['facilitator_name'] ?? '')) . "</strong></td>
                 <td style='text-align:center;padding:6px;'>
                     <span style='background:#e3f2fd;color:#01579b;padding:2px 8px;font-size:11px;display:inline-block;'>" . e($row['ip_name']) . "</span>
                 </td>
@@ -817,6 +839,16 @@ class OperationsDashboardController extends AdminController
         if ($n >= 1_000_000)     return number_format($n / 1_000_000, 1) . 'M';
         if ($n >= 1_000)         return number_format($n / 1_000, 0) . 'K';
         return number_format($n);
+    }
+
+    /**
+     * Normalize a name to Title Case for consistent display across all dashboard sections.
+     * Handles null/empty gracefully.
+     */
+    private function titleCase(?string $name): string
+    {
+        if (!$name || trim($name) === '') return '—';
+        return mb_convert_case(mb_strtolower(trim($name)), MB_CASE_TITLE, 'UTF-8');
     }
 
     private function css(): string

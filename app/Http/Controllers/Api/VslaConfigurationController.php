@@ -7,7 +7,6 @@ use App\Models\FfsGroup;
 use App\Models\User;
 use App\Models\Location;
 use App\Models\Project;
-use App\Services\VslaService;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -252,22 +251,15 @@ class VslaConfigurationController extends Controller
                 return $this->error('User is not part of any VSLA group', 404);
             }
 
-            // ── Guarantee an active cycle always exists ────────────────────────
-            // VslaService::ensureActiveCycle is a fast no-op when an active
-            // cycle is already present (returns immediately from path 1).
-            // It only does work when no active/non-completed cycle is found
-            // — either activating the most recent one, or auto-creating a new
-            // one from scratch.  Calling it unconditionally here means the
-            // response can never contain an empty cycles array, and
-            // `active_cycle` is always non-null.
-            VslaService::ensureActiveCycle($group, $user->id);
-
-            // Get all cycles for this group (re-fetches to reflect any changes)
+            // Get all cycles for this group.
+            // IMPORTANT: no auto-generation here; only real persisted cycles.
             $rawCycles = \App\Models\Project::where('is_vsla_cycle', 'Yes')
                 ->where('group_id', $group->id)
                 ->orderByRaw("CASE WHEN is_active_cycle = 'Yes' THEN 0 ELSE 1 END")
                 ->orderBy('start_date', 'desc')
                 ->get();
+
+            $totalMembers = (int) User::where('group_id', $group->id)->count();
 
             $cycles = $rawCycles
                 ->map(function ($cycle) {
@@ -307,6 +299,7 @@ class VslaConfigurationController extends Controller
                         'id' => $cycle->id,
                         'group_id' => $cycle->group_id,
                         'cycle_name' => $cycle->cycle_name,
+                        'total_members' => $totalMembers,
                         'start_date' => $cycle->start_date,
                         'end_date' => $cycle->end_date,
                         'status' => ucfirst($status),
