@@ -805,7 +805,7 @@ class VslaTransactionController extends Controller
                 }
 
                 $entry = [
-                    'id'               => $t->id,
+                    'id'               => (int) $t->id,
                     'amount'           => abs($amount),
                     'amount_signed'    => $amount,
                     'formatted_amount' => $t->formatted_amount ?? ('UGX ' . number_format(abs($amount))),
@@ -818,11 +818,11 @@ class VslaTransactionController extends Controller
                     'transaction_date' => $t->transaction_date ? $t->transaction_date->format('Y-m-d') : null,
                     'formatted_date'   => $t->transaction_date ? $t->transaction_date->format('M d, Y') : null,
                     'owner_type'       => $t->owner_type,
-                    'owner_id'         => $t->user_id,
+                    'owner_id'         => (int) ($t->user_id ?? 0),
                     'owner_name'       => $memberName ?? 'Group',
                     'created_by'       => $t->creator ? $t->creator->name : null,
                     'is_contra_entry'  => (bool) $t->is_contra_entry,
-                    'contra_entry_id'  => $t->contra_entry_id,
+                    'contra_entry_id'  => $t->contra_entry_id !== null ? (int) $t->contra_entry_id : null,
                 ];
 
                 $acctType = strtolower($t->account_type ?? '');
@@ -893,9 +893,9 @@ class VslaTransactionController extends Controller
                         'total_inflow'  => round($totalInflow, 2),
                         'total_outflow' => round($totalOutflow, 2),
                         'net_cash_flow' => round($totalInflow - $totalOutflow, 2),
-                        'inflow_count'  => count($inflow),
-                        'outflow_count' => count($outflow),
-                        'total_count'   => count($inflow) + count($outflow),
+                        'inflow_count'  => (int) count($inflow),
+                        'outflow_count' => (int) count($outflow),
+                        'total_count'   => (int) (count($inflow) + count($outflow)),
                     ],
                     'balances' => [
                         'cash'              => round($cashBalance, 2),
