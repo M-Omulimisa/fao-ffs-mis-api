@@ -167,12 +167,34 @@ class MeetingProcessingService
             ];
         }
 
-        // Validate cycle exists and is VSLA
-        $cycle = Project::find($meeting->cycle_id);
+        // Validate cycle from backend authority using group context when possible.
+        // This prevents stale client cycle IDs from causing false "cycle not found" errors.
+        $cycle = null;
+        if (!empty($meeting->group_id)) {
+            $cycle = Project::where('is_vsla_cycle', 'Yes')
+                ->where('group_id', $meeting->group_id)
+                ->where('is_active_cycle', 'Yes')
+                ->where(function ($q) {
+                    $q->whereNull('status')
+                        ->orWhere('status', '!=', 'completed');
+                })
+                ->latest('start_date')
+                ->first();
+
+            if ($cycle && (int) $meeting->cycle_id !== (int) $cycle->id) {
+                $meeting->cycle_id = (int) $cycle->id;
+                $meeting->save();
+            }
+        }
+
+        if (!$cycle) {
+            $cycle = Project::find($meeting->cycle_id);
+        }
+
         if (!$cycle) {
             $errors[] = [
-                'type' => 'missing_cycle',
-                'message' => 'VSLA cycle not found',
+                'type' => 'missing_active_cycle',
+                'message' => 'No active cycle found for this group',
                 'field' => 'cycle_id'
             ];
         } elseif (!$cycle->is_vsla_cycle) {
