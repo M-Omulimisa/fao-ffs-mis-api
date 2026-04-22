@@ -102,6 +102,11 @@ class User extends Administrator implements JWTSubject
             self::validateUniqueFields($user);
             self::generateMemberCode($user);
 
+            // Always persist a valid onboarding_step for newly-created users.
+            if (empty($user->onboarding_step)) {
+                $user->onboarding_step = 'not_started';
+            }
+
             // Final safety: if the generated member_code already exists, regenerate
             if (!empty($user->member_code) && self::where('member_code', $user->member_code)->exists()) {
                 \Log::warning("User: member_code [{$user->member_code}] already exists, regenerating...");

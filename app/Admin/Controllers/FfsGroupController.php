@@ -12,6 +12,7 @@ use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use Illuminate\Support\Facades\DB;
 
 class FfsGroupController extends AdminController
 {
@@ -127,20 +128,40 @@ class FfsGroupController extends AdminController
 
             $filter->like('subcounty_text', 'Subcounty');
 
-            // Facilitator dropdown — only show users assigned as facilitators, with phone
-            $facilitatorIds = FfsGroup::whereNotNull('facilitator_id')
-                ->when($ipId, fn($q) => $q->where('ip_id', $ipId))
-                ->distinct()->pluck('facilitator_id');
-            $filter->equal('facilitator_id', 'Facilitator')->select(
-                User::whereIn('id', $facilitatorIds)->orderBy('name')->get()
-                    ->mapWithKeys(fn($u) => [
-                        $u->id => $u->name . ($u->phone_number ? ' (' . $u->phone_number . ')' : ''),
-                    ])
-            );
+            // Facilitator dropdown: users with facilitator role only.
+            // IP managers only see facilitators from their own IP.
+            $facilitatorRoleUserIds = DB::table('admin_role_users as aru')
+                ->join('admin_roles as ar', 'ar.id', '=', 'aru.role_id')
+                ->whereIn('ar.slug', ['field_facilitator', 'facilitator'])
+                ->distinct()
+                ->pluck('aru.user_id');
+
+            $facilitatorOptions = User::whereIn('id', $facilitatorRoleUserIds)
+                ->when(
+                    !$isSuperAdmin,
+                    fn($q) => $ipId ? $q->where('ip_id', $ipId) : $q->whereRaw('1 = 0')
+                )
+                ->orderBy('name')
+                ->get()
+                ->mapWithKeys(fn($u) => [
+                    $u->id => $u->name . ($u->phone_number ? ' (' . $u->phone_number . ')' : ''),
+                ]);
+
+            $filter->equal('facilitator_id', 'Facilitator')->select($facilitatorOptions);
 
             $filter->like('primary_value_chain', 'Value Chain');
 
             $filter->between('establishment_date', 'Established')->date();
+        });
+
+        // Download current filtered groups list.
+        $grid->tools(function ($tools) {
+            $query = request()->query();
+            $query['_export_'] = 'all';
+            $downloadUrl = request()->url() . '?' . http_build_query($query);
+
+            $tools->append("<a class='btn btn-sm btn-success' href='" . e($downloadUrl) . "' style='margin-left:8px;'>"
+                . "<i class='fa fa-download'></i> Download Filtered</a>");
         });
 
         // ── Columns ──
