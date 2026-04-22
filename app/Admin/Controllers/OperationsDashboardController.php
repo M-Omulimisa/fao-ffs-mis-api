@@ -246,11 +246,66 @@ class OperationsDashboardController extends AdminController
                 SUM(CASE WHEN g.created_at >= ? THEN 1 ELSE 0 END) as groups_this_week,
                 SUM(CASE WHEN g.created_at >= ? THEN 1 ELSE 0 END) as groups_this_month,
                 SUM(g.total_members) as total_members,
+                (
+                    SELECT COUNT(*)
+                    FROM vsla_meetings vm
+                    INNER JOIN ffs_groups fg2 ON fg2.id = vm.group_id
+                    WHERE fg2.facilitator_id = g.facilitator_id
+                      AND fg2.deleted_at IS NULL
+                      AND vm.created_at BETWEEN ? AND ?
+                ) as meetings_in_period,
+                (
+                    SELECT COUNT(*)
+                    FROM account_transactions atx
+                    INNER JOIN ffs_groups fg3 ON fg3.id = atx.group_id
+                    WHERE fg3.facilitator_id = g.facilitator_id
+                      AND fg3.deleted_at IS NULL
+                      AND atx.created_at BETWEEN ? AND ?
+                ) as transactions_in_period,
+                (
+                    (
+                        SELECT COUNT(*)
+                        FROM vsla_meetings vm
+                        INNER JOIN ffs_groups fg2 ON fg2.id = vm.group_id
+                        WHERE fg2.facilitator_id = g.facilitator_id
+                          AND fg2.deleted_at IS NULL
+                          AND vm.created_at BETWEEN ? AND ?
+                    ) * 3
+                    +
+                    (
+                        SELECT COUNT(*)
+                        FROM account_transactions atx
+                        INNER JOIN ffs_groups fg3 ON fg3.id = atx.group_id
+                        WHERE fg3.facilitator_id = g.facilitator_id
+                          AND fg3.deleted_at IS NULL
+                          AND atx.created_at BETWEEN ? AND ?
+                    )
+                    +
+                    (SUM(CASE WHEN g.created_at >= ? THEN 1 ELSE 0 END) * 2)
+                    +
+                    SUM(CASE WHEN g.created_at >= ? THEN 1 ELSE 0 END)
+                ) as activity_score,
                 MAX(g.created_at) as last_activity
-            ", [$weekStart, $monthStart])
+            ", [
+                $weekStart,
+                $monthStart,
+                $dateFrom,
+                $dateTo,
+                $dateFrom,
+                $dateTo,
+                $dateFrom,
+                $dateTo,
+                $dateFrom,
+                $dateTo,
+                $weekStart,
+                $monthStart,
+            ])
             ->groupBy('g.facilitator_id', 'fac.name', 'ipt.short_name')
+            ->orderByDesc('activity_score')
+            ->orderByDesc('meetings_in_period')
+            ->orderByDesc('transactions_in_period')
             ->orderByDesc('total_groups')
-            ->limit(25)
+            ->limit(10)
             ->get()
             ->map(function ($r) {
                 $r->facilitator_name = $this->titleCase($r->facilitator_name ?? '');
@@ -433,7 +488,7 @@ class OperationsDashboardController extends AdminController
     private function facilitatorLeaderboard(array $m, array $p): string
     {
         $dateLabel = $p['dateFrom']->format('d M') . ' – ' . $p['dateTo']->format('d M Y');
-        $html  = $this->sectionHeader('fa-trophy', 'Facilitator Leaderboard', "Groups created per facilitator &nbsp;&middot;&nbsp; Period: {$dateLabel}");
+        $html  = $this->sectionHeader('fa-trophy', 'Facilitator Leaderboard (Top 10)', "Ranked by activity score (groups + meetings + transactions) &nbsp;&middot;&nbsp; Period: {$dateLabel}");
         $html .= "<div style='overflow-x:auto;'>";
         $html .= "<table class='table table-bordered table-condensed table-hover' style='margin:0;font-size:12px;'>
             <thead><tr style='background:" . self::PRIMARY . ";color:#fff;'>
@@ -441,14 +496,17 @@ class OperationsDashboardController extends AdminController
                 <th style='padding:8px;'>Facilitator</th>
                 <th style='text-align:center;padding:8px;'>IP</th>
                 <th style='text-align:center;padding:8px;'>Total<br>Groups</th>
+                <th style='text-align:center;padding:8px;'>Meetings<br>(Period)</th>
+                <th style='text-align:center;padding:8px;'>Transactions<br>(Period)</th>
                 <th style='text-align:center;padding:8px;'>This<br>Week</th>
                 <th style='text-align:center;padding:8px;'>This<br>Month</th>
                 <th style='text-align:center;padding:8px;'>Members</th>
+                <th style='text-align:center;padding:8px;'>Activity<br>Score</th>
                 <th style='text-align:center;padding:8px;'>Last Activity</th>
             </tr></thead><tbody>";
 
         if (empty($m['leaderboard'])) {
-            $html .= "<tr><td colspan='8' style='text-align:center;padding:20px;color:#999;'>No data available</td></tr>";
+            $html .= "<tr><td colspan='11' style='text-align:center;padding:20px;color:#999;'>No data available</td></tr>";
         }
 
         foreach ($m['leaderboard'] as $rank => $row) {
@@ -463,8 +521,10 @@ class OperationsDashboardController extends AdminController
                 $rankBadge = "<div style='width:28px;height:28px;border-radius:50%;background:#e0e0e0;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;font-size:11px;font-weight:700;color:#555;'>{$rankNum}</div>";
             }
 
-            $weekBg  = $row['groups_this_week']  > 0 ? 'background:#e8f5e9;font-weight:600;' : 'color:#999;';
-            $monBg   = $row['groups_this_month'] > 0 ? 'background:#e8f5e9;font-weight:600;' : 'color:#999;';
+            $meetingBg = ($row['meetings_in_period'] ?? 0) > 0 ? 'background:#e3f2fd;font-weight:700;color:#01579b;' : 'color:#999;';
+            $txnBg     = ($row['transactions_in_period'] ?? 0) > 0 ? 'background:#f3e5f5;font-weight:700;color:#6a1b9a;' : 'color:#999;';
+            $weekBg    = $row['groups_this_week']  > 0 ? 'background:#e8f5e9;font-weight:600;' : 'color:#999;';
+            $monBg     = $row['groups_this_month'] > 0 ? 'background:#e8f5e9;font-weight:600;' : 'color:#999;';
             $lastAct = $row['last_activity'] ? Carbon::parse($row['last_activity'])->diffForHumans() : '&mdash;';
             $rowBg   = $rank < 3 ? "background:#fffde7;" : "";
 
@@ -475,9 +535,12 @@ class OperationsDashboardController extends AdminController
                     <span style='background:#e3f2fd;color:#01579b;padding:2px 8px;font-size:11px;display:inline-block;'>" . e($row['ip_name']) . "</span>
                 </td>
                 <td style='text-align:center;font-weight:700;font-size:15px;color:" . self::PRIMARY . ";padding:6px;'>{$row['total_groups']}</td>
+                <td style='text-align:center;padding:6px;{$meetingBg}'>" . number_format((int)($row['meetings_in_period'] ?? 0)) . "</td>
+                <td style='text-align:center;padding:6px;{$txnBg}'>" . number_format((int)($row['transactions_in_period'] ?? 0)) . "</td>
                 <td style='text-align:center;padding:6px;{$weekBg}'>{$row['groups_this_week']}</td>
                 <td style='text-align:center;padding:6px;{$monBg}'>{$row['groups_this_month']}</td>
                 <td style='text-align:center;padding:6px;'>" . number_format($row['total_members']) . "</td>
+                <td style='text-align:center;padding:6px;font-weight:700;color:#4a148c;'>" . number_format((int)($row['activity_score'] ?? 0)) . "</td>
                 <td style='text-align:center;font-size:11px;color:#666;padding:6px;'>{$lastAct}</td>
             </tr>";
         }
