@@ -7,7 +7,6 @@ use App\Models\VslaMeeting;
 use App\Models\Project;
 use App\Models\FfsGroup;
 use App\Services\MeetingProcessingService;
-use App\Services\VslaService;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -40,11 +39,11 @@ class VslaMeetingController extends Controller
     {
         try {
             // Validate request
-            // Note: cycle_id uses 'integer' only (no 'exists') so that auto-correction
-            // via VslaService can handle stale IDs from a previous group session.
+            // cycle_id is optional for submit because backend is authoritative:
+            // if group is identified, server determines/creates active cycle.
             $validator = Validator::make($request->all(), [
                 'local_id' => 'required|string|max:255',
-                'cycle_id' => 'required|integer',
+                'cycle_id' => 'nullable|integer',
                 'group_id' => 'nullable|integer',
                 'meeting_date' => 'required|date',
                 'notes' => 'nullable|string',
@@ -125,21 +124,33 @@ class VslaMeetingController extends Controller
                 return $this->error('Group type "' . $group->type . '" is not supported for VSLA meetings', 422);
             }
 
-            // ── Resolve the correct cycle (auto-correct stale IDs) ────────────
-            // If the mobile app sends a cycle_id from a previously cached group,
-            // VslaService detects the mismatch and returns the correct active cycle.
+            // ── Resolve cycle from backend authority (strict existing cycle) ──
+            // If group is identified, ALWAYS resolve cycle from backend.
+            // Do NOT auto-create a cycle here; meeting submission requires an
+            // already existing active VSLA cycle.
             if ($group) {
-                $resolution = VslaService::resolveGroupActiveCycle(
-                    $submittedCycleId,
-                    $group,
-                    $user->id ?? null
-                );
-                $cycle   = $resolution['cycle'];
+                $cycle = Project::where('is_vsla_cycle', 'Yes')
+                    ->where('group_id', $group->id)
+                    ->where('is_active_cycle', 'Yes')
+                    ->where(function ($q) {
+                        $q->whereNull('status')
+                            ->orWhere('status', '!=', 'completed');
+                    })
+                    ->latest('start_date')
+                    ->first();
+
+                if (!$cycle) {
+                    return $this->error('No active cycle found for this group. Please activate a cycle before submitting meetings.', 422, [
+                        'error_type' => 'missing_active_cycle',
+                        'group_id' => $groupId,
+                    ]);
+                }
+
                 $cycleId = (int) $cycle->id;
 
-                if ($resolution['corrected']) {
-                    Log::warning("[Meeting submit] cycle_id auto-corrected: "
-                        . "{$resolution['original_id']} → {$cycleId} for group #{$groupId} (user #{$user->id})");
+                if ($submittedCycleId > 0 && $submittedCycleId !== $cycleId) {
+                    Log::warning("[Meeting submit] client cycle_id overridden by backend: "
+                        . "submitted={$submittedCycleId}, resolved={$cycleId} for group #{$groupId} (user #{$user->id})");
                 }
             } else {
                 // No group resolved — fall back to direct cycle lookup
@@ -152,29 +163,14 @@ class VslaMeetingController extends Controller
                 }
 
                 if (!$cycle) {
-                    return $this->error('Cycle not found. Please ensure the group has an active cycle.', 404);
+                    return $this->error('Unable to determine cycle. Please select a group with an active cycle.', 404);
                 }
 
                 $cycleId = (int) $cycle->id;
                 $groupId = $cycle->group_id ?? $groupId;
             }
 
-            // ── Safety net: auto-create/activate cycle if current one is invalid ──
-            // If the resolved cycle is not active or not a VSLA cycle, and we have
-            // a group, use VslaService::ensureActiveCycle() to auto-create one
-            // instead of hard-failing the meeting submission.
-            if ($group && ($cycle->is_active_cycle !== 'Yes' || $cycle->is_vsla_cycle !== 'Yes')) {
-                Log::warning("[Meeting submit] cycle #{$cycleId} is invalid "
-                    . "(active={$cycle->is_active_cycle}, vsla={$cycle->is_vsla_cycle}); "
-                    . "auto-resolving for group #{$groupId} (user #{$user->id})");
-
-                $cycle   = VslaService::ensureActiveCycle($group, $user->id ?? null);
-                $cycleId = (int) $cycle->id;
-
-                Log::info("[Meeting submit] auto-resolved to cycle #{$cycleId} for group #{$groupId}");
-            }
-
-            // Validate cycle is active (hard fail only if we couldn't auto-resolve)
+            // Validate cycle is active
             if ($cycle->is_active_cycle !== 'Yes') {
                 return $this->error('This cycle is not active. Please select an active cycle.', 422, [
                     'error_type' => 'inactive_cycle',
