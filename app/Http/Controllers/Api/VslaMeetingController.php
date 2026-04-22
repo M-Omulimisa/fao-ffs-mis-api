@@ -637,7 +637,10 @@ class VslaMeetingController extends Controller
                 ], 422);
             }
 
-            $meeting->delete();
+            DB::transaction(function () use ($meeting) {
+                // Model deleting hook performs full cascade cleanup.
+                $meeting->forceDelete();
+            });
 
             return response()->json([
                 'code' => 1,
@@ -645,6 +648,9 @@ class VslaMeetingController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
             return response()->json([
                 'code' => 0,
                 'message' => 'Failed to delete meeting: ' . $e->getMessage(),

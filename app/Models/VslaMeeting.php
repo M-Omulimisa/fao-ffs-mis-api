@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 
 class VslaMeeting extends Model
 {
@@ -28,6 +29,67 @@ class VslaMeeting extends Model
                         $meeting->ip_id = $adminUser->ip_id;
                     }
                 } catch (\Throwable $e) {}
+            }
+        });
+
+        // Cascade-delete all related records whenever a meeting is deleted
+        // (soft delete or force delete), regardless of entry point.
+        static::deleting(function ($meeting) {
+            $meetingId = (int) $meeting->id;
+
+            $loanIds = [];
+            if (Schema::hasTable('vsla_loans')) {
+                $loanIds = VslaLoan::withTrashed()
+                    ->where('meeting_id', $meetingId)
+                    ->pluck('id')
+                    ->map(fn($id) => (int) $id)
+                    ->toArray();
+            }
+
+            if (Schema::hasTable('vsla_meeting_attendance')) {
+                VslaMeetingAttendance::where('meeting_id', $meetingId)->delete();
+            }
+
+            if (Schema::hasTable('vsla_action_plans')) {
+                VslaActionPlan::withTrashed()
+                    ->where('meeting_id', $meetingId)
+                    ->forceDelete();
+            }
+
+            if (Schema::hasTable('social_fund_transactions')) {
+                SocialFundTransaction::where('meeting_id', $meetingId)->delete();
+            }
+
+            $memberIds = [];
+            if (Schema::hasTable('account_transactions')) {
+                $memberIds = AccountTransaction::withTrashed()
+                    ->where('meeting_id', $meetingId)
+                    ->where('owner_type', 'member')
+                    ->whereNotNull('user_id')
+                    ->pluck('user_id')
+                    ->unique()
+                    ->map(fn($id) => (int) $id)
+                    ->toArray();
+
+                AccountTransaction::withTrashed()
+                    ->where('meeting_id', $meetingId)
+                    ->forceDelete();
+            }
+
+            if (Schema::hasTable('loan_transactions') && !empty($loanIds)) {
+                LoanTransaction::withTrashed()
+                    ->whereIn('loan_id', $loanIds)
+                    ->forceDelete();
+            }
+
+            if (Schema::hasTable('vsla_loans')) {
+                VslaLoan::withTrashed()
+                    ->where('meeting_id', $meetingId)
+                    ->forceDelete();
+            }
+
+            foreach ($memberIds as $memberId) {
+                AccountTransaction::updateMemberBalance((int) $memberId);
             }
         });
     }
