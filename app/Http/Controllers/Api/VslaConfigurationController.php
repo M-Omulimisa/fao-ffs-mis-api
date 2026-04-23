@@ -262,7 +262,7 @@ class VslaConfigurationController extends Controller
             $totalMembers = (int) User::where('group_id', $group->id)->count();
 
             $cycles = $rawCycles
-                ->map(function ($cycle) {
+                ->map(function ($cycle) use ($totalMembers) {
                     // Calculate progress
                     $now = \Carbon\Carbon::now();
                     $progressPercentage = 0;
