@@ -1087,7 +1087,13 @@ var HC = {
                     $('#group-ip-fix-start-btn').prop('disabled', false).html('<i class="fa fa-play"></i> Start Again');
                     if (s.status === 'completed') {
                         toastr.success('Group IP alignment fix completed');
-                        setTimeout(function() { location.reload(); }, 1200);
+                        var doneMsg = 'Completed. Total: ' + (s.total || 0)
+                            + ', Fixed: ' + (s.fixed || 0)
+                            + ', Failed: ' + (s.failed || 0) + '.';
+                        if ((s.failed || 0) > 0) {
+                            doneMsg += ' See failed items in the progress payload.';
+                        }
+                        $('#group-ip-fix-progress-text').text(doneMsg);
                     } else {
                         toastr.error(s.message || 'Fix engine failed');
                     }
