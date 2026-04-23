@@ -32,6 +32,12 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->withoutOverlapping()
             ->runInBackground();
+
+        // Keep facilitator/group IP alignment healthy over time.
+        $schedule->command('system:fix-mismatched-group-ips --batch=50')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**

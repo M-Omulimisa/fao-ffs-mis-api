@@ -9,7 +9,9 @@ use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SystemHealthCheckController extends AdminController
 {
@@ -132,6 +134,93 @@ class SystemHealthCheckController extends AdminController
                 'filterIpId' => $this->filterIpId,
                 'isSuperAdmin' => $this->isSuperAdmin,
             ]));
+    }
+
+    /**
+     * Start background group IP mismatch fixer with progress cache.
+     */
+    public function startGroupIpFix(Request $request)
+    {
+        $this->initContext();
+
+        try {
+            $adminId = \Encore\Admin\Facades\Admin::user()->id ?? 0;
+            $batch = max(10, min(200, (int) $request->input('batch', 50)));
+
+            $scopeIpId = $this->isSuperAdmin
+                ? ($request->filled('ip_id') ? (int) $request->input('ip_id') : null)
+                : $this->effectiveIpId();
+
+            $progressKey = 'group_ip_fix:' . $adminId . ':' . Str::uuid()->toString();
+            Cache::put($progressKey, [
+                'status' => 'queued',
+                'total' => 0,
+                'processed' => 0,
+                'fixed' => 0,
+                'failed' => 0,
+                'percent' => 0,
+                'message' => 'Queued',
+                'updated_at' => now()->toDateTimeString(),
+            ], now()->addHours(2));
+
+            $artisan = escapeshellarg(base_path('artisan'));
+            $php = escapeshellarg(PHP_BINARY ?: 'php');
+
+            $parts = [
+                $php,
+                $artisan,
+                'system:fix-mismatched-group-ips',
+                '--batch=' . (int) $batch,
+                '--progress_key=' . escapeshellarg($progressKey),
+            ];
+
+            if (!empty($scopeIpId)) {
+                $parts[] = '--ip_id=' . (int) $scopeIpId;
+            }
+
+            $cmd = implode(' ', $parts) . ' > /dev/null 2>&1 &';
+            exec($cmd);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Group IP fix started',
+                'progress_key' => $progressKey,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to start fixer: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Poll current progress of group IP mismatch fixer.
+     */
+    public function groupIpFixStatus(Request $request)
+    {
+        $progressKey = (string) $request->input('progress_key');
+        if ($progressKey === '') {
+            return response()->json(['success' => false, 'message' => 'Missing progress_key']);
+        }
+
+        $adminId = \Encore\Admin\Facades\Admin::user()->id ?? 0;
+        if (strpos($progressKey, 'group_ip_fix:' . $adminId . ':') !== 0) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized progress key']);
+        }
+
+        $state = Cache::get($progressKey);
+        if (!$state) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Progress state not found or expired',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'state' => $state,
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────

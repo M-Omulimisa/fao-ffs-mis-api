@@ -74,6 +74,9 @@
         <span class="shc-toolbar-summary">{{ $summary['total_issues'] }} issue{{ $summary['total_issues'] !== 1 ? 's' : '' }} across {{ $checksWithIssues }} check{{ $checksWithIssues !== 1 ? 's' : '' }}</span>
     </div>
     <div class="shc-toolbar-right">
+        <button class="btn btn-success btn-xs" onclick="HC.openGroupIpFixModal()" title="Fix groups with facilitator-IP mismatches">
+            <i class="fa fa-magic"></i> Fix Group IP Alignment
+        </button>
         <div class="btn-group btn-group-xs shc-filter-group">
             <button class="btn btn-danger shc-filter active" data-filter="critical" title="Toggle Critical"><i class="fa fa-exclamation-triangle"></i> {{ $summary['critical_issues'] }}</button>
             <button class="btn btn-warning shc-filter active" data-filter="warning" title="Toggle Warnings"><i class="fa fa-exclamation-circle"></i> {{ $summary['warning_issues'] }}</button>
@@ -295,6 +298,42 @@
     </div>
 </div>
 
+<!-- Group IP Fix Modal -->
+<div class="modal fade" id="groupIpFixModal" tabindex="-1">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#00a65a;color:#fff;padding:10px 15px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;">&times;</button>
+                <h5 class="modal-title"><i class="fa fa-magic"></i> Group IP Alignment Fix Engine</h5>
+            </div>
+            <div class="modal-body" style="padding:12px 15px;">
+                <p class="text-muted" style="font-size:12px;margin-bottom:10px;">
+                    This runs backend SQL-based fixing for groups where group IP does not match facilitator IP, and aligns related records.
+                </p>
+
+                <div class="form-group" style="margin-bottom:10px;">
+                    <label style="font-size:12px;">Batch size</label>
+                    <input type="number" min="10" max="200" step="10" id="group-ip-fix-batch" class="form-control input-sm" value="50">
+                </div>
+
+                <div id="group-ip-fix-progress-wrap" style="display:none;">
+                    <div class="progress" style="height:16px;margin-bottom:6px;">
+                        <div id="group-ip-fix-progress-bar" class="progress-bar progress-bar-success" role="progressbar" style="width:0%;">0%</div>
+                    </div>
+                    <div id="group-ip-fix-progress-text" class="text-muted" style="font-size:12px;">Waiting...</div>
+                    <div id="group-ip-fix-progress-stats" style="margin-top:6px;font-size:12px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:8px 15px;">
+                <button class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+                <button id="group-ip-fix-start-btn" class="btn btn-success btn-sm" onclick="HC.startGroupIpFix()">
+                    <i class="fa fa-play"></i> Start Fix
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 /* ═══════════════  STAT CARDS  ═══════════════ */
 .shc-stats { margin-bottom: 10px; }
@@ -473,6 +512,8 @@
     background: #fcf8e3; border: 1px solid #faebcc; color: #8a6d3b;
     padding: 6px 10px; border-radius: 3px; font-size: 12px; margin-bottom: 8px;
 }
+
+#group-ip-fix-progress-stats .label { margin-right: 6px; font-size: 11px; }
 
 /* ═══════════════  RESPONSIVE  ═══════════════ */
 @media (max-width: 767px) {
@@ -692,6 +733,8 @@ var HC = {
     // ─────────────────────────────────────────────────
     _autoFixType: null,
     _autoFixData: null,
+    _groupIpFixKey: null,
+    _groupIpFixPollTimer: null,
 
     autoFix: function(checkKey) {
         var self = this;
@@ -961,6 +1004,97 @@ var HC = {
     },
 
     esc: function(s) { return $('<span>').text(s || '').html(); }
+,
+
+    // ─────────────────────────────────────────────────
+    // GROUP IP FIX ENGINE
+    // ─────────────────────────────────────────────────
+    openGroupIpFixModal: function() {
+        this._groupIpFixKey = null;
+        if (this._groupIpFixPollTimer) {
+            clearInterval(this._groupIpFixPollTimer);
+            this._groupIpFixPollTimer = null;
+        }
+        $('#group-ip-fix-progress-wrap').hide();
+        $('#group-ip-fix-progress-bar').css('width', '0%').text('0%');
+        $('#group-ip-fix-progress-text').text('Waiting...');
+        $('#group-ip-fix-progress-stats').empty();
+        $('#group-ip-fix-start-btn').prop('disabled', false).html('<i class="fa fa-play"></i> Start Fix');
+        $('#groupIpFixModal').modal('show');
+    },
+
+    startGroupIpFix: function() {
+        var self = this;
+        var batch = parseInt($('#group-ip-fix-batch').val() || '50', 10);
+        batch = Math.max(10, Math.min(200, batch));
+        var ipFilter = $('#shc-ip-filter').length ? $('#shc-ip-filter').val() : '';
+
+        $('#group-ip-fix-start-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Starting...');
+        $('#group-ip-fix-progress-wrap').show();
+
+        $.ajax({
+            url: self.url + '/start-group-ip-fix',
+            type: 'POST',
+            dataType: 'json',
+            data: { _token: self.csrf, batch: batch, ip_id: ipFilter },
+            success: function(r) {
+                if (!r.success) {
+                    toastr.error(r.message || 'Failed to start fixer');
+                    $('#group-ip-fix-start-btn').prop('disabled', false).html('<i class="fa fa-play"></i> Start Fix');
+                    return;
+                }
+
+                self._groupIpFixKey = r.progress_key;
+                $('#group-ip-fix-progress-text').text('Fix engine started...');
+                self._groupIpFixPollTimer = setInterval(function() { self.pollGroupIpFixStatus(); }, 1500);
+                self.pollGroupIpFixStatus();
+            },
+            error: function(x) {
+                toastr.error('Error: ' + (x.responseJSON?.message || x.statusText));
+                $('#group-ip-fix-start-btn').prop('disabled', false).html('<i class="fa fa-play"></i> Start Fix');
+            }
+        });
+    },
+
+    pollGroupIpFixStatus: function() {
+        var self = this;
+        if (!self._groupIpFixKey) return;
+
+        $.ajax({
+            url: self.url + '/group-ip-fix-status',
+            type: 'POST',
+            dataType: 'json',
+            data: { _token: self.csrf, progress_key: self._groupIpFixKey },
+            success: function(r) {
+                if (!r.success || !r.state) return;
+                var s = r.state;
+                var pct = Math.max(0, Math.min(100, parseInt(s.percent || 0, 10)));
+
+                $('#group-ip-fix-progress-bar').css('width', pct + '%').text(pct + '%');
+                $('#group-ip-fix-progress-text').text(s.message || 'Running...');
+                $('#group-ip-fix-progress-stats').html(
+                    '<span class="label label-info">Total: ' + (s.total || 0) + '</span>' +
+                    '<span class="label label-primary">Processed: ' + (s.processed || 0) + '</span>' +
+                    '<span class="label label-success">Fixed: ' + (s.fixed || 0) + '</span>' +
+                    '<span class="label label-danger">Failed: ' + (s.failed || 0) + '</span>'
+                );
+
+                if (s.status === 'completed' || s.status === 'failed') {
+                    if (self._groupIpFixPollTimer) {
+                        clearInterval(self._groupIpFixPollTimer);
+                        self._groupIpFixPollTimer = null;
+                    }
+                    $('#group-ip-fix-start-btn').prop('disabled', false).html('<i class="fa fa-play"></i> Start Again');
+                    if (s.status === 'completed') {
+                        toastr.success('Group IP alignment fix completed');
+                        setTimeout(function() { location.reload(); }, 1200);
+                    } else {
+                        toastr.error(s.message || 'Fix engine failed');
+                    }
+                }
+            }
+        });
+    }
 };
 
 $(document).ready(function() {

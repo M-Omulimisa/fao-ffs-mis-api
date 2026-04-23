@@ -381,10 +381,26 @@ class FfsGroup extends Model
         static::saving(function ($group) {
             self::normalizeCaseFields($group);
 
-            if ($group->isDirty('facilitator_id') && $group->facilitator_id && !$group->isDirty('ip_id')) {
-                $facilitator = \DB::table('users')->where('id', $group->facilitator_id)->first();
-                if ($facilitator && $facilitator->ip_id) {
-                    $group->ip_id = $facilitator->ip_id;
+            // Always align group IP to facilitator IP when facilitator is set and IP exists.
+            if (!empty($group->facilitator_id)) {
+                $targetIpId = app(\App\Services\GroupIpAlignmentService::class)
+                    ->resolveValidFacilitatorIpId((int) $group->facilitator_id);
+                if ($targetIpId) {
+                    $group->ip_id = $targetIpId;
+                }
+            }
+        });
+
+        // Keep all related ip_id-carrying records aligned after group/facilitator updates.
+        static::saved(function ($group) {
+            if ($group->wasChanged('ip_id') || $group->wasChanged('facilitator_id')) {
+                try {
+                    app(\App\Services\GroupIpAlignmentService::class)
+                        ->alignGroupAndRelatedData((int) $group->id);
+                } catch (\Throwable $e) {
+                    \Log::warning('FfsGroup related IP alignment failed: ' . $e->getMessage(), [
+                        'group_id' => (int) $group->id,
+                    ]);
                 }
             }
         });

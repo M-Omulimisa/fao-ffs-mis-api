@@ -115,6 +115,8 @@ Route::group([
     $router->post('system-health-check/auto-fix-orphaned-members', 'SystemHealthCheckController@autoFixOrphanedMembers');
     $router->post('system-health-check/auto-fix-users-no-ip', 'SystemHealthCheckController@autoFixUsersNoIp');
     $router->post('system-health-check/auto-fix-groups-no-facilitator', 'SystemHealthCheckController@autoFixGroupsNoFacilitator');
+       $router->post('system-health-check/start-group-ip-fix', 'SystemHealthCheckController@startGroupIpFix');
+       $router->post('system-health-check/group-ip-fix-status', 'SystemHealthCheckController@groupIpFixStatus');
 
     // Users management
     $router->resource('users', UserController::class);

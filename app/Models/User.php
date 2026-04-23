@@ -147,9 +147,8 @@ class User extends Administrator implements JWTSubject
             // Keep facilitator groups aligned when facilitator IP changes.
             if ($user->isDirty('ip_id') && !empty($user->ip_id)) {
                 try {
-                    \App\Models\FfsGroup::where('facilitator_id', $user->id)
-                        ->where('ip_id', '!=', $user->ip_id)
-                        ->update(['ip_id' => $user->ip_id]);
+                    app(\App\Services\GroupIpAlignmentService::class)
+                        ->alignAllGroupsForFacilitator((int) $user->id);
                 } catch (\Throwable $e) {
                     \Log::warning('User IP sync to facilitator groups failed: ' . $e->getMessage());
                 }
