@@ -2,6 +2,7 @@
 
 namespace App\Admin\Controllers;
 
+use App\Services\GroupIpMismatchFixerService;
 use App\Models\User;
 use App\Models\FfsGroup;
 use App\Models\ImplementingPartner;
@@ -145,45 +146,37 @@ class SystemHealthCheckController extends AdminController
 
         try {
             $adminId = \Encore\Admin\Facades\Admin::user()->id ?? 0;
-            $batch = max(10, min(200, (int) $request->input('batch', 50)));
+            $batch = max(5, min(200, (int) $request->input('batch', 25)));
 
             $scopeIpId = $this->isSuperAdmin
                 ? ($request->filled('ip_id') ? (int) $request->input('ip_id') : null)
                 : $this->effectiveIpId();
 
             $progressKey = 'group_ip_fix:' . $adminId . ':' . Str::uuid()->toString();
+
+            /** @var GroupIpMismatchFixerService $fixer */
+            $fixer = app(GroupIpMismatchFixerService::class);
+            $groupIds = $fixer->mismatchGroupIds($scopeIpId);
+            $total = count($groupIds);
+
             Cache::put($progressKey, [
-                'status' => 'queued',
-                'total' => 0,
+                'status' => $total === 0 ? 'completed' : 'running',
+                'total' => $total,
                 'processed' => 0,
                 'fixed' => 0,
                 'failed' => 0,
                 'percent' => 0,
-                'message' => 'Queued',
+                'batch_size' => $batch,
+                'cursor' => 0,
+                'group_ids' => $groupIds,
+                'failures' => [],
+                'message' => $total === 0 ? 'No mismatches found' : 'Ready to process',
                 'updated_at' => now()->toDateTimeString(),
             ], now()->addHours(2));
 
-            $artisan = escapeshellarg(base_path('artisan'));
-            $php = escapeshellarg(PHP_BINARY ?: 'php');
-
-            $parts = [
-                $php,
-                $artisan,
-                'system:fix-mismatched-group-ips',
-                '--batch=' . (int) $batch,
-                '--progress_key=' . escapeshellarg($progressKey),
-            ];
-
-            if (!empty($scopeIpId)) {
-                $parts[] = '--ip_id=' . (int) $scopeIpId;
-            }
-
-            $cmd = implode(' ', $parts) . ' > /dev/null 2>&1 &';
-            exec($cmd);
-
             return response()->json([
                 'success' => true,
-                'message' => 'Group IP fix started',
+                'message' => $total === 0 ? 'No mismatches found' : 'Group IP fix started',
                 'progress_key' => $progressKey,
             ]);
         } catch (\Throwable $e) {
@@ -215,6 +208,55 @@ class SystemHealthCheckController extends AdminController
                 'success' => false,
                 'message' => 'Progress state not found or expired',
             ]);
+        }
+
+        if (($state['status'] ?? '') === 'running') {
+            /** @var GroupIpMismatchFixerService $fixer */
+            $fixer = app(GroupIpMismatchFixerService::class);
+
+            $groupIds = (array) ($state['group_ids'] ?? []);
+            $cursor = (int) ($state['cursor'] ?? 0);
+            $batch = max(1, (int) ($state['batch_size'] ?? 25));
+            $total = (int) ($state['total'] ?? count($groupIds));
+
+            $slice = array_slice($groupIds, $cursor, $batch);
+            $fixed = (int) ($state['fixed'] ?? 0);
+            $failed = (int) ($state['failed'] ?? 0);
+            $failures = (array) ($state['failures'] ?? []);
+
+            foreach ($slice as $gid) {
+                $result = $fixer->fixGroupById((int) $gid);
+                if ($result['ok']) {
+                    $fixed++;
+                } else {
+                    $failed++;
+                    if (count($failures) < 50) {
+                        $failures[] = [
+                            'group_id' => (int) $gid,
+                            'error' => (string) ($result['error'] ?? 'Unknown error'),
+                        ];
+                    }
+                }
+            }
+
+            $cursor += count($slice);
+            $processed = $fixed + $failed;
+            $percent = $total > 0 ? (int) floor(($processed / $total) * 100) : 100;
+            $done = $cursor >= $total;
+
+            $state = array_merge($state, [
+                'status' => $done ? 'completed' : 'running',
+                'cursor' => $cursor,
+                'processed' => $processed,
+                'fixed' => $fixed,
+                'failed' => $failed,
+                'percent' => $done ? 100 : $percent,
+                'failures' => $failures,
+                'message' => $done ? 'Group IP mismatch fix completed' : "Processed {$processed}/{$total}",
+                'updated_at' => now()->toDateTimeString(),
+            ]);
+
+            Cache::put($progressKey, $state, now()->addHours(2));
         }
 
         return response()->json([

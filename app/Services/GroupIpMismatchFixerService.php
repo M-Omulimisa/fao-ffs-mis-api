@@ -12,6 +12,35 @@ class GroupIpMismatchFixerService
     }
 
     /**
+     * @return int[]
+     */
+    public function mismatchGroupIds(?int $ipId = null): array
+    {
+        return $this->baseMismatchQuery($ipId)
+            ->orderBy('g.id')
+            ->pluck('g.id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+    }
+
+    /**
+     * @return array{ok:bool,error:?string}
+     */
+    public function fixGroupById(int $groupId): array
+    {
+        try {
+            $ok = app(GroupIpAlignmentService::class)->alignGroupAndRelatedData($groupId);
+            if ($ok) {
+                return ['ok' => true, 'error' => null];
+            }
+
+            return ['ok' => false, 'error' => 'No valid facilitator IP found for this group'];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
      * @return array{total:int,fixed:int,failed:int,failures:array<int,array{group_id:int,error:string}>}
      */
     public function run(?int $ipId = null, int $batchSize = 50, ?callable $progress = null): array
