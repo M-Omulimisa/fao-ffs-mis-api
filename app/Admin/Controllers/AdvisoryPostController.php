@@ -225,7 +225,6 @@ class AdvisoryPostController extends AdminController
     protected function form()
     {
         $form = new Form(new AdvisoryPost());
-        $this->addIpFieldToForm($form);
 
         $form->divider('Article Details');
 
