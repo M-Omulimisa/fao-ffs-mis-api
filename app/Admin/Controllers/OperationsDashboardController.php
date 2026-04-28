@@ -86,6 +86,20 @@ class OperationsDashboardController extends AdminController
                     $col->append($this->kpiStrip($metrics)));
             })
 
+            // Row 1b: Period Momentum (vs previous equivalent period)
+            ->row(function (Row $row) use ($metrics, $params) {
+                $row->column(12, fn(Column $col) =>
+                    $col->append($this->momentumStrip($metrics, $params)));
+            })
+
+            // Row 1c: Data Quality + Actionable Insights
+            ->row(function (Row $row) use ($metrics, $params) {
+                $row->column(5, fn(Column $col) =>
+                    $col->append($this->dataQualityCard($metrics)));
+                $row->column(7, fn(Column $col) =>
+                    $col->append($this->insightsPanel($metrics, $params)));
+            })
+
             // Row 2: Facilitator Leaderboard (7) + Daily Chart (5)
             ->row(function (Row $row) use ($metrics, $params) {
                 $row->column(7, fn(Column $col) =>
@@ -175,9 +189,19 @@ class OperationsDashboardController extends AdminController
                             $pq->whereHas('group', fn($g) => $g->where('ip_id', $ipId))))
                             ->sum('total_amount_paid');
 
+        $savingsInPeriod = ProjectShare::when($ipId, fn($q) => $q->whereHas('project', fn($pq) =>
+                    $pq->whereHas('group', fn($g) => $g->where('ip_id', $ipId))))
+                    ->whereBetween('created_at', [$dateFrom, $dateTo])
+                    ->sum('total_amount_paid');
+
         $totalLoanDisbursed = VslaLoan::when($ipId, fn($q) => $q->whereHas('cycle', fn($c) =>
                                 $c->whereHas('group', fn($g) => $g->where('ip_id', $ipId))))
                                 ->sum('loan_amount');
+
+        $loanDisbursedInPeriod = VslaLoan::when($ipId, fn($q) => $q->whereHas('cycle', fn($c) =>
+                        $c->whereHas('group', fn($g) => $g->where('ip_id', $ipId))))
+                        ->whereBetween('created_at', [$dateFrom, $dateTo])
+                        ->sum('loan_amount');
 
         $totalLoanOutstanding = VslaLoan::where('status', 'active')
                                 ->when($ipId, fn($q) => $q->whereHas('cycle', fn($c) =>
@@ -193,6 +217,87 @@ class OperationsDashboardController extends AdminController
         $parRate = $totalLoanOutstanding > 0
             ? round(($overdueBalance / $totalLoanOutstanding) * 100, 1)
             : 0.0;
+
+        // ── Period-over-period momentum ─────────────────────────────────────
+        $periodDays = max(1, $dateFrom->copy()->startOfDay()->diffInDays($dateTo->copy()->endOfDay()) + 1);
+        $prevFrom   = $dateFrom->copy()->subDays($periodDays);
+        $prevTo     = $dateFrom->copy()->subSecond();
+
+        $prevGroupsInPeriod = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))
+            ->whereBetween('created_at', [$prevFrom, $prevTo])
+            ->count();
+
+        $prevMeetingsInPeriod = VslaMeeting::when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
+            ->whereBetween('created_at', [$prevFrom, $prevTo])
+            ->count();
+
+        $prevSavingsInPeriod = ProjectShare::when($ipId, fn($q) => $q->whereHas('project', fn($pq) =>
+                $pq->whereHas('group', fn($g) => $g->where('ip_id', $ipId))))
+            ->whereBetween('created_at', [$prevFrom, $prevTo])
+            ->sum('total_amount_paid');
+
+        $prevLoanDisbursedInPeriod = VslaLoan::when($ipId, fn($q) => $q->whereHas('cycle', fn($c) =>
+                $c->whereHas('group', fn($g) => $g->where('ip_id', $ipId))))
+            ->whereBetween('created_at', [$prevFrom, $prevTo])
+            ->sum('loan_amount');
+
+        $momentum = [
+            'groups' => [
+                'current' => (float) $groupsInPeriod,
+                'previous' => (float) $prevGroupsInPeriod,
+                'pct' => $this->pctChange((float) $groupsInPeriod, (float) $prevGroupsInPeriod),
+            ],
+            'meetings' => [
+                'current' => (float) $totalMeetings,
+                'previous' => (float) $prevMeetingsInPeriod,
+                'pct' => $this->pctChange((float) $totalMeetings, (float) $prevMeetingsInPeriod),
+            ],
+            'savings' => [
+                'current' => (float) $savingsInPeriod,
+                'previous' => (float) $prevSavingsInPeriod,
+                'pct' => $this->pctChange((float) $savingsInPeriod, (float) $prevSavingsInPeriod),
+            ],
+            'loans' => [
+                'current' => (float) $loanDisbursedInPeriod,
+                'previous' => (float) $prevLoanDisbursedInPeriod,
+                'pct' => $this->pctChange((float) $loanDisbursedInPeriod, (float) $prevLoanDisbursedInPeriod),
+            ],
+        ];
+
+        // ── Data quality signals ────────────────────────────────────────────
+        $groupsWithoutFacilitator = FfsGroup::when($ipId, fn($q) => $q->where('ip_id', $ipId))
+            ->whereNull('facilitator_id')
+            ->count();
+
+        $groupsWithoutIp = FfsGroup::when(!$isSuperAdmin && $ipId, fn($q) => $q->where('ip_id', $ipId))
+            ->whereNull('ip_id')
+            ->count();
+
+        $orphanMembers = User::whereNotNull('group_id')
+            ->when($ipId, fn($q) => $q->whereHas('group', fn($g) => $g->where('ip_id', $ipId)))
+            ->whereDoesntHave('group')
+            ->count();
+
+        $mismatchBase = DB::table('ffs_groups as g')
+            ->join('users as u', 'u.id', '=', 'g.facilitator_id')
+            ->whereNull('g.deleted_at')
+            ->whereNotNull('g.ip_id')
+            ->whereNotNull('u.ip_id')
+            ->whereColumn('g.ip_id', '!=', 'u.ip_id');
+        if ($ipId) {
+            $mismatchBase->where('g.ip_id', $ipId);
+        }
+        $facilitatorIpMismatches = (clone $mismatchBase)->count();
+
+        $qualityIssuesTotal = $groupsWithoutFacilitator + $groupsWithoutIp + $orphanMembers + $facilitatorIpMismatches;
+
+        $dataQuality = [
+            'groups_without_facilitator' => $groupsWithoutFacilitator,
+            'groups_without_ip' => $groupsWithoutIp,
+            'orphan_members' => $orphanMembers,
+            'facilitator_ip_mismatches' => $facilitatorIpMismatches,
+            'issues_total' => $qualityIssuesTotal,
+        ];
 
         $totalSocialFund = SocialFundTransaction::where('transaction_type', 'contribution')
                             ->when($ipId, fn($q) => $q->whereIn('group_id', function($sub) use ($ipId) {
@@ -372,7 +477,7 @@ class OperationsDashboardController extends AdminController
             ->limit(20)
             ->get()
             ->map(fn($g) => [
-                'name'        => $this->titleCase($g->name),
+                'name'        => $g->name,
                 'type'        => $g->type,
                 'district'    => $g->district_id,
                 'ip'          => $g->implementingPartner?->short_name ?? '—',
@@ -385,7 +490,9 @@ class OperationsDashboardController extends AdminController
             'totalIps', 'totalGroups', 'groupsInPeriod', 'totalMembers',
             'totalFacilitators', 'activeCycles', 'totalMeetings',
             'totalSavings', 'totalLoanDisbursed', 'totalLoanOutstanding',
+            'savingsInPeriod', 'loanDisbursedInPeriod',
             'overdueBalance', 'parRate', 'totalSocialFund',
+            'momentum', 'dataQuality',
             'loanStatusCounts', 'loanStatusAmounts',
             'dailyLabels', 'dailyCounts',
             'leaderboard', 'ipStats', 'recentGroups'

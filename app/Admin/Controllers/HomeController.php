@@ -326,9 +326,8 @@ class HomeController extends Controller
 
         // Advisory Posts
         $row->column(3, function (Column $column) {
-            $ipId = $this->getAdminIpId();
-            $totalPosts = AdvisoryPost::when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
-            $publishedPosts = AdvisoryPost::where('status', 'published')->when($ipId, fn($q) => $q->where('ip_id', $ipId))->count();
+            $totalPosts = AdvisoryPost::count();
+            $publishedPosts = AdvisoryPost::published()->count();
             
             $content = $this->renderModernKPICard(
                 'fa-newspaper',
@@ -820,7 +819,7 @@ class HomeController extends Controller
             $recentLoans = VslaLoan::with('borrower')
                 ->when($ipId, fn($q) => $q->whereHas('meeting', fn($m) => $m->where('ip_id', $ipId)))
                 ->orderBy('created_at', 'desc')->limit(3)->get();
-            $recentPosts = AdvisoryPost::when($ipId, fn($q) => $q->where('ip_id', $ipId))->orderBy('created_at', 'desc')->limit(3)->get();
+            $recentPosts = AdvisoryPost::orderBy('created_at', 'desc')->limit(3)->get();
             
             $activities = [];
             

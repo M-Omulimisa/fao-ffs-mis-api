@@ -44,7 +44,7 @@ class AdvisoryCategory extends Model
      */
     public function getPublishedPostsCountAttribute()
     {
-        return $this->posts()->where('status', 'Published')->count();
+        return $this->posts()->published()->count();
     }
 
     /**

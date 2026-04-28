@@ -99,17 +99,20 @@ class FfsTrainingSessionController extends AdminController
         $grid->column('id', 'ID')->sortable()->hide();
 
         $grid->column('title', 'Title')->display(function ($title) {
-            $short = e(\Illuminate\Support\Str::limit($title, 35));
-            return "<strong>{$short}</strong>";
+            $short = \Illuminate\Support\Str::limit($title, 35);
+            if (request()->has('_export_')) return $short;
+            return '<strong>' . e($short) . '</strong>';
         })->sortable();
 
         $grid->column('group.name', 'Group')->display(function ($name) {
+            if (request()->has('_export_')) return $name ?: '—';
             return $name
                 ? '<span class="label label-info">' . e($name) . '</span>'
                 : '<span class="text-muted">—</span>';
         });
 
         $grid->column('facilitator.name', 'Facilitator')->display(function ($name) {
+            if (request()->has('_export_')) return $name ?: '—';
             return $name ? e($name) : '<span class="text-muted">—</span>';
         })->sortable();
 
@@ -117,42 +120,48 @@ class FfsTrainingSessionController extends AdminController
             return $date ? date('d M Y', strtotime($date)) : '—';
         })->sortable();
 
-        $grid->column('session_type', 'Type')->label([
-            'classroom'     => 'primary',
-            'field'         => 'success',
-            'demonstration' => 'warning',
-            'workshop'      => 'info',
-        ])->sortable();
+        $grid->column('session_type', 'Type')->display(function ($val) {
+            if (request()->has('_export_')) return $val ?: '—';
+            $colors = ['classroom' => 'primary', 'field' => 'success', 'demonstration' => 'warning', 'workshop' => 'info'];
+            $color  = $colors[$val] ?? 'default';
+            return "<span class='label label-{$color}'>" . e($val) . '</span>';
+        })->sortable();
 
         $grid->column('attendance', 'Attendance')->display(function () {
             $present  = $this->participants()->whereIn('attendance_status', ['present', 'late'])->count();
             $total    = $this->participants()->count();
             $expected = (int) $this->expected_participants;
-            if ($total === 0 && $expected === 0) return '<span class="text-muted">—</span>';
+            if ($total === 0 && $expected === 0) {
+                return request()->has('_export_') ? '—' : '<span class="text-muted">—</span>';
+            }
+            $exp = $expected > 0 ? " / {$expected}" : '';
+            if (request()->has('_export_')) return "{$present}{$exp}";
             $rate   = $total > 0 ? ($present / $total) : 0;
             $colour = $rate >= 0.75 ? 'success' : ($rate >= 0.5 ? 'warning' : 'danger');
-            $exp    = $expected > 0 ? " / {$expected}" : '';
             return "<span class='label label-{$colour}'>{$present}{$exp}</span>";
         });
 
         $grid->column('resolutions_count', 'GAPs')->display(function () {
             $count = $this->resolutions()->count();
+            if (request()->has('_export_')) return $count;
             return $count > 0
                 ? "<span class='label label-primary'>{$count}</span>"
                 : '<span class="text-muted">0</span>';
         });
 
-        $grid->column('status', 'Status')->label([
-            'scheduled' => 'default',
-            'ongoing'   => 'warning',
-            'completed' => 'success',
-            'cancelled' => 'danger',
-        ])->sortable();
+        $grid->column('status', 'Status')->display(function ($val) {
+            if (request()->has('_export_')) return $val ?: '—';
+            $colors = ['scheduled' => 'default', 'ongoing' => 'warning', 'completed' => 'success', 'cancelled' => 'danger'];
+            $color  = $colors[$val] ?? 'default';
+            return "<span class='label label-{$color}'>" . e($val) . '</span>';
+        })->sortable();
 
-        $grid->column('report_status', 'Report')->label([
-            'draft'     => 'warning',
-            'submitted' => 'success',
-        ])->sortable();
+        $grid->column('report_status', 'Report')->display(function ($val) {
+            if (request()->has('_export_')) return $val ?: '—';
+            $colors = ['draft' => 'warning', 'submitted' => 'success'];
+            $color  = $colors[$val] ?? 'default';
+            return "<span class='label label-{$color}'>" . e($val) . '</span>';
+        })->sortable();
 
         if ($isSuperAdmin) {
             $grid->column('ip_id', 'Partner')->display(function ($id) {
