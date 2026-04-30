@@ -6,7 +6,10 @@ use App\Models\FfsGroup;
 use App\Models\Location;
 use App\Models\User;
 use App\Models\Project;
+use App\Models\ProjectShare;
 use App\Models\ImplementingPartner;
+use App\Models\VslaLoan;
+use App\Models\SocialFundTransaction;
 use App\Admin\Traits\IpScopeable;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
@@ -72,6 +75,27 @@ class FfsGroupController extends AdminController
 
         // Eager-load relationships + real member count to avoid N+1
         $grid->model()
+            ->select('ffs_groups.*')
+            ->selectSub(
+                ProjectShare::query()
+                    ->join('projects', 'projects.id', '=', 'project_shares.project_id')
+                    ->whereColumn('projects.group_id', 'ffs_groups.id')
+                    ->selectRaw('COALESCE(SUM(project_shares.total_amount_paid), 0)'),
+                'total_savings'
+            )
+            ->selectSub(
+                VslaLoan::query()
+                    ->join('projects', 'projects.id', '=', 'vsla_loans.cycle_id')
+                    ->whereColumn('projects.group_id', 'ffs_groups.id')
+                    ->selectRaw('COALESCE(SUM(vsla_loans.loan_amount), 0)'),
+                'total_loans'
+            )
+            ->selectSub(
+                SocialFundTransaction::query()
+                    ->whereColumn('social_fund_transactions.group_id', 'ffs_groups.id')
+                    ->selectRaw('COALESCE(SUM(social_fund_transactions.amount), 0)'),
+                'total_social_fund'
+            )
             ->withCount('members')
             ->with(['implementingPartner', 'district', 'facilitator'])
             ->orderBy('id', 'desc');
@@ -169,6 +193,9 @@ class FfsGroupController extends AdminController
         $grid->column('id', 'ID')->sortable()->hide();
 
         $grid->column('name', 'Group Name')->display(function ($name) {
+            if (request()->has('_export_')) {
+                return trim(($this->code ? $this->code . ' - ' : '') . ($name ?: ''));
+            }
             $code = $this->code ? '<small class="text-muted">' . e($this->code) . '</small><br>' : '';
             return $code . '<strong>' . e($name) . '</strong>';
         })->sortable();
@@ -178,6 +205,9 @@ class FfsGroupController extends AdminController
         }
 
         $grid->column('status', 'Status')->display(function ($status) {
+            if (request()->has('_export_')) {
+                return $status ?: '-';
+            }
             $map = ['Active' => 'success', 'Inactive' => 'default', 'Suspended' => 'warning', 'Graduated' => 'info'];
             return '<span class="label label-' . ($map[$status] ?? 'default') . '">' . e($status) . '</span>';
         })->sortable();
@@ -205,6 +235,31 @@ class FfsGroupController extends AdminController
         // Real member count from withCount('members')
         $grid->column('members_count', 'Members')->sortable();
 
+        $grid->column('total_savings', 'Total Savings')->display(function ($v) {
+            $amount = (float) ($v ?? 0);
+            if (request()->has('_export_')) {
+                return number_format($amount, 2, '.', '');
+            }
+            return '<span style="color:#2e7d32;font-weight:700;">UGX ' . number_format($amount) . '</span>';
+        })->sortable();
+
+        $grid->column('total_loans', 'Total Loans')->display(function ($v) {
+            $amount = (float) ($v ?? 0);
+            if (request()->has('_export_')) {
+                return number_format($amount, 2, '.', '');
+            }
+            return '<span style="color:#01579b;font-weight:700;">UGX ' . number_format($amount) . '</span>';
+        })->sortable();
+
+        $grid->column('total_social_fund', 'Total Social Fund')->display(function ($v) {
+            $amount = (float) ($v ?? 0);
+            if (request()->has('_export_')) {
+                return number_format($amount, 2, '.', '');
+            }
+            $color = $amount >= 0 ? '#6a1b9a' : '#c62828';
+            return '<span style="color:' . $color . ';font-weight:700;">UGX ' . number_format($amount) . '</span>';
+        })->sortable();
+
         $grid->column('primary_value_chain', 'Primary Activity')->display(function ($vc) {
             if (empty($vc)) return '-';
             return e(mb_strlen($vc) > 30 ? mb_substr($vc, 0, 27) . '...' : $vc);
@@ -213,6 +268,9 @@ class FfsGroupController extends AdminController
         // Facilitator — use eager-loaded relationship, include phone
         $grid->column('facilitator_id', 'Facilitator')->display(function () {
             if ($this->facilitator) {
+                if (request()->has('_export_')) {
+                    return $this->facilitator->name . ($this->facilitator->phone_number ? ' (' . $this->facilitator->phone_number . ')' : '');
+                }
                 $phone = $this->facilitator->phone_number
                     ? ' <small class="text-muted">(' . e($this->facilitator->phone_number) . ')</small>'
                     : '';

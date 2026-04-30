@@ -977,6 +977,126 @@ class OperationsDashboardController extends AdminController
         return $html;
     }
 
+    private function momentumStrip(array $m, array $p): string
+    {
+        $items = [
+            'Groups' => $m['momentum']['groups'] ?? ['current' => 0, 'previous' => 0, 'pct' => 0],
+            'Meetings' => $m['momentum']['meetings'] ?? ['current' => 0, 'previous' => 0, 'pct' => 0],
+            'Savings' => $m['momentum']['savings'] ?? ['current' => 0, 'previous' => 0, 'pct' => 0],
+            'Loans' => $m['momentum']['loans'] ?? ['current' => 0, 'previous' => 0, 'pct' => 0],
+        ];
+
+        $dateLabel = ($p['dateFrom'] ?? now())->format('d M') . ' - ' . ($p['dateTo'] ?? now())->format('d M Y');
+        $html = "<div style='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;'>";
+
+        foreach ($items as $label => $v) {
+            $pct = (float) ($v['pct'] ?? 0);
+            $isUp = $pct >= 0;
+            $color = $isUp ? self::SUCCESS : self::DANGER;
+            $arrow = $isUp ? 'fa-arrow-up' : 'fa-arrow-down';
+            $current = (float) ($v['current'] ?? 0);
+            $previous = (float) ($v['previous'] ?? 0);
+
+            $currentText = in_array($label, ['Savings', 'Loans'], true)
+                ? 'UGX ' . number_format($current)
+                : number_format($current);
+            $prevText = in_array($label, ['Savings', 'Loans'], true)
+                ? 'UGX ' . number_format($previous)
+                : number_format($previous);
+
+            $html .= "
+            <div style='flex:1;min-width:180px;background:#fff;border:1px solid #ddd;padding:10px 12px;'>
+                <div style='font-size:11px;color:#666;text-transform:uppercase;font-weight:600;'>{$label} Momentum</div>
+                <div style='display:flex;justify-content:space-between;align-items:baseline;margin-top:4px;'>
+                    <div style='font-size:18px;font-weight:700;color:" . self::PRIMARY . ";'>{$currentText}</div>
+                    <div style='font-size:12px;font-weight:700;color:{$color};'>
+                        <i class='fa {$arrow}'></i> " . number_format(abs($pct), 1) . "%
+                    </div>
+                </div>
+                <div style='font-size:10px;color:#999;margin-top:4px;'>Previous period: {$prevText}</div>
+                <div style='font-size:10px;color:#bbb;margin-top:2px;'>Window: {$dateLabel}</div>
+            </div>";
+        }
+
+        $html .= "</div>";
+        return $html;
+    }
+
+    private function dataQualityCard(array $m): string
+    {
+        $dq = $m['dataQuality'] ?? [];
+        $issues = (int) ($dq['issues_total'] ?? 0);
+        $sevColor = $issues === 0 ? self::SUCCESS : ($issues <= 10 ? self::WARNING : self::DANGER);
+
+        $rows = [
+            'Groups without Facilitator' => (int) ($dq['groups_without_facilitator'] ?? 0),
+            'Groups without IP' => (int) ($dq['groups_without_ip'] ?? 0),
+            'Orphan Members' => (int) ($dq['orphan_members'] ?? 0),
+            'Facilitator/IP Mismatches' => (int) ($dq['facilitator_ip_mismatches'] ?? 0),
+        ];
+
+        $html  = $this->sectionHeader('fa-shield', 'Data Quality Monitor', 'Integrity checks across group and member records');
+        $html .= "
+            <div style='display:flex;justify-content:space-between;align-items:center;border:1px solid #eee;padding:10px;margin-bottom:10px;'>
+                <div style='font-size:12px;color:#666;'>Open Data Issues</div>
+                <div style='font-size:22px;font-weight:700;color:{$sevColor};'>{$issues}</div>
+            </div>
+            <table class='table table-condensed' style='margin-bottom:0;font-size:12px;'>";
+
+        foreach ($rows as $label => $count) {
+            $html .= "<tr><td>{$label}</td><td style='text-align:right;font-weight:600;'>" . number_format($count) . "</td></tr>";
+        }
+
+        $html .= "</table></div></div>";
+        return $html;
+    }
+
+    private function insightsPanel(array $m, array $p): string
+    {
+        $mom = $m['momentum'] ?? [];
+        $groupsPct = (float) (($mom['groups']['pct'] ?? 0));
+        $meetingsPct = (float) (($mom['meetings']['pct'] ?? 0));
+        $parRate = (float) ($m['parRate'] ?? 0);
+        $issues = (int) (($m['dataQuality']['issues_total'] ?? 0));
+
+        $insights = [];
+        $insights[] = $groupsPct >= 0
+            ? "Group onboarding is improving (+" . number_format($groupsPct, 1) . "%)."
+            : "Group onboarding slowed (" . number_format($groupsPct, 1) . "%). Consider facilitator follow-up.";
+
+        $insights[] = $meetingsPct >= 0
+            ? "Meeting activity is trending up (+" . number_format($meetingsPct, 1) . "%)."
+            : "Meeting activity dropped (" . number_format($meetingsPct, 1) . "%). Review inactive groups.";
+
+        $insights[] = $parRate > 10
+            ? "Loan risk is high (PAR {$parRate}%). Prioritize recovery plans."
+            : ($parRate > 5
+                ? "Loan risk is moderate (PAR {$parRate}%). Tighten repayment follow-up."
+                : "Loan portfolio is healthy (PAR {$parRate}%).");
+
+        $insights[] = $issues > 0
+            ? "Data quality has {$issues} open issues. Run system health fixes."
+            : "Data quality checks are clean. Keep periodic monitoring active.";
+
+        $dateLabel = ($p['dateFrom'] ?? now())->format('d M') . ' - ' . ($p['dateTo'] ?? now())->format('d M Y');
+        $html  = $this->sectionHeader('fa-lightbulb-o', 'Insights & Recommendations', "Automated narrative for {$dateLabel}");
+        $html .= "<ul style='padding-left:18px;margin:0;'>";
+        foreach ($insights as $line) {
+            $html .= "<li style='margin-bottom:8px;font-size:12px;line-height:1.45;color:#444;'>" . e($line) . "</li>";
+        }
+        $html .= "</ul></div></div>";
+
+        return $html;
+    }
+
+    private function pctChange(float $current, float $previous): float
+    {
+        if ($previous == 0.0) {
+            return $current > 0.0 ? 100.0 : 0.0;
+        }
+        return round((($current - $previous) / $previous) * 100, 1);
+    }
+
     // ─── Shared helpers ──────────────────────────────────────────────────────
 
     private function sectionHeader(string $icon, string $title, string $subtitle = ''): string
