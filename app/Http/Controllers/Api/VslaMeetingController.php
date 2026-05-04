@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 /**
  * VSLA Meeting API Controller
@@ -185,6 +186,39 @@ class VslaMeetingController extends Controller
                 ]);
             }
 
+            $normalizedMeetingDate = Carbon::parse($request->meeting_date)->toDateString();
+
+            // Guard against duplicate meetings for same group and date.
+            // local_id duplicate check above handles retries for same local record.
+            // This check prevents new local IDs from creating same-day duplicates.
+            if (!empty($groupId)) {
+                $sameDayExisting = VslaMeeting::where('group_id', $groupId)
+                    ->whereDate('meeting_date', $normalizedMeetingDate)
+                    ->first();
+
+                if ($sameDayExisting) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'A meeting for this group and date already exists',
+                        'code' => 409,
+                        'error_type' => 'duplicate_group_meeting_date',
+                        'meeting_id' => $sameDayExisting->id,
+                        'meeting_number' => $sameDayExisting->meeting_number,
+                        'meeting_date' => $sameDayExisting->meeting_date,
+                        'processing_status' => $sameDayExisting->processing_status,
+                    ], 409);
+                }
+            }
+
+            $computedTotals = $this->calculateSubmittedTotals(
+                $request->input('attendance_data', []),
+                $request->input('transactions_data', []),
+                $request->input('loan_repayments_data', []),
+                $request->input('social_fund_contributions_data', []),
+                $request->input('loans_data', []),
+                $request->input('share_purchases_data', [])
+            );
+
             // Auto-generate meeting number (server-controlled)
             $meetingNumber = $this->generateMeetingNumber($cycleId, $groupId);
 
@@ -198,19 +232,19 @@ class VslaMeetingController extends Controller
                 'local_id' => $request->local_id,
                 'cycle_id' => $cycleId,
                 'group_id' => $groupId,
-                'meeting_date' => $request->meeting_date,
+                'meeting_date' => $normalizedMeetingDate,
                 'meeting_number' => $meetingNumber,
                 'notes' => $request->notes,
-                'members_present' => $request->members_present,
-                'members_absent' => $request->members_absent ?? 0,
-                'total_savings_collected' => $request->total_savings_collected ?? 0,
-                'total_welfare_collected' => $request->total_welfare_collected ?? 0,
-                'total_social_fund_collected' => $request->total_social_fund_collected ?? 0,
-                'total_fines_collected' => $request->total_fines_collected ?? 0,
-                'total_loans_disbursed' => $request->total_loans_disbursed ?? 0,
-                'total_loans_repaid' => $request->total_loans_repaid ?? 0,
-                'total_shares_sold' => $request->total_shares_sold ?? 0,
-                'total_share_value' => $request->total_share_value ?? 0,
+                'members_present' => $computedTotals['members_present'],
+                'members_absent' => $computedTotals['members_absent'],
+                'total_savings_collected' => $computedTotals['total_savings_collected'],
+                'total_welfare_collected' => $computedTotals['total_welfare_collected'],
+                'total_social_fund_collected' => $computedTotals['total_social_fund_collected'],
+                'total_fines_collected' => $computedTotals['total_fines_collected'],
+                'total_loans_disbursed' => $computedTotals['total_loans_disbursed'],
+                'total_loans_repaid' => $computedTotals['total_loans_repaid'],
+                'total_shares_sold' => $computedTotals['total_shares_sold'],
+                'total_share_value' => $computedTotals['total_share_value'],
                 'attendance_data' => $request->attendance_data,
                 'transactions_data' => $request->transactions_data ?? [],
                 'loan_repayments_data' => $request->loan_repayments_data ?? [],
@@ -725,5 +759,124 @@ class VslaMeetingController extends Controller
         $lastMeetingNumber = $query->lockForUpdate()->max('meeting_number') ?? 0;
 
         return $lastMeetingNumber + 1;
+    }
+
+    /**
+     * Build server-authoritative totals from payload details.
+     */
+    private function calculateSubmittedTotals(
+        array $attendanceData,
+        array $transactionsData,
+        array $loanRepaymentsData,
+        array $socialFundContributionsData,
+        array $loansData,
+        array $sharePurchasesData
+    ): array {
+        $membersPresent = 0;
+        $membersAbsent = 0;
+
+        foreach ($attendanceData as $attendance) {
+            if ($this->asBool($attendance['isPresent'] ?? $attendance['is_present'] ?? false)) {
+                $membersPresent++;
+            } else {
+                $membersAbsent++;
+            }
+        }
+
+        $totals = [
+            'members_present' => $membersPresent,
+            'members_absent' => $membersAbsent,
+            'total_savings_collected' => 0.0,
+            'total_welfare_collected' => 0.0,
+            'total_social_fund_collected' => 0.0,
+            'total_fines_collected' => 0.0,
+            'total_loans_disbursed' => 0.0,
+            'total_loans_repaid' => 0.0,
+            'total_shares_sold' => 0,
+            'total_share_value' => 0.0,
+        ];
+
+        $socialFromTransactions = 0.0;
+        foreach ($transactionsData as $transaction) {
+            $accountType = strtolower((string) ($transaction['accountType'] ?? $transaction['account_type'] ?? ''));
+            $amount = $this->asAmount($transaction['amount'] ?? 0);
+
+            if ($amount <= 0) {
+                continue;
+            }
+
+            if ($accountType === 'savings') {
+                $totals['total_savings_collected'] += $amount;
+            } elseif ($accountType === 'welfare') {
+                $totals['total_welfare_collected'] += $amount;
+            } elseif ($accountType === 'social_fund') {
+                $socialFromTransactions += $amount;
+            } elseif ($accountType === 'fine' || $accountType === 'penalty') {
+                $totals['total_fines_collected'] += $amount;
+            }
+        }
+
+        foreach ($loansData as $loan) {
+            $totals['total_loans_disbursed'] += $this->asAmount($loan['loan_amount'] ?? $loan['loanAmount'] ?? 0);
+        }
+
+        foreach ($loanRepaymentsData as $repayment) {
+            $totals['total_loans_repaid'] += $this->asAmount($repayment['amount'] ?? 0);
+        }
+
+        foreach ($sharePurchasesData as $sharePurchase) {
+            $totals['total_shares_sold'] += (int) ($sharePurchase['number_of_shares'] ?? $sharePurchase['numberOfShares'] ?? 0);
+
+            $totals['total_share_value'] += $this->asAmount(
+                $sharePurchase['total_amount_paid']
+                    ?? $sharePurchase['totalAmountPaid']
+                    ?? 0
+            );
+        }
+
+        $socialFromContributions = 0.0;
+        foreach ($socialFundContributionsData as $contribution) {
+            $contributed = $this->asBool($contribution['contributed'] ?? true);
+            $amount = $this->asAmount($contribution['amount'] ?? 0);
+            if ($contributed && $amount > 0) {
+                $socialFromContributions += $amount;
+            }
+        }
+
+        // Avoid double-counting by taking the richer of either representation.
+        $totals['total_social_fund_collected'] = max($socialFromTransactions, $socialFromContributions);
+
+        // Normalize numeric precision.
+        foreach ([
+            'total_savings_collected',
+            'total_welfare_collected',
+            'total_social_fund_collected',
+            'total_fines_collected',
+            'total_loans_disbursed',
+            'total_loans_repaid',
+            'total_share_value',
+        ] as $key) {
+            $totals[$key] = round((float) $totals[$key], 2);
+        }
+
+        return $totals;
+    }
+
+    private function asAmount($value): float
+    {
+        return round((float) $value, 2);
+    }
+
+    private function asBool($value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return ((int) $value) === 1;
+        }
+
+        return in_array(strtolower((string) $value), ['1', 'true', 'yes', 'on'], true);
     }
 }
