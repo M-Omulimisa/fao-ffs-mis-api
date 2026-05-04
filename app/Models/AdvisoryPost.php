@@ -37,6 +37,9 @@ class AdvisoryPost extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'category_id' => 'integer',
+        'author_id' => 'integer',
+        'ip_id' => 'integer',
         'view_count' => 'integer',
         'likes_count' => 'integer',
     ];
