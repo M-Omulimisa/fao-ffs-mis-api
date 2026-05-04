@@ -22,18 +22,35 @@ class AddActiveGroupDateUniqueToVslaMeetingsTable extends Migration
      */
     public function up()
     {
-        // Add the virtual generated column
+        // Drop any stale column/index from a previous failed run before recreating.
+        // This also handles the case where 2026_05_04_000001_add_data_integrity_constraints
+        // already added the column on production before this migration ran.
+        $indexExists = collect(DB::select("SHOW INDEX FROM `vsla_meetings`"))
+            ->pluck('Key_name')->contains('vsla_meetings_active_group_date_unique');
+
+        $columnExists = collect(DB::select("SHOW COLUMNS FROM `vsla_meetings`"))
+            ->pluck('Field')->contains('active_group_date_key');
+
+        if ($indexExists) {
+            DB::statement('ALTER TABLE vsla_meetings DROP INDEX vsla_meetings_active_group_date_unique');
+        }
+        if ($columnExists) {
+            DB::statement('ALTER TABLE vsla_meetings DROP COLUMN active_group_date_key');
+        }
+
+        // Add the virtual generated column.
+        // DATE() is used instead of DATE_FORMAT() for MariaDB compatibility (error 1901).
         DB::statement("
             ALTER TABLE vsla_meetings
             ADD COLUMN active_group_date_key VARCHAR(60)
                 GENERATED ALWAYS AS (
                     IF(deleted_at IS NULL,
-                        CONCAT(IFNULL(group_id,'0'), '_', DATE_FORMAT(meeting_date, '%Y-%m-%d')),
+                        CONCAT(IFNULL(group_id, '0'), '_', DATE(meeting_date)),
                         NULL)
                 ) VIRTUAL
         ");
 
-        // Add the unique index on the generated column
+        // Add the unique index on the generated column.
         DB::statement("
             ALTER TABLE vsla_meetings
             ADD UNIQUE INDEX vsla_meetings_active_group_date_unique (active_group_date_key)
@@ -45,7 +62,17 @@ class AddActiveGroupDateUniqueToVslaMeetingsTable extends Migration
      */
     public function down()
     {
-        DB::statement("ALTER TABLE vsla_meetings DROP INDEX vsla_meetings_active_group_date_unique");
-        DB::statement("ALTER TABLE vsla_meetings DROP COLUMN active_group_date_key");
+        $indexExists = collect(DB::select("SHOW INDEX FROM `vsla_meetings`"))
+            ->pluck('Key_name')->contains('vsla_meetings_active_group_date_unique');
+
+        $columnExists = collect(DB::select("SHOW COLUMNS FROM `vsla_meetings`"))
+            ->pluck('Field')->contains('active_group_date_key');
+
+        if ($indexExists) {
+            DB::statement('ALTER TABLE vsla_meetings DROP INDEX vsla_meetings_active_group_date_unique');
+        }
+        if ($columnExists) {
+            DB::statement('ALTER TABLE vsla_meetings DROP COLUMN active_group_date_key');
+        }
     }
 }
