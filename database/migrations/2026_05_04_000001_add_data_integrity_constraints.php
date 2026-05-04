@@ -48,7 +48,7 @@ return new class extends Migration
                     GENERATED ALWAYS AS (
                         IF(deleted_at IS NULL,
                             CONCAT(IFNULL(group_id, '0'), '_',
-                                   DATE_FORMAT(meeting_date, '%Y-%m-%d')),
+                                   DATE(meeting_date)),
                             NULL)
                     ) VIRTUAL
             ");
