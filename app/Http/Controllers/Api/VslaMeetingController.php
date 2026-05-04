@@ -466,24 +466,26 @@ class VslaMeetingController extends Controller
                     'id' => $meeting->id,
                     'cycle_id' => $meeting->cycle_id,
                     'cycle_name' => $meeting->cycle->name ?? null,
+                    'group_id' => $meeting->group_id,
+                    'group_name' => $meeting->group->name ?? null,
                     'meeting_number' => $meeting->meeting_number,
                     'meeting_date' => $meeting->meeting_date?->format('Y-m-d'),
-                    'location' => $meeting->notes ?? 'N/A', // Using notes as location for now
+                    'location' => $meeting->notes ?? 'N/A',
                     'status' => $meeting->has_errors ? 'cancelled' : 'completed',
-                    'chairperson_id' => null, // Not stored in current schema
+                    'chairperson_id' => null,
                     'chairperson_name' => null,
                     'secretary_id' => null,
                     'secretary_name' => null,
                     'treasurer_id' => null,
                     'treasurer_name' => null,
-                    'total_attendees' => $meeting->members_present,
-                    'total_absentees' => $meeting->members_absent,
-                    'total_savings' => (float) $meeting->total_savings_collected,
-                    'total_fines' => (float) $meeting->total_fines_collected,
-                    'total_welfare' => (float) $meeting->total_welfare_collected,
-                    'total_loans_issued' => (float) $meeting->total_loans_disbursed,
-                    'total_loans_repaid' => 0.0, // Not stored in current schema
-                    'cash_at_hand' => (float) $meeting->net_cash_flow,
+                    'total_attendees' => $meeting->members_present ?? 0,
+                    'total_absentees' => $meeting->members_absent ?? 0,
+                    'total_savings' => (float) ($meeting->total_savings_collected ?? 0),
+                    'total_fines' => (float) ($meeting->total_fines_collected ?? 0),
+                    'total_welfare' => (float) ($meeting->total_welfare_collected ?? 0),
+                    'total_loans_issued' => (float) ($meeting->total_loans_disbursed ?? 0),
+                    'total_loans_repaid' => (float) ($meeting->total_loans_repaid ?? 0),
+                    'cash_at_hand' => (float) ($meeting->net_cash_flow ?? 0),
                     'notes' => $meeting->notes,
                     'submitted_by' => $meeting->creator?->name ?? null,
                     'submitted_at' => $meeting->created_at?->format('Y-m-d H:i:s'),
@@ -542,11 +544,15 @@ class VslaMeetingController extends Controller
                 ], 403);
             }
 
-            // Transform data to match mobile app expectations
+            // Transform data to match mobile app expectations.
+            // Raw JSON arrays are included so the detail screen can render
+            // attendance, transactions, loans, shares and action-plan sections.
             $transformedData = [
                 'id' => $meeting->id,
                 'cycle_id' => $meeting->cycle_id,
                 'cycle_name' => $meeting->cycle->name ?? null,
+                'group_id' => $meeting->group_id,
+                'group_name' => $meeting->group->name ?? null,
                 'meeting_number' => $meeting->meeting_number,
                 'meeting_date' => $meeting->meeting_date?->format('Y-m-d'),
                 'location' => $meeting->notes ?? 'N/A',
@@ -557,19 +563,28 @@ class VslaMeetingController extends Controller
                 'secretary_name' => null,
                 'treasurer_id' => null,
                 'treasurer_name' => null,
-                'total_attendees' => $meeting->members_present,
-                'total_absentees' => $meeting->members_absent,
-                'total_savings' => (float) $meeting->total_savings_collected,
-                'total_fines' => (float) $meeting->total_fines_collected,
-                'total_welfare' => (float) $meeting->total_welfare_collected,
-                'total_loans_issued' => (float) $meeting->total_loans_disbursed,
-                'total_loans_repaid' => 0.0,
-                'cash_at_hand' => (float) $meeting->net_cash_flow,
+                'total_attendees' => $meeting->members_present ?? 0,
+                'total_absentees' => $meeting->members_absent ?? 0,
+                'total_savings' => (float) ($meeting->total_savings_collected ?? 0),
+                'total_fines' => (float) ($meeting->total_fines_collected ?? 0),
+                'total_welfare' => (float) ($meeting->total_welfare_collected ?? 0),
+                'total_loans_issued' => (float) ($meeting->total_loans_disbursed ?? 0),
+                'total_loans_repaid' => (float) ($meeting->total_loans_repaid ?? 0),
+                'cash_at_hand' => (float) ($meeting->net_cash_flow ?? 0),
                 'notes' => $meeting->notes,
-                'submitted_by' => $meeting->creator->name ?? null,
+                'submitted_by' => $meeting->creator?->name ?? null,
                 'submitted_at' => $meeting->created_at?->format('Y-m-d H:i:s'),
                 'created_at' => $meeting->created_at?->format('Y-m-d H:i:s'),
                 'updated_at' => $meeting->updated_at?->format('Y-m-d H:i:s'),
+                // Raw detail arrays for the meeting detail screen
+                'attendance_data' => $meeting->attendance_data ?? [],
+                'transactions_data' => $meeting->transactions_data ?? [],
+                'loans_data' => $meeting->loans_data ?? [],
+                'loan_repayments_data' => $meeting->loan_repayments_data ?? [],
+                'social_fund_contributions_data' => $meeting->social_fund_contributions_data ?? [],
+                'share_purchases_data' => $meeting->share_purchases_data ?? [],
+                'previous_action_plans_data' => $meeting->previous_action_plans_data ?? [],
+                'upcoming_action_plans_data' => $meeting->upcoming_action_plans_data ?? [],
             ];
 
             return response()->json([

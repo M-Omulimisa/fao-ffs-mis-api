@@ -41,25 +41,31 @@ return new class extends Migration
         // Step 1b: Add a GENERATED VIRTUAL column:
         //   active  → '<group_id>_<meeting_date>'  (included in unique check)
         //   deleted → NULL                          (excluded from unique check)
-        if (!$this->columnExists('vsla_meetings', 'active_group_date_key')) {
-            DB::statement("
-                ALTER TABLE vsla_meetings
-                ADD COLUMN active_group_date_key VARCHAR(60)
-                    GENERATED ALWAYS AS (
-                        IF(deleted_at IS NULL,
-                            CONCAT(IFNULL(group_id, '0'), '_',
-                                   DATE(meeting_date)),
-                            NULL)
-                    ) VIRTUAL
-            ");
+        //
+        // Drop first if it already exists — a prior failed migration run may have
+        // created the column with DATE_FORMAT() which MariaDB rejects on index
+        // creation (error 1901). DATE() is deterministic on all MySQL/MariaDB versions.
+        if ($this->indexExists('vsla_meetings', 'vsla_meetings_active_group_date_unique')) {
+            DB::statement('ALTER TABLE vsla_meetings DROP INDEX vsla_meetings_active_group_date_unique');
+        }
+        if ($this->columnExists('vsla_meetings', 'active_group_date_key')) {
+            DB::statement('ALTER TABLE vsla_meetings DROP COLUMN active_group_date_key');
         }
 
-        if (!$this->indexExists('vsla_meetings', 'vsla_meetings_active_group_date_unique')) {
-            DB::statement("
-                ALTER TABLE vsla_meetings
-                ADD UNIQUE INDEX vsla_meetings_active_group_date_unique (active_group_date_key)
-            ");
-        }
+        DB::statement("
+            ALTER TABLE vsla_meetings
+            ADD COLUMN active_group_date_key VARCHAR(60)
+                GENERATED ALWAYS AS (
+                    IF(deleted_at IS NULL,
+                        CONCAT(IFNULL(group_id, '0'), '_', DATE(meeting_date)),
+                        NULL)
+                ) VIRTUAL
+        ");
+
+        DB::statement("
+            ALTER TABLE vsla_meetings
+            ADD UNIQUE INDEX vsla_meetings_active_group_date_unique (active_group_date_key)
+        ");
 
         // ── 2 + 3. vsla_meeting_attendance ───────────────────────────────────────
         // Remove orphaned attendance rows (no parent meeting) before adding FK.
