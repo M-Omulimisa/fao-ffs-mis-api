@@ -188,28 +188,6 @@ class VslaMeetingController extends Controller
 
             $normalizedMeetingDate = Carbon::parse($request->meeting_date)->toDateString();
 
-            // Guard against duplicate meetings for same group and date.
-            // local_id duplicate check above handles retries for same local record.
-            // This check prevents new local IDs from creating same-day duplicates.
-            if (!empty($groupId)) {
-                $sameDayExisting = VslaMeeting::where('group_id', $groupId)
-                    ->whereDate('meeting_date', $normalizedMeetingDate)
-                    ->first();
-
-                if ($sameDayExisting) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'A meeting for this group and date already exists',
-                        'code' => 409,
-                        'error_type' => 'duplicate_group_meeting_date',
-                        'meeting_id' => $sameDayExisting->id,
-                        'meeting_number' => $sameDayExisting->meeting_number,
-                        'meeting_date' => $sameDayExisting->meeting_date,
-                        'processing_status' => $sameDayExisting->processing_status,
-                    ], 409);
-                }
-            }
-
             $computedTotals = $this->calculateSubmittedTotals(
                 $request->input('attendance_data', []),
                 $request->input('transactions_data', []),
@@ -219,14 +197,97 @@ class VslaMeetingController extends Controller
                 $request->input('share_purchases_data', [])
             );
 
-            // Auto-generate meeting number (server-controlled)
-            $meetingNumber = $this->generateMeetingNumber($cycleId, $groupId);
-
             // Get authenticated user ID (server-controlled)
             $createdById = $user->id ?? 1;
 
-            // Create meeting record
+            // ── Idempotent same-day upsert ─────────────────────────────────────
+            // Wrapped in a transaction with a pessimistic lock to prevent races.
+            // If an active meeting for this group+date already exists (submitted
+            // from a different local_id, i.e. the user went through the flow a
+            // second time), we UPDATE it with the newest – and likely more
+            // complete – data rather than creating a duplicate.
             DB::beginTransaction();
+
+            $sameDayExisting = null;
+            if (!empty($groupId)) {
+                $sameDayExisting = VslaMeeting::where('group_id', $groupId)
+                    ->whereDate('meeting_date', $normalizedMeetingDate)
+                    ->lockForUpdate()
+                    ->first();
+            }
+
+            if ($sameDayExisting) {
+                // Update the existing meeting with the new (more complete) payload.
+                $sameDayExisting->fill([
+                    'members_present'                => $computedTotals['members_present'],
+                    'members_absent'                 => $computedTotals['members_absent'],
+                    'total_savings_collected'        => $computedTotals['total_savings_collected'],
+                    'total_welfare_collected'        => $computedTotals['total_welfare_collected'],
+                    'total_social_fund_collected'    => $computedTotals['total_social_fund_collected'],
+                    'total_fines_collected'          => $computedTotals['total_fines_collected'],
+                    'total_loans_disbursed'          => $computedTotals['total_loans_disbursed'],
+                    'total_loans_repaid'             => $computedTotals['total_loans_repaid'],
+                    'total_shares_sold'              => $computedTotals['total_shares_sold'],
+                    'total_share_value'              => $computedTotals['total_share_value'],
+                    'attendance_data'                => $request->attendance_data,
+                    'transactions_data'              => $request->transactions_data ?? [],
+                    'loan_repayments_data'           => $request->loan_repayments_data ?? [],
+                    'social_fund_contributions_data' => $request->social_fund_contributions_data ?? [],
+                    'loans_data'                     => $request->loans_data ?? [],
+                    'share_purchases_data'           => $request->share_purchases_data ?? [],
+                    'previous_action_plans_data'     => $request->previous_action_plans_data ?? [],
+                    'upcoming_action_plans_data'     => $request->upcoming_action_plans_data ?? [],
+                    'notes'                          => $request->notes ?? $sameDayExisting->notes,
+                    'processing_status'              => 'pending',
+                ]);
+                $sameDayExisting->save();
+
+                $processingResult = $this->meetingProcessor->processMeeting($sameDayExisting);
+
+                if (!$processingResult['success']) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Meeting update failed due to processing errors',
+                        'code' => 422,
+                        'errors' => $processingResult['errors'] ?? [],
+                        'warnings' => $processingResult['warnings'] ?? [],
+                    ], 422);
+                }
+
+                DB::commit();
+                $sameDayExisting->refresh();
+
+                Log::info("[Meeting submit] Same-day upsert: existing meeting #{$sameDayExisting->id} "
+                    . "updated with new local_id={$request->local_id} for group #{$groupId} on {$normalizedMeetingDate}");
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Meeting updated with latest data and processed successfully',
+                    'code' => 200,
+                    'meeting_id' => $sameDayExisting->id,
+                    'meeting_number' => $sameDayExisting->meeting_number,
+                    'processing_status' => $sameDayExisting->processing_status,
+                    'has_errors' => $sameDayExisting->has_errors,
+                    'has_warnings' => $sameDayExisting->has_warnings,
+                    'errors' => $processingResult['errors'] ?? [],
+                    'warnings' => $processingResult['warnings'] ?? [],
+                    'meeting_data' => [
+                        'id' => $sameDayExisting->id,
+                        'local_id' => $sameDayExisting->local_id,
+                        'meeting_number' => $sameDayExisting->meeting_number,
+                        'meeting_date' => $sameDayExisting->meeting_date,
+                        'cycle_id' => $sameDayExisting->cycle_id,
+                        'group_id' => $sameDayExisting->group_id,
+                        'processing_status' => $sameDayExisting->processing_status,
+                        'processed_at' => $sameDayExisting->processed_at,
+                    ],
+                ], 200);
+            }
+            // ── No existing meeting — proceed with normal create ───────────────
+
+            // Auto-generate meeting number (server-controlled)
+            $meetingNumber = $this->generateMeetingNumber($cycleId, $groupId);
 
             $meeting = VslaMeeting::create([
                 'local_id' => $request->local_id,

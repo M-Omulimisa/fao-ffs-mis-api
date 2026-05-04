@@ -1,0 +1,51 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+class AddActiveGroupDateUniqueToVslaMeetingsTable extends Migration
+{
+    /**
+     * Add a MySQL-compatible unique constraint on (group_id, meeting_date) for
+     * non-deleted rows only.
+     *
+     * MySQL does not support partial (filtered) indexes, so we use a GENERATED
+     * virtual column that is NULL when the row is soft-deleted and carries the
+     * composite value when it is active.  MySQL allows multiple NULLs in a UNIQUE
+     * index, so soft-deleted rows never conflict with each other or with live rows.
+     *
+     * active_group_date_key:
+     *   - deleted_at IS NULL  →  '<group_id>_<meeting_date>'  (e.g. "643_2026-04-06")
+     *   - deleted_at IS NOT NULL → NULL  (excluded from uniqueness check)
+     */
+    public function up()
+    {
+        // Add the virtual generated column
+        DB::statement("
+            ALTER TABLE vsla_meetings
+            ADD COLUMN active_group_date_key VARCHAR(60)
+                GENERATED ALWAYS AS (
+                    IF(deleted_at IS NULL,
+                        CONCAT(IFNULL(group_id,'0'), '_', DATE_FORMAT(meeting_date, '%Y-%m-%d')),
+                        NULL)
+                ) VIRTUAL
+        ");
+
+        // Add the unique index on the generated column
+        DB::statement("
+            ALTER TABLE vsla_meetings
+            ADD UNIQUE INDEX vsla_meetings_active_group_date_unique (active_group_date_key)
+        ");
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down()
+    {
+        DB::statement("ALTER TABLE vsla_meetings DROP INDEX vsla_meetings_active_group_date_unique");
+        DB::statement("ALTER TABLE vsla_meetings DROP COLUMN active_group_date_key");
+    }
+}
