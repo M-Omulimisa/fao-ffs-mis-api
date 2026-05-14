@@ -313,11 +313,10 @@ class SystemHealthCheckController extends AdminController
         }
 
         try {
-            // Protect admin/staff users from deletion
-            $adminUserIds = DB::table('admin_role_users')
-                ->whereIn('user_id', $ids)
-                ->pluck('user_id')
-                ->unique()
+            // Protect ALL admin-panel users from deletion regardless of role
+            $adminUserIds = $this->getAdminUserIds()
+                ->intersect($ids)
+                ->values()
                 ->toArray();
 
             $deletableIds = array_diff($ids, $adminUserIds);
@@ -363,21 +362,15 @@ class SystemHealthCheckController extends AdminController
         $this->initContext();
 
         try {
-            // Staff/admin role IDs — must match checkOrphanedMembers()
-            $staffRoleIds = [1, 2, 3, 6, 7];
-
-            $staffUserIds = \DB::table('admin_role_users')
-                ->whereIn('role_id', $staffRoleIds)
-                ->pluck('user_id')
-                ->unique();
+            $adminUserIds = $this->getAdminUserIds();
 
             $query = User::query()
                 ->where(function($q) {
                     $q->whereNull('group_id')->orWhere('group_id', 0);
                 });
 
-            if ($staffUserIds->isNotEmpty()) {
-                $query->whereNotIn('id', $staffUserIds);
+            if ($adminUserIds->isNotEmpty()) {
+                $query->whereNotIn('id', $adminUserIds);
             }
 
             if ($this->hasIpScope()) {
@@ -559,11 +552,10 @@ class SystemHealthCheckController extends AdminController
 
             $deleteIds = array_diff($ids, [$keepId]);
 
-            // Protect admin users from deletion
-            $adminUserIds = DB::table('admin_role_users')
-                ->whereIn('user_id', $deleteIds)
-                ->pluck('user_id')
-                ->unique()
+            // Protect ALL admin-panel users from deletion regardless of role
+            $adminUserIds = $this->getAdminUserIds()
+                ->intersect($deleteIds)
+                ->values()
                 ->toArray();
 
             $safeDeleteIds = array_diff($deleteIds, $adminUserIds);
@@ -704,17 +696,13 @@ class SystemHealthCheckController extends AdminController
         }
 
         // ── Scan mode ──
-        $staffRoleIds = [1, 2, 3, 6, 7];
-        $staffUserIds = DB::table('admin_role_users')
-            ->whereIn('role_id', $staffRoleIds)
-            ->pluck('user_id')
-            ->unique();
+        $adminUserIds = $this->getAdminUserIds();
 
         $query = User::query()
             ->where(function ($q) {
                 $q->whereNull('group_id')->orWhere('group_id', 0);
             })
-            ->when($staffUserIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $staffUserIds))
+            ->when($adminUserIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $adminUserIds))
             ->select('id', 'name', 'phone_number', 'email', 'ip_id');
         $query = $this->applyScopeQuery($query);
         $orphans = $query->get();
@@ -836,6 +824,9 @@ class SystemHealthCheckController extends AdminController
             $ipScope = ' AND g.ip_id = ' . (int) $this->effectiveIpId();
         }
 
+        // Admin users never need IP assignment
+        $adminExcludeSubquery = 'AND u.id NOT IN (SELECT DISTINCT user_id FROM admin_role_users)';
+
         if ($apply) {
             $fixed = DB::update("
                 UPDATE users u
@@ -846,11 +837,14 @@ class SystemHealthCheckController extends AdminController
                 AND u.group_id > 0
                 AND g.ip_id IS NOT NULL
                 AND g.ip_id > 0
+                {$adminExcludeSubquery}
                 {$ipScope}
             ");
 
             return response()->json(['success' => true, 'fixed' => $fixed, 'message' => "{$fixed} user(s) assigned IP from their group"]);
         }
+
+        $adminUserIds = $this->getAdminUserIds();
 
         // Scan: count fixable
         $fixable = DB::table('users as u')
@@ -862,10 +856,11 @@ class SystemHealthCheckController extends AdminController
             ->where('u.group_id', '>', 0)
             ->whereNotNull('g.ip_id')
             ->where('g.ip_id', '>', 0)
+            ->when($adminUserIds->isNotEmpty(), fn($q) => $q->whereNotIn('u.id', $adminUserIds))
             ->when($this->hasIpScope(), fn($q) => $q->where('g.ip_id', $this->effectiveIpId()))
             ->count();
 
-        // Count those that cannot be auto-fixed (no group at all)
+        // Count those that cannot be auto-fixed (no group, excluding admins)
         $noGroupCount = User::query()
             ->where(function ($q) {
                 $q->whereNull('ip_id')->orWhere('ip_id', 0);
@@ -873,6 +868,7 @@ class SystemHealthCheckController extends AdminController
             ->where(function ($q) {
                 $q->whereNull('group_id')->orWhere('group_id', 0);
             })
+            ->when($adminUserIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $adminUserIds))
             ->count();
 
         return response()->json([
@@ -976,6 +972,19 @@ class SystemHealthCheckController extends AdminController
     // ─────────────────────────────────────────────────────────────
     // HELPERS
     // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Return all user IDs that have any admin-panel role.
+     * These are system staff/admins — they must be excluded from field-data
+     * checks (no IP, no group, etc.) because they don't follow the same
+     * onboarding rules as regular farmers/members.
+     */
+    private function getAdminUserIds(): \Illuminate\Support\Collection
+    {
+        return DB::table('admin_role_users')
+            ->distinct()
+            ->pluck('user_id');
+    }
 
     /**
      * Resolve accurate IP name and district for a group.
@@ -1373,18 +1382,14 @@ class SystemHealthCheckController extends AdminController
      */
     private function checkUsersNoIp()
     {
-        // Exclude admin/staff users — they don't need an IP assignment
-        $staffRoleIds = [1, 2, 3, 6, 7];
-        $staffUserIds = DB::table('admin_role_users')
-            ->whereIn('role_id', $staffRoleIds)
-            ->pluck('user_id')
-            ->unique();
+        // Exclude ALL admin-panel users — they don't follow member IP-assignment rules
+        $adminUserIds = $this->getAdminUserIds();
 
         $query = User::query()
             ->where(function($q) {
                 $q->whereNull('ip_id')->orWhere('ip_id', 0);
             })
-            ->when($staffUserIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $staffUserIds))
+            ->when($adminUserIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $adminUserIds))
             ->select('id', 'name', 'email', 'phone_number', 'group_id')
             ->with(['group' => fn($q) => $q->select('id', 'name')])
             ->orderBy('name');
@@ -1425,20 +1430,13 @@ class SystemHealthCheckController extends AdminController
      */
     private function checkOrphanedMembers()
     {
-        $staffRoleIds = [1, 2, 3, 6, 7];
-
-        $staffUserIds = \DB::table('admin_role_users')
-            ->whereIn('role_id', $staffRoleIds)
-            ->pluck('user_id')
-            ->unique();
+        $adminUserIds = $this->getAdminUserIds();
 
         $query = User::query()
             ->where(function($q) {
                 $q->whereNull('group_id')->orWhere('group_id', 0);
             })
-            ->when($staffUserIds->isNotEmpty(), function($q) use ($staffUserIds) {
-                $q->whereNotIn('id', $staffUserIds);
-            })
+            ->when($adminUserIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $adminUserIds))
             ->select('id', 'name', 'email', 'phone_number', 'ip_id')
             ->orderBy('name');
 

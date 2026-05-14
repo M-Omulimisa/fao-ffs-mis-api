@@ -316,4 +316,18 @@ Route::group([
     // ========================================
     $router->get('operations-dashboard', 'OperationsDashboardController@index')
            ->name('operations-dashboard');
+
+    // ========================================
+    // EXPORT CENTRE — Single-page download hub
+    // VSLA meeting PDFs/CSV, cycle reports, AESA session PDFs/CSV
+    // NOTE: Specific download routes MUST come before the index GET to avoid conflicts.
+    // ========================================
+    $router->get('export-centre/meetings-csv',       'ExportCentreController@exportMeetingsCsv')->name('export-centre.meetings-csv');
+    $router->get('export-centre/meeting-pdf/{id}',   'ExportCentreController@exportMeetingPdf')->name('export-centre.meeting-pdf');
+    $router->get('export-centre/cycle-report/{id}',  'ExportCentreController@exportCycleReport')->name('export-centre.cycle-report');
+    $router->get('export-centre/aesa-csv',           'ExportCentreController@exportAesaCsv')->name('export-centre.aesa-csv');
+    $router->get('export-centre/aesa-session-pdf/{id}', 'ExportCentreController@exportAesaSessionPdf')->name('export-centre.aesa-session-pdf');
+    $router->get('export-centre/trainings-csv',      'ExportCentreController@exportTrainingsCsv')->name('export-centre.trainings-csv');
+    $router->get('export-centre/training-gaps-csv',  'ExportCentreController@exportTrainingGapsCsv')->name('export-centre.training-gaps-csv');
+    $router->get('export-centre',                    'ExportCentreController@index')->name('export-centre');
 });

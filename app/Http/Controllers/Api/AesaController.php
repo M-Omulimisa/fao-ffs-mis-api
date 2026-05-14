@@ -774,15 +774,18 @@ class AesaController extends Controller
     }
 
     /**
-     * Export AESA data as CSV-ready arrays.
+     * Export AESA data as structured arrays for the mobile app or CSV download.
      * GET /api/aesa-sessions/export
+     * Query params: type (animals|crops|all), format (json|csv), status, date_from, date_to, group_id
      */
     public function export(Request $request)
     {
         try {
-            $tier  = $this->resolveUserTier();
-            $query = AesaSession::with(['observations', 'group', 'facilitator']);
+            $tier   = $this->resolveUserTier();
+            $type   = strtolower($request->get('type', 'animals')); // animals | crops | all
+            $format = strtolower($request->get('format', 'json'));   // json | csv
 
+            $query = AesaSession::with(['observations', 'cropObservations', 'group', 'facilitator']);
             $this->applySessionScope($query, $tier);
 
             if ($request->filled('status')) {
@@ -800,57 +803,200 @@ class AesaController extends Controller
 
             $sessions = $query->orderBy('observation_date', 'desc')->get();
 
-            $headers = [
+            // ── Animal rows ────────────────────────────────────────────────────
+            $animalHeaders = [
                 'Data Sheet #', 'Group', 'District', 'Sub-County', 'Village',
                 'Date', 'Time', 'Facilitator', 'Mini-Group', 'Location', 'Status',
-                'Animal ID', 'Animal Type', 'Breed', 'Sex', 'Age', 'Weight (kg)', 'Height (cm)',
-                'Owner', 'Health Status', 'Body Condition', 'Risk Level',
-                'Main Problem', 'Immediate Action', 'Follow-up Date',
-                'Health Score',
+                'Animal Tag', 'Animal Type', 'Breed', 'Sex', 'Age Category',
+                'Weight (kg)', 'Height (cm)', 'Owner', 'Health Status', 'Body Condition',
+                'Risk Level', 'Main Problem', 'Immediate Action',
+                'Follow-up Date', 'Responsible Person', 'Health Score',
             ];
+            $animalRows = [];
 
-            $rows = [];
+            // ── Crop rows ──────────────────────────────────────────────────────
+            $cropHeaders = [
+                'Data Sheet #', 'Group', 'District', 'Sub-County', 'Village',
+                'Date', 'Time', 'Facilitator', 'Mini-Group', 'Location', 'Status',
+                'Plot ID', 'Crop Type', 'Variety', 'Growth Stage', 'Plot Size (ac)',
+                'Farmer', 'Pest Pressure', 'Disease Pressure', 'Risk Level',
+                'Main Problem', 'Immediate Action',
+                'Follow-up Date', 'Responsible Person', 'Crop Health Score',
+            ];
+            $cropRows = [];
+
             foreach ($sessions as $session) {
-                foreach ($session->observations as $obs) {
-                    $rows[] = [
-                        $session->data_sheet_number,
-                        $session->group_name_display,
-                        $session->district_name_display,
-                        $session->sub_county_name_display,
-                        $session->village_name_display,
-                        $session->formatted_date,
-                        $session->formatted_time,
-                        $session->facilitator_name_display,
-                        $session->mini_group_name,
-                        $session->location_display,
-                        $session->status_text,
-                        $obs->animal_id_tag,
-                        $obs->animal_type_display,
-                        $obs->breed_display,
-                        $obs->sex,
-                        $obs->age_category,
-                        $obs->weight_kg,
-                        $obs->height_cm,
-                        $obs->owner_display,
-                        $obs->health_status_display,
-                        $obs->body_condition,
-                        $obs->risk_level,
-                        $obs->main_problem ?? $obs->main_problem_other,
-                        $obs->immediate_action ?? $obs->immediate_action_other,
-                        $obs->follow_up_date ? $obs->follow_up_date->format('d/m/Y') : '',
-                        $obs->health_score,
-                    ];
+                $sessionBase = [
+                    $session->data_sheet_number,
+                    $session->group_name_display,
+                    $session->district_name_display,
+                    $session->sub_county_name_display,
+                    $session->village_name_display,
+                    $session->formatted_date,
+                    $session->formatted_time,
+                    $session->facilitator_name_display,
+                    $session->mini_group_name,
+                    $session->location_display,
+                    $session->status_text,
+                ];
+
+                if ($type !== 'crops') {
+                    foreach ($session->observations as $obs) {
+                        $animalRows[] = array_merge($sessionBase, [
+                            $obs->animal_id_tag,
+                            $obs->animal_type_display ?? $obs->animal_type,
+                            $obs->breed_display ?? $obs->breed,
+                            $obs->sex,
+                            $obs->age_category,
+                            $obs->weight_kg,
+                            $obs->height_cm,
+                            $obs->owner_display ?? $obs->owner_name,
+                            $obs->health_status_display ?? $obs->animal_health_status,
+                            $obs->body_condition,
+                            $obs->risk_level,
+                            $obs->main_problem ?? $obs->main_problem_other,
+                            $obs->immediate_action ?? $obs->immediate_action_other,
+                            $obs->follow_up_date ? $obs->follow_up_date->format('d/m/Y') : '',
+                            $obs->responsible_person ?? $obs->responsible_person_other,
+                            $obs->health_score,
+                        ]);
+                    }
+                }
+
+                if ($type !== 'animals') {
+                    foreach ($session->cropObservations as $crop) {
+                        $cropRows[] = array_merge($sessionBase, [
+                            $crop->plot_id,
+                            $crop->crop_type_display ?? $crop->crop_type,
+                            $crop->variety,
+                            $crop->growth_stage,
+                            $crop->plot_size_acres,
+                            $crop->farmer_display ?? $crop->farmer_name,
+                            $crop->pest_pressure_level,
+                            $crop->disease_pressure_level,
+                            $crop->risk_level,
+                            $crop->main_problem ?? $crop->main_problem_other,
+                            $crop->immediate_action ?? $crop->immediate_action_other,
+                            $crop->follow_up_date ? $crop->follow_up_date->format('d/m/Y') : '',
+                            $crop->responsible_person ?? $crop->responsible_person_other,
+                            $crop->crop_health_score,
+                        ]);
+                    }
                 }
             }
 
-            return $this->success([
-                'headers'            => $headers,
-                'rows'               => $rows,
-                'total_sessions'     => $sessions->count(),
-                'total_observations' => count($rows),
-            ], 'Export data generated successfully');
+            // ── CSV download ───────────────────────────────────────────────────
+            if ($format === 'csv') {
+                $writer = \League\Csv\Writer::fromString();
+                $writer->setDelimiter(',');
+                $suffix = now()->format('Ymd-His');
+
+                if ($type === 'crops') {
+                    $writer->insertOne($cropHeaders);
+                    $writer->insertAll($cropRows);
+                    $filename = 'aesa-crop-observations-' . $suffix . '.csv';
+                } elseif ($type === 'all') {
+                    // Two sections in one file, separated by blank line
+                    $writer->insertOne($animalHeaders);
+                    $writer->insertAll($animalRows);
+                    $writer->insertOne([]);
+                    $writer->insertOne($cropHeaders);
+                    $writer->insertAll($cropRows);
+                    $filename = 'aesa-all-observations-' . $suffix . '.csv';
+                } else {
+                    $writer->insertOne($animalHeaders);
+                    $writer->insertAll($animalRows);
+                    $filename = 'aesa-animal-observations-' . $suffix . '.csv';
+                }
+
+                return response($writer->toString(), 200, [
+                    'Content-Type'        => 'text/csv; charset=UTF-8',
+                    'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                ]);
+            }
+
+            // ── JSON response (default) ────────────────────────────────────────
+            $result = ['total_sessions' => $sessions->count()];
+
+            if ($type !== 'crops') {
+                $result['animals'] = [
+                    'headers'            => $animalHeaders,
+                    'rows'               => $animalRows,
+                    'total_observations' => count($animalRows),
+                ];
+            }
+            if ($type !== 'animals') {
+                $result['crops'] = [
+                    'headers'            => $cropHeaders,
+                    'rows'               => $cropRows,
+                    'total_observations' => count($cropRows),
+                ];
+            }
+
+            return $this->success($result, 'Export data generated successfully');
+
         } catch (\Exception $e) {
             return $this->error('Failed to export data: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Export a single AESA session as a PDF download.
+     * GET /api/aesa-sessions/{id}/export-pdf
+     */
+    public function exportSessionPdf($id)
+    {
+        try {
+            $tier    = $this->resolveUserTier();
+            $session = AesaSession::with([
+                'observations',
+                'cropObservations',
+                'group',
+                'facilitator',
+                'district',
+                'subCounty',
+                'village',
+                'implementingPartner',
+            ])->find($id);
+
+            if (!$session) {
+                return $this->error('AESA session not found', 404);
+            }
+
+            // Access check — IP managers can only see their own sessions
+            if ($tier['tier'] === 'ip_manager' && $session->ip_id && $session->ip_id !== $tier['ip_id']) {
+                return $this->error('Access denied', 403);
+            }
+            if ($tier['tier'] === 'facilitator') {
+                $groupIds = \App\Models\FfsGroup::where('facilitator_id', $tier['user']->id)->pluck('id');
+                if (!$groupIds->contains($session->group_id)) {
+                    return $this->error('Access denied', 403);
+                }
+            }
+
+            $user = $tier['user'];
+            $generatedBy = $user
+                ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
+                : 'System';
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.aesa-session-pdf', [
+                'session'     => $session,
+                'generatedAt' => now()->format('d/m/Y H:i'),
+                'generatedBy' => $generatedBy,
+            ]);
+
+            $pdf->setPaper('A4', 'landscape');
+            $pdf->setOptions(['dpi' => 110, 'defaultFont' => 'DejaVu Sans', 'isHtml5ParserEnabled' => true]);
+
+            $filename = 'aesa-session-' . ($session->data_sheet_number ?? $id)
+                . '-' . now()->format('Ymd') . '.pdf';
+            $filename = preg_replace('/[^a-zA-Z0-9\-_\.]/', '-', $filename);
+
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('AESA session PDF export failed', ['id' => $id, 'error' => $e->getMessage()]);
+            return $this->error('PDF generation failed: ' . $e->getMessage(), 500);
         }
     }
 

@@ -297,8 +297,10 @@ Route::prefix('ffs-training-sessions')->middleware(EnsureTokenIsValid::class)->g
 Route::prefix('vsla-meetings')->middleware(EnsureTokenIsValid::class)->group(function () {
     Route::post('/submit', [VslaMeetingController::class, 'submit']); // Submit offline meeting from mobile app
     Route::get('/stats', [VslaMeetingController::class, 'stats']); // Get meeting statistics
+    Route::get('/export', [VslaMeetingController::class, 'exportCsv']); // CSV export (filterable)
     Route::get('/', [VslaMeetingController::class, 'index']); // List all meetings (paginated)
     Route::get('/{id}', [VslaMeetingController::class, 'show']); // Get single meeting details
+    Route::get('/{id}/export-pdf', [VslaMeetingController::class, 'exportPdf']); // Export single meeting PDF
     Route::put('/{id}/reprocess', [VslaMeetingController::class, 'reprocess']); // Reprocess failed meeting
     Route::delete('/{id}', [VslaMeetingController::class, 'destroy']); // Delete pending meeting (admin only)
 });
@@ -346,12 +348,16 @@ Route::get('vsla-groups/stats', [VslaGroupStatsController::class, 'getGroupStats
 Route::prefix('vsla/meetings')->middleware(EnsureTokenIsValid::class)->group(function () {
     Route::post('/submit', [VslaMeetingController::class, 'submit']); // Submit offline meeting from mobile app
     Route::get('/stats', [VslaMeetingController::class, 'stats']); // Get meeting statistics
+    Route::get('/export', [VslaMeetingController::class, 'exportCsv']); // CSV export (filterable)
     Route::get('/', [VslaMeetingController::class, 'index']); // List all meetings (paginated)
     Route::get('/{id}', [VslaMeetingController::class, 'show']); // Get single meeting details
-    Route::get('/{id}/export-pdf', [VslaMeetingController::class, 'exportPdf']); // Export meeting to PDF
+    Route::get('/{id}/export-pdf', [VslaMeetingController::class, 'exportPdf']); // Export single meeting PDF
     Route::put('/{id}/reprocess', [VslaMeetingController::class, 'reprocess']); // Reprocess failed meeting
     Route::delete('/{id}', [VslaMeetingController::class, 'destroy']); // Delete pending meeting (admin only)
 });
+
+// VSLA CYCLE REPORTS
+Route::get('vsla/cycles/{id}/report-pdf', [VslaMeetingController::class, 'cycleReport'])->middleware(EnsureTokenIsValid::class);
 
 // ========================================
 // VSLA ATTENDANCE - Member attendance tracking
@@ -1064,12 +1070,13 @@ Route::prefix('aesa-sessions')->middleware(EnsureTokenIsValid::class)->group(fun
     // Stats & dropdown options (before /{id} to avoid conflict)
     Route::get('/stats', [\App\Http\Controllers\Api\AesaController::class, 'stats']);
     Route::get('/dropdown-options', [\App\Http\Controllers\Api\AesaController::class, 'dropdownOptions']);
-    Route::get('/export', [\App\Http\Controllers\Api\AesaController::class, 'export']);
+    Route::get('/export', [\App\Http\Controllers\Api\AesaController::class, 'export']); // ?type=animals|crops|all&format=json|csv
 
     // Session CRUD
     Route::get('/', [\App\Http\Controllers\Api\AesaController::class, 'index']);
     Route::post('/', [\App\Http\Controllers\Api\AesaController::class, 'store']);
     Route::get('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'show']);
+    Route::get('/{id}/export-pdf', [\App\Http\Controllers\Api\AesaController::class, 'exportSessionPdf']); // PDF download
     Route::put('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'update']);
     Route::delete('/{id}', [\App\Http\Controllers\Api\AesaController::class, 'destroy']);
     Route::post('/{id}/submit', [\App\Http\Controllers\Api\AesaController::class, 'submit']);

@@ -389,6 +389,17 @@ class FfsGroup extends Model
                     $group->ip_id = $targetIpId;
                 }
             }
+
+            // Keep ip_name text column in sync with ip_id so display reads never drift.
+            // This covers both direct edits and facilitator-driven IP changes above.
+            if (!empty($group->ip_id)) {
+                $resolvedName = \DB::table('implementing_partners')
+                    ->where('id', $group->ip_id)
+                    ->value('name');
+                if ($resolvedName) {
+                    $group->ip_name = $resolvedName;
+                }
+            }
         });
 
         // Keep all related ip_id-carrying records aligned after group/facilitator updates.

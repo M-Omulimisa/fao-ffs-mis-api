@@ -769,7 +769,7 @@ class VslaMeetingController extends Controller
     }
 
     /**
-     * Export meeting to PDF
+     * Export single meeting as a PDF download.
      * GET /api/vsla/meetings/{id}/export-pdf
      */
     public function exportPdf($id)
@@ -778,43 +778,307 @@ class VslaMeetingController extends Controller
             $meeting = VslaMeeting::with([
                 'cycle',
                 'group',
+                'group.implementingPartner',
                 'creator',
-                'attendance.member'
+                'implementingPartner',
             ])->find($id);
 
             if (!$meeting) {
-                return response()->json([
-                    'code' => 0,
-                    'message' => 'Meeting not found',
-                ], 404);
+                return response()->json(['code' => 0, 'message' => 'Meeting not found'], 404);
             }
 
-            // Check access permission
             $user = Auth::user();
-            if (!$user->isAdmin() && $meeting->group_id !== $user->group_id) {
-                return response()->json([
-                    'code' => 0,
-                    'message' => 'You do not have permission to export this meeting',
-                ], 403);
+            if ($user && !$user->isAdmin() && (int)$meeting->group_id !== (int)$user->group_id) {
+                return response()->json(['code' => 0, 'message' => 'Access denied'], 403);
             }
 
-            // Return PDF URL or generate PDF
-            // For now, return success with PDF generation info
-            return response()->json([
-                'code' => 1,
-                'message' => 'PDF export functionality coming soon',
-                'data' => [
-                    'meeting_id' => $meeting->id,
-                    'meeting_number' => $meeting->meeting_number,
-                    'pdf_url' => null, // Will be implemented later
-                ],
+            $generatedBy = $user
+                ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
+                : 'System';
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.vsla-meeting-pdf', [
+                'meeting'     => $meeting,
+                'generatedAt' => now()->format('d/m/Y H:i'),
+                'generatedBy' => $generatedBy,
+            ]);
+
+            $pdf->setPaper('A4', 'portrait');
+            $pdf->setOptions(['dpi' => 110, 'defaultFont' => 'DejaVu Sans', 'isHtml5ParserEnabled' => true]);
+
+            $filename = 'vsla-meeting-' . ($meeting->group->name ?? 'group')
+                . '-meeting' . $meeting->meeting_number
+                . '-' . now()->format('Ymd') . '.pdf';
+            $filename = preg_replace('/[^a-zA-Z0-9\-_\.]/', '-', $filename);
+
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            Log::error('Meeting PDF export failed', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['code' => 0, 'message' => 'PDF generation failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Export meetings as a CSV file (filterable).
+     * GET /api/vsla-meetings/export  or  GET /api/vsla/meetings/export
+     * Query params: group_id, cycle_id, date_from, date_to, status
+     */
+    public function exportCsv(Request $request)
+    {
+        try {
+            $user  = Auth::user();
+            $query = VslaMeeting::with(['group', 'cycle', 'creator']);
+
+            // Scope non-admin users to their own group
+            if ($user && !$user->isAdmin() && $user->group_id) {
+                $query->where('group_id', $user->group_id);
+            }
+
+            if ($request->filled('group_id')) {
+                $query->where('group_id', $request->group_id);
+            }
+            if ($request->filled('cycle_id')) {
+                $query->where('cycle_id', $request->cycle_id);
+            }
+            if ($request->filled('status')) {
+                $query->where('processing_status', $request->status);
+            }
+            if ($request->filled('date_from')) {
+                $query->where('meeting_date', '>=', $request->date_from);
+            }
+            if ($request->filled('date_to')) {
+                $query->where('meeting_date', '<=', $request->date_to);
+            }
+
+            $meetings = $query->orderBy('meeting_date', 'desc')->get();
+
+            $writer = \League\Csv\Writer::fromString();
+            $writer->setDelimiter(',');
+
+            // Header row
+            $writer->insertOne([
+                'Meeting #', 'Group', 'Cycle', 'Meeting Date', 'Status',
+                'Members Present', 'Members Absent', 'Attendance Rate (%)',
+                'Total Savings (UGX)', 'Total Loans Disbursed (UGX)',
+                'Total Loans Repaid (UGX)', 'Total Fines (UGX)',
+                'Total Welfare (UGX)', 'Net Cash In (UGX)',
+                'Loans Count', 'Repayments Count',
+                'Submitted By', 'Created At',
+            ]);
+
+            foreach ($meetings as $m) {
+                $attendance    = is_array($m->attendance_data)    ? $m->attendance_data    : (json_decode($m->attendance_data ?? '[]', true) ?? []);
+                $transactions  = is_array($m->transactions_data)  ? $m->transactions_data  : (json_decode($m->transactions_data ?? '[]', true) ?? []);
+                $loans         = is_array($m->loans_data)         ? $m->loans_data         : (json_decode($m->loans_data ?? '[]', true) ?? []);
+                $repayments    = is_array($m->loan_repayments_data) ? $m->loan_repayments_data : (json_decode($m->loan_repayments_data ?? '[]', true) ?? []);
+
+                $present = 0; $absent = 0;
+                foreach ($attendance as $a) {
+                    $isPresent = $a['isPresent'] ?? $a['is_present'] ?? false;
+                    if ($isPresent === true || $isPresent === 1 || $isPresent === '1' || $isPresent === 'true') $present++;
+                    else $absent++;
+                }
+                $total = $present + $absent;
+                $rate  = $total > 0 ? round(($present / $total) * 100, 1) : 0;
+
+                $savings = $welfare = $fines = 0;
+                foreach ($transactions as $t) {
+                    $type   = strtolower($t['accountType'] ?? $t['account_type'] ?? '');
+                    $amount = (float)($t['amount'] ?? 0);
+                    if ($type === 'saving') $savings += $amount;
+                    elseif (str_contains($type, 'welfare') || str_contains($type, 'social_fund') || str_contains($type, 'socialfund')) $welfare += $amount;
+                    elseif ($type === 'fine') $fines += $amount;
+                }
+
+                $disbursed = 0;
+                foreach ($loans as $l) {
+                    $disbursed += (float)($l['amount'] ?? $l['loanAmount'] ?? $l['principal'] ?? 0);
+                }
+                $repaid = 0;
+                foreach ($repayments as $r) {
+                    $repaid += (float)($r['totalAmount'] ?? $r['total_amount'] ?? (($r['principalAmount'] ?? $r['principal_amount'] ?? $r['principal'] ?? 0) + ($r['interestAmount'] ?? $r['interest_amount'] ?? 0)));
+                }
+                $net = $savings + $welfare + $fines + $repaid - $disbursed;
+
+                $writer->insertOne([
+                    $m->meeting_number,
+                    $m->group->name ?? 'N/A',
+                    $m->cycle->cycle_name ?? $m->cycle->name ?? 'N/A',
+                    $m->meeting_date,
+                    ucfirst($m->processing_status ?? 'unknown'),
+                    $present,
+                    $absent,
+                    $rate,
+                    number_format($savings, 2, '.', ''),
+                    number_format($disbursed, 2, '.', ''),
+                    number_format($repaid, 2, '.', ''),
+                    number_format($fines, 2, '.', ''),
+                    number_format($welfare, 2, '.', ''),
+                    number_format($net, 2, '.', ''),
+                    count($loans),
+                    count($repayments),
+                    $m->creator ? trim(($m->creator->first_name ?? '') . ' ' . ($m->creator->last_name ?? '')) : 'N/A',
+                    $m->created_at ? $m->created_at->format('d/m/Y H:i') : '',
+                ]);
+            }
+
+            $groupLabel = $request->filled('group_id') ? '-group' . $request->group_id : '';
+            $filename = 'vsla-meetings' . $groupLabel . '-' . now()->format('Ymd-His') . '.csv';
+
+            return response($writer->toString(), 200, [
+                'Content-Type'        => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             ]);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'code' => 0,
-                'message' => 'Failed to export PDF: ' . $e->getMessage(),
-            ], 500);
+            Log::error('Meeting CSV export failed', ['error' => $e->getMessage()]);
+            return response()->json(['code' => 0, 'message' => 'CSV export failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Generate a full cycle financial summary PDF.
+     * GET /api/vsla/cycles/{cycleId}/report-pdf
+     */
+    public function cycleReport($cycleId)
+    {
+        try {
+            $cycle = Project::where('id', $cycleId)->where('is_vsla_cycle', 'Yes')->first();
+            if (!$cycle) {
+                return response()->json(['code' => 0, 'message' => 'VSLA cycle not found'], 404);
+            }
+
+            $user = Auth::user();
+            $group = FfsGroup::find($cycle->group_id);
+
+            // Scope check for non-admins
+            if ($user && !$user->isAdmin() && $user->group_id && (int)$cycle->group_id !== (int)$user->group_id) {
+                return response()->json(['code' => 0, 'message' => 'Access denied'], 403);
+            }
+
+            $meetings = VslaMeeting::with(['creator'])
+                ->where('cycle_id', $cycleId)
+                ->where('processing_status', 'completed')
+                ->orderBy('meeting_number')
+                ->get();
+
+            // ── Compute stats ──────────────────────────────────────
+            $totalSavings = $totalDisbursed = $totalRepaid = $totalFines = $totalWelfare = 0;
+            $totalPresent = $totalPossible = 0;
+            $memberSavingsMap = [];
+            $memberLoanMap    = [];
+
+            foreach ($meetings as $m) {
+                $attendance   = is_array($m->attendance_data)   ? $m->attendance_data   : (json_decode($m->attendance_data ?? '[]', true) ?? []);
+                $transactions = is_array($m->transactions_data) ? $m->transactions_data : (json_decode($m->transactions_data ?? '[]', true) ?? []);
+                $loans        = is_array($m->loans_data)        ? $m->loans_data        : (json_decode($m->loans_data ?? '[]', true) ?? []);
+                $repayments   = is_array($m->loan_repayments_data) ? $m->loan_repayments_data : (json_decode($m->loan_repayments_data ?? '[]', true) ?? []);
+
+                $present = 0;
+                foreach ($attendance as $a) {
+                    $isPresent = $a['isPresent'] ?? $a['is_present'] ?? false;
+                    if ($isPresent === true || $isPresent === 1 || $isPresent === '1' || $isPresent === 'true') $present++;
+                }
+                $totalPresent   += $present;
+                $totalPossible  += count($attendance);
+
+                foreach ($transactions as $t) {
+                    $type   = strtolower($t['accountType'] ?? $t['account_type'] ?? '');
+                    $amount = (float)($t['amount'] ?? 0);
+                    $mid    = $t['memberId'] ?? $t['member_id'] ?? 'unknown';
+                    $mname  = $t['memberName'] ?? $t['member_name'] ?? $mid;
+
+                    if ($type === 'saving') {
+                        $totalSavings += $amount;
+                        if (!isset($memberSavingsMap[$mid])) $memberSavingsMap[$mid] = ['name' => $mname, 'total' => 0, 'count' => 0];
+                        $memberSavingsMap[$mid]['total'] += $amount;
+                        $memberSavingsMap[$mid]['count']++;
+                    } elseif (str_contains($type, 'welfare') || str_contains($type, 'social_fund') || str_contains($type, 'socialfund')) {
+                        $totalWelfare += $amount;
+                    } elseif ($type === 'fine') {
+                        $totalFines += $amount;
+                    }
+                }
+
+                foreach ($loans as $l) {
+                    $amount = (float)($l['amount'] ?? $l['loanAmount'] ?? $l['principal'] ?? 0);
+                    $totalDisbursed += $amount;
+                    $mid   = $l['memberId'] ?? $l['member_id'] ?? 'unknown';
+                    $mname = $l['memberName'] ?? $l['member_name'] ?? $mid;
+                    if (!isset($memberLoanMap[$mid])) $memberLoanMap[$mid] = ['name' => $mname, 'disbursed' => 0, 'repaid' => 0, 'loans' => 0];
+                    $memberLoanMap[$mid]['disbursed'] += $amount;
+                    $memberLoanMap[$mid]['loans']++;
+                }
+
+                foreach ($repayments as $r) {
+                    $total  = (float)($r['totalAmount'] ?? $r['total_amount']
+                        ?? (($r['principalAmount'] ?? $r['principal_amount'] ?? $r['principal'] ?? 0)
+                           + ($r['interestAmount'] ?? $r['interest_amount'] ?? 0)));
+                    $totalRepaid += $total;
+                    $mid = $r['memberId'] ?? $r['member_id'] ?? 'unknown';
+                    if (isset($memberLoanMap[$mid])) $memberLoanMap[$mid]['repaid'] += $total;
+                }
+            }
+
+            $avgAttendance = $totalPossible > 0 ? round(($totalPresent / $totalPossible) * 100, 1) : 0;
+
+            // Sort member savings by total descending for leaderboard
+            uasort($memberSavingsMap, fn($a, $b) => $b['total'] <=> $a['total']);
+            $memberSavings = array_values($memberSavingsMap);
+
+            // Loan portfolio: outstanding = disbursed - repaid
+            $loanPortfolio = array_values(array_map(function ($row) {
+                $row['outstanding'] = max(0, $row['disbursed'] - $row['repaid']);
+                return $row;
+            }, $memberLoanMap));
+            usort($loanPortfolio, fn($a, $b) => $b['disbursed'] <=> $a['disbursed']);
+
+            $stats = [
+                'total_meetings'       => $meetings->count(),
+                'total_savings'        => $totalSavings,
+                'total_loans_disbursed'=> $totalDisbursed,
+                'total_loans_repaid'   => $totalRepaid,
+                'total_fines'          => $totalFines,
+                'total_welfare'        => $totalWelfare,
+                'avg_attendance_rate'  => $avgAttendance,
+                'total_members'        => count($memberSavingsMap),
+                'outstanding_loans'    => max(0, $totalDisbursed - $totalRepaid),
+                'repayment_rate'       => $totalDisbursed > 0 ? round(($totalRepaid / $totalDisbursed) * 100, 1) : 0,
+            ];
+
+            $startDate = $meetings->min('meeting_date') ?? $cycle->start_date ?? 'N/A';
+            $endDate   = $meetings->max('meeting_date') ?? now()->format('Y-m-d');
+            $reportPeriod = ($startDate !== 'N/A')
+                ? Carbon::parse($startDate)->format('d M Y') . ' – ' . Carbon::parse($endDate)->format('d M Y')
+                : 'All Meetings';
+
+            $generatedBy = $user
+                ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
+                : 'System';
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.vsla-cycle-report', [
+                'cycle'        => $cycle,
+                'group'        => $group,
+                'meetings'     => $meetings,
+                'stats'        => $stats,
+                'memberSavings'=> $memberSavings,
+                'loanPortfolio'=> $loanPortfolio,
+                'reportPeriod' => $reportPeriod,
+                'generatedAt'  => now()->format('d/m/Y H:i'),
+                'generatedBy'  => $generatedBy,
+            ]);
+
+            $pdf->setPaper('A4', 'portrait');
+            $pdf->setOptions(['dpi' => 110, 'defaultFont' => 'DejaVu Sans', 'isHtml5ParserEnabled' => true]);
+
+            $cycleName = preg_replace('/[^a-zA-Z0-9\-_]/', '-', $cycle->cycle_name ?? $cycle->name ?? 'cycle');
+            $filename = 'vsla-cycle-report-' . $cycleName . '-' . now()->format('Ymd') . '.pdf';
+
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            Log::error('Cycle report PDF failed', ['cycleId' => $cycleId, 'error' => $e->getMessage()]);
+            return response()->json(['code' => 0, 'message' => 'Report generation failed: ' . $e->getMessage()], 500);
         }
     }
 
