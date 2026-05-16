@@ -270,15 +270,17 @@
 {{-- ─────────────────────────── FINANCIAL SUMMARY ──────────────────────── --}}
 <div class="stats-grid">
     <div class="stat-box">
-        <span class="stat-val green">UGX {{ number_format($meeting->total_savings_collected ?? 0, 0) }}</span>
-        <span class="stat-lbl">Savings</span>
+        @php $shareTotal = collect($meeting->share_purchases_data ?? [])->sum(fn($s) => (float)($s['total_amount_paid'] ?? $s['amount'] ?? 0)); @endphp
+        <span class="stat-val green">UGX {{ number_format($shareTotal ?: ($meeting->total_savings_collected ?? 0), 0) }}</span>
+        <span class="stat-lbl">Shares / Savings</span>
     </div>
     <div class="stat-box">
         <span class="stat-val green">UGX {{ number_format($meeting->total_welfare_collected ?? 0, 0) }}</span>
         <span class="stat-lbl">Welfare</span>
     </div>
     <div class="stat-box">
-        <span class="stat-val green">UGX {{ number_format($meeting->total_social_fund_collected ?? 0, 0) }}</span>
+        @php $sfTotal = collect($meeting->social_fund_contributions_data ?? [])->filter(fn($s) => filter_var($s['contributed'] ?? true, FILTER_VALIDATE_BOOLEAN))->sum(fn($s) => (float)($s['amount'] ?? 0)); @endphp
+        <span class="stat-val green">UGX {{ number_format($sfTotal ?: ($meeting->total_social_fund_collected ?? 0), 0) }}</span>
         <span class="stat-lbl">Social Fund</span>
     </div>
     <div class="stat-box">
@@ -295,9 +297,9 @@
     </div>
     <div class="stat-box">
         @php
-            $netCash = ($meeting->total_savings_collected ?? 0)
+            $netCash = $shareTotal
                 + ($meeting->total_welfare_collected ?? 0)
-                + ($meeting->total_social_fund_collected ?? 0)
+                + $sfTotal
                 + ($meeting->total_fines_collected ?? 0)
                 + ($meeting->total_loans_repaid ?? 0)
                 - ($meeting->total_loans_disbursed ?? 0);
@@ -350,7 +352,7 @@
                         <span class="badge-absent">ABSENT</span>
                     @endif
                 </td>
-                <td>{{ $rec['reason'] ?? $rec['notes'] ?? $rec['absent_reason'] ?? '—' }}</td>
+                <td>{{ $rec['absentReason'] ?? $rec['absent_reason'] ?? $rec['reason'] ?? $rec['notes'] ?? '—' }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -362,11 +364,25 @@
 
 {{-- ─────────────────────────── SAVINGS TRANSACTIONS ───────────────────── --}}
 @php
+    // Build a memberId→name lookup from attendance (mobile sends null memberName in transactions)
+    $memberLookup = collect($meeting->attendance_data ?? [])
+        ->mapWithKeys(fn($r) => [(string)($r['memberId'] ?? $r['member_id'] ?? '') => $r['memberName'] ?? $r['member_name'] ?? '']);
+
     $txData = collect($meeting->transactions_data ?? []);
-    $savings    = $txData->filter(fn($t) => ($t['accountType'] ?? $t['account_type'] ?? '') === 'savings');
+    $savings    = $txData->filter(fn($t) => in_array($t['accountType'] ?? $t['account_type'] ?? '', ['savings', 'saving']));
     $welfare    = $txData->filter(fn($t) => in_array($t['accountType'] ?? $t['account_type'] ?? '', ['welfare', 'social_welfare']));
-    $socialFund = $txData->filter(fn($t) => in_array($t['accountType'] ?? $t['account_type'] ?? '', ['social_fund', 'socialFund']));
-    $fines      = $txData->filter(fn($t) => ($t['accountType'] ?? $t['account_type'] ?? '') === 'fine');
+
+    // Social fund has its own dedicated column — read from there, not transactions_data
+    $socialFund = collect($meeting->social_fund_contributions_data ?? [])
+        ->filter(fn($s) => filter_var($s['contributed'] ?? true, FILTER_VALIDATE_BOOLEAN));
+
+    $fines = $txData->filter(fn($t) => in_array($t['accountType'] ?? $t['account_type'] ?? '', ['fine', 'fines']));
+
+    // Helper closure: resolve a member name from a transaction row
+    $resolveName = fn($row) =>
+        (isset($row['memberName']) && $row['memberName'])   ? $row['memberName']  :
+        ((isset($row['member_name']) && $row['member_name']) ? $row['member_name'] :
+        ($memberLookup[(string)($row['memberId'] ?? $row['member_id'] ?? '')] ?? 'N/A'));
 @endphp
 
 @if($savings->isNotEmpty())
@@ -385,14 +401,14 @@
         @foreach($savings as $i => $tx)
         <tr>
             <td class="text-center">{{ $i + 1 }}</td>
-            <td>{{ $tx['memberName'] ?? $tx['member_name'] ?? 'N/A' }}</td>
+            <td>{{ $resolveName($tx) }}</td>
             <td class="text-right amount income">{{ number_format($tx['amount'] ?? 0, 0) }}</td>
             <td>{{ $tx['description'] ?? $tx['notes'] ?? '—' }}</td>
         </tr>
         @endforeach
         <tr class="total-row">
             <td colspan="2" class="text-right">TOTAL SAVINGS:</td>
-            <td class="text-right">UGX {{ number_format($savings->sum(fn($t) => $t['amount'] ?? 0), 0) }}</td>
+            <td class="text-right">UGX {{ number_format($savings->sum(fn($t) => (float)($t['amount'] ?? 0)), 0) }}</td>
             <td></td>
         </tr>
     </tbody>
@@ -410,23 +426,32 @@
         <tr>
             <th style="width:5%">#</th>
             <th>Member Name</th>
-            <th class="text-right" style="width:15%">Shares</th>
-            <th class="text-right" style="width:22%">Amount (UGX)</th>
+            <th class="text-right" style="width:12%">Shares</th>
+            <th class="text-right" style="width:20%">Price/Share (UGX)</th>
+            <th class="text-right" style="width:22%">Total Paid (UGX)</th>
         </tr>
     </thead>
     <tbody>
         @foreach($sharePurchases as $i => $sp)
+        @php
+            $spName    = $sp['investor_name']  ?? $sp['memberName']     ?? $sp['member_name'] ?? 'N/A';
+            $spShares  = $sp['number_of_shares'] ?? $sp['shares']       ?? $sp['numberOfShares'] ?? 0;
+            $spPrice   = $sp['share_price_at_purchase'] ?? $sp['share_price'] ?? 0;
+            $spTotal   = $sp['total_amount_paid'] ?? $sp['amount']      ?? 0;
+        @endphp
         <tr>
             <td class="text-center">{{ $i + 1 }}</td>
-            <td>{{ $sp['memberName'] ?? $sp['member_name'] ?? 'N/A' }}</td>
-            <td class="text-right">{{ $sp['shares'] ?? $sp['numberOfShares'] ?? '—' }}</td>
-            <td class="text-right amount income">{{ number_format($sp['amount'] ?? 0, 0) }}</td>
+            <td>{{ $spName }}</td>
+            <td class="text-right">{{ $spShares }}</td>
+            <td class="text-right">{{ number_format((float)$spPrice, 0) }}</td>
+            <td class="text-right amount income">{{ number_format((float)$spTotal, 0) }}</td>
         </tr>
         @endforeach
         <tr class="total-row">
             <td colspan="2" class="text-right">TOTAL SHARE VALUE:</td>
-            <td class="text-right">{{ $sharePurchases->sum(fn($s) => $s['shares'] ?? $s['numberOfShares'] ?? 0) }} shares</td>
-            <td class="text-right">UGX {{ number_format($sharePurchases->sum(fn($s) => $s['amount'] ?? 0), 0) }}</td>
+            <td class="text-right">{{ $sharePurchases->sum(fn($s) => (int)($s['number_of_shares'] ?? $s['shares'] ?? $s['numberOfShares'] ?? 0)) }} shares</td>
+            <td></td>
+            <td class="text-right">UGX {{ number_format($sharePurchases->sum(fn($s) => (float)($s['total_amount_paid'] ?? $s['amount'] ?? 0)), 0) }}</td>
         </tr>
     </tbody>
 </table>
@@ -434,7 +459,19 @@
 @endif
 
 {{-- Welfare & Social Fund --}}
-@if($welfare->isNotEmpty() || $socialFund->isNotEmpty())
+@php
+    // Normalize both data shapes into a common format
+    $wsRows = $welfare->map(fn($t) => [
+        'name'   => $resolveName($t),
+        'type'   => ucfirst(str_replace('_', ' ', $t['accountType'] ?? $t['account_type'] ?? 'Welfare')),
+        'amount' => (float)($t['amount'] ?? 0),
+    ])->merge($socialFund->map(fn($s) => [
+        'name'   => $s['member_name'] ?? $s['memberName'] ?? 'N/A',
+        'type'   => 'Social Fund',
+        'amount' => (float)($s['amount'] ?? 0),
+    ]))->values();
+@endphp
+@if($wsRows->isNotEmpty())
 <div class="keep-together">
 <div class="section-title teal">4. Welfare &amp; Social Fund</div>
 <table>
@@ -447,18 +484,17 @@
         </tr>
     </thead>
     <tbody>
-        @php $wsCombined = $welfare->merge($socialFund)->values(); @endphp
-        @foreach($wsCombined as $i => $tx)
+        @foreach($wsRows as $i => $row)
         <tr>
             <td class="text-center">{{ $i + 1 }}</td>
-            <td>{{ $tx['memberName'] ?? $tx['member_name'] ?? 'N/A' }}</td>
-            <td class="text-center">{{ ucfirst(str_replace('_', ' ', $tx['accountType'] ?? $tx['account_type'] ?? '')) }}</td>
-            <td class="text-right amount income">{{ number_format($tx['amount'] ?? 0, 0) }}</td>
+            <td>{{ $row['name'] }}</td>
+            <td class="text-center">{{ $row['type'] }}</td>
+            <td class="text-right amount income">{{ number_format($row['amount'], 0) }}</td>
         </tr>
         @endforeach
         <tr class="total-row">
             <td colspan="3" class="text-right">TOTAL:</td>
-            <td class="text-right">UGX {{ number_format($wsCombined->sum(fn($t) => $t['amount'] ?? 0), 0) }}</td>
+            <td class="text-right">UGX {{ number_format($wsRows->sum('amount'), 0) }}</td>
         </tr>
     </tbody>
 </table>
@@ -482,14 +518,14 @@
         @foreach($fines as $i => $f)
         <tr>
             <td class="text-center">{{ $i + 1 }}</td>
-            <td>{{ $f['memberName'] ?? $f['member_name'] ?? 'N/A' }}</td>
-            <td class="text-right amount expense">{{ number_format($f['amount'] ?? 0, 0) }}</td>
+            <td>{{ $resolveName($f) }}</td>
+            <td class="text-right amount expense">{{ number_format((float)($f['amount'] ?? 0), 0) }}</td>
             <td>{{ $f['description'] ?? $f['reason'] ?? '—' }}</td>
         </tr>
         @endforeach
         <tr class="total-row">
             <td colspan="2" class="text-right">TOTAL FINES:</td>
-            <td class="text-right">UGX {{ number_format($fines->sum(fn($f) => $f['amount'] ?? 0), 0) }}</td>
+            <td class="text-right">UGX {{ number_format($fines->sum(fn($f) => (float)($f['amount'] ?? 0)), 0) }}</td>
             <td></td>
         </tr>
     </tbody>
@@ -516,22 +552,25 @@
     <tbody>
         @foreach($loansData as $i => $loan)
         @php
-            $principal = $loan['amount'] ?? $loan['principal'] ?? $loan['loanAmount'] ?? 0;
-            $rate = $loan['interestRate'] ?? $loan['interest_rate'] ?? 0;
-            $due = $loan['totalDue'] ?? $loan['total_due'] ?? round($principal * (1 + $rate / 100), 0);
+            $lBorrower = $loan['borrower_name'] ?? $loan['memberName'] ?? $loan['member_name'] ?? 'N/A';
+            $lPrincipal = (float)($loan['loan_amount'] ?? $loan['amount'] ?? $loan['principal'] ?? $loan['loanAmount'] ?? 0);
+            $lRate      = (float)($loan['interest_rate'] ?? $loan['interestRate'] ?? 0);
+            $lDuration  = $loan['repayment_period_months'] ?? $loan['duration'] ?? $loan['durationWeeks'] ?? '—';
+            $lDue       = (float)($loan['totalDue'] ?? $loan['total_due'] ?? round($lPrincipal * (1 + $lRate / 100), 0));
+            $lPurpose   = $loan['loan_purpose'] ?? $loan['purpose'] ?? '—';
         @endphp
         <tr>
             <td class="text-center">{{ $i + 1 }}</td>
-            <td>{{ $loan['memberName'] ?? $loan['member_name'] ?? 'N/A' }}</td>
-            <td class="text-right amount expense">{{ number_format($principal, 0) }}</td>
-            <td class="text-right">{{ $rate }}%</td>
-            <td class="text-center">{{ $loan['duration'] ?? $loan['durationWeeks'] ?? '—' }}</td>
-            <td class="text-right amount">{{ number_format($due, 0) }}</td>
+            <td>{{ $lBorrower }}<br><span style="color:#999;font-size:6.5px">{{ $lPurpose }}</span></td>
+            <td class="text-right amount expense">{{ number_format($lPrincipal, 0) }}</td>
+            <td class="text-right">{{ $lRate }}%</td>
+            <td class="text-center">{{ $lDuration }}{{ is_numeric($lDuration) ? ' mo' : '' }}</td>
+            <td class="text-right amount">{{ number_format($lDue, 0) }}</td>
         </tr>
         @endforeach
         <tr class="total-row">
             <td colspan="2" class="text-right">TOTAL DISBURSED:</td>
-            <td class="text-right">UGX {{ number_format($loansData->sum(fn($l) => $l['amount'] ?? $l['principal'] ?? $l['loanAmount'] ?? 0), 0) }}</td>
+            <td class="text-right">UGX {{ number_format($loansData->sum(fn($l) => (float)($l['loan_amount'] ?? $l['amount'] ?? $l['principal'] ?? $l['loanAmount'] ?? 0)), 0) }}</td>
             <td colspan="3"></td>
         </tr>
     </tbody>
@@ -557,22 +596,23 @@
     <tbody>
         @foreach($repayments as $i => $rep)
         @php
-            $principal = $rep['principalAmount'] ?? $rep['principal_amount'] ?? $rep['principal'] ?? 0;
-            $interest  = $rep['interestAmount']  ?? $rep['interest_amount']  ?? $rep['interest']  ?? 0;
-            $total     = $rep['totalAmount']     ?? $rep['total_amount']     ?? ($principal + $interest);
+            $rBorrower = $rep['borrower_name'] ?? $rep['memberName'] ?? $rep['member_name'] ?? $resolveName($rep);
+            $rPrincipal = (float)($rep['principal_amount'] ?? $rep['principalAmount'] ?? $rep['principal'] ?? $rep['loan_amount'] ?? 0);
+            $rInterest  = (float)($rep['interest_amount']  ?? $rep['interestAmount']  ?? $rep['interest']  ?? 0);
+            $rTotal     = (float)($rep['total_amount']     ?? $rep['totalAmount']     ?? ($rPrincipal + $rInterest));
         @endphp
         <tr>
             <td class="text-center">{{ $i + 1 }}</td>
-            <td>{{ $rep['memberName'] ?? $rep['member_name'] ?? 'N/A' }}</td>
-            <td class="text-right amount">{{ number_format($principal, 0) }}</td>
-            <td class="text-right" style="color: #e67e22;">{{ number_format($interest, 0) }}</td>
-            <td class="text-right amount income">{{ number_format($total, 0) }}</td>
+            <td>{{ $rBorrower }}</td>
+            <td class="text-right amount">{{ number_format($rPrincipal, 0) }}</td>
+            <td class="text-right" style="color: #e67e22;">{{ number_format($rInterest, 0) }}</td>
+            <td class="text-right amount income">{{ number_format($rTotal, 0) }}</td>
         </tr>
         @endforeach
         <tr class="total-row">
             <td colspan="2" class="text-right">TOTALS:</td>
-            <td class="text-right">{{ number_format($repayments->sum(fn($r) => $r['principalAmount'] ?? $r['principal_amount'] ?? $r['principal'] ?? 0), 0) }}</td>
-            <td class="text-right">{{ number_format($repayments->sum(fn($r) => $r['interestAmount'] ?? $r['interest_amount'] ?? $r['interest'] ?? 0), 0) }}</td>
+            <td class="text-right">{{ number_format($repayments->sum(fn($r) => (float)($r['principal_amount'] ?? $r['principalAmount'] ?? $r['principal'] ?? 0)), 0) }}</td>
+            <td class="text-right">{{ number_format($repayments->sum(fn($r) => (float)($r['interest_amount'] ?? $r['interestAmount'] ?? $r['interest'] ?? 0)), 0) }}</td>
             <td class="text-right">UGX {{ number_format($meeting->total_loans_repaid ?? 0, 0) }}</td>
         </tr>
     </tbody>

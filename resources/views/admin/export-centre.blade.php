@@ -10,8 +10,8 @@
 .ec-stat-icon  { font-size: 22px; opacity: .7; width: 28px; text-align: center; }
 .ec-stat-num   { font-size: 22px; font-weight: 700; line-height: 1.1; }
 .ec-stat-lbl   { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .5px; }
-.ec-stat-blue  { border-left-color: #3c8dbc; }
-.ec-stat-blue  .ec-stat-icon, .ec-stat-blue  .ec-stat-num { color: #3c8dbc; }
+.ec-stat-blue  { border-left-color: #05179F; }
+.ec-stat-blue  .ec-stat-icon, .ec-stat-blue  .ec-stat-num { color: #05179F; }
 .ec-stat-green { border-left-color: #00a65a; }
 .ec-stat-green .ec-stat-icon, .ec-stat-green .ec-stat-num { color: #00a65a; }
 .ec-stat-cyan   { border-left-color: #00c0ef; }
@@ -21,7 +21,7 @@
 
 /* ── Page header banner ── */
 .ec-page-header {
-    background: #418FDE; color: #fff;
+    background: #05179F; color: #fff;
     border-radius: 3px; padding: 14px 18px;
     margin-bottom: 14px;
     display: flex; align-items: center; justify-content: space-between;
@@ -50,16 +50,16 @@
 .ec-panel-body { padding: 12px 14px; }
 
 /* ── Tabs ── */
-.ec-nav-tabs { border-bottom: 2px solid #418FDE; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 2px; }
+.ec-nav-tabs { border-bottom: 2px solid #05179F; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 2px; }
 .ec-nav-tab {
     padding: 7px 16px; font-size: 13px; font-weight: 600;
     color: #555; cursor: pointer; border-radius: 3px 3px 0 0;
     border: 1px solid transparent; border-bottom: none;
     transition: all .15s;
 }
-.ec-nav-tab:hover { color: #418FDE; background: #f5f8ff; }
+.ec-nav-tab:hover { color: #05179F; background: #f5f8ff; }
 .ec-nav-tab.active {
-    color: #418FDE; background: #fff;
+    color: #05179F; background: #fff;
     border-color: #ddd #ddd #fff; margin-bottom: -2px;
 }
 .ec-tab-pane { display: none; }
@@ -216,10 +216,6 @@
             <span class="ec-count">{{ number_format($meetingCount) }} total</span>
         </div>
         <div class="ec-panel-body">
-            <div class="ec-info">
-                <i class="fa fa-info-circle"></i>
-                Filter then click <strong>Generate CSV</strong>. Includes attendance rate, savings, loans disbursed/repaid, fines, and net cash per meeting row.
-            </div>
             <div class="ec-filter-bar">
                 <form method="GET" action="{{ admin_url('export-centre/meetings-csv') }}" target="_blank">
                     <div class="ec-filter-row">
@@ -333,11 +329,6 @@
 ══════════════════════════════════════ --}}
 <div id="tab-vsla-cycles" class="ec-tab-pane">
 
-    <div class="ec-info">
-        <i class="fa fa-info-circle"></i>
-        Cycle reports compile all completed meetings: total savings, loan portfolio, member savings leaderboard, attendance heat-map, and repayment rates.
-    </div>
-
     <div class="ec-panel">
         <div class="ec-panel-header">
             <div class="ec-panel-title">
@@ -421,10 +412,6 @@
             <span class="ec-count">{{ number_format($aesaCount) }} total</span>
         </div>
         <div class="ec-panel-body">
-            <div class="ec-info">
-                <i class="fa fa-info-circle"></i>
-                Choose <strong>Animals</strong>, <strong>Crops</strong>, or <strong>All</strong> to export animal health observations, crop plot observations, or both sections in a single file.
-            </div>
             <div class="ec-filter-bar">
                 <form method="GET" action="{{ admin_url('export-centre/aesa-csv') }}" target="_blank">
                     <div class="ec-filter-row">
@@ -585,10 +572,6 @@
             <span class="ec-count" style="background:#f39c12">{{ number_format($trainingCount) }} total</span>
         </div>
         <div class="ec-panel-body">
-            <div class="ec-info">
-                <i class="fa fa-info-circle"></i>
-                One row per session. Includes session type, date, venue, attendance figures, facilitator, topic, notes, challenges, and recommendations.
-            </div>
             <div class="ec-filter-bar">
                 <form method="GET" action="{{ admin_url('export-centre/trainings-csv') }}" target="_blank">
                     <div class="ec-filter-row">
@@ -654,10 +637,6 @@
             <div class="ec-panel-title" style="margin-bottom:8px">
                 <i class="fa fa-file-excel-o" style="color:#f39c12"></i>
                 &nbsp;GAP Resolutions CSV Export
-            </div>
-            <div class="ec-info" style="margin-bottom:8px">
-                <i class="fa fa-info-circle"></i>
-                One row per resolution/action item. Includes session context, GAP category, responsible person, target date, status, and follow-up notes.
             </div>
             <div class="ec-filter-bar">
                 <form method="GET" action="{{ admin_url('export-centre/training-gaps-csv') }}" target="_blank">
