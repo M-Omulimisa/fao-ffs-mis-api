@@ -329,5 +329,5 @@ Route::group([
     $router->get('export-centre/aesa-session-pdf/{id}', 'ExportCentreController@exportAesaSessionPdf')->name('export-centre.aesa-session-pdf');
     $router->get('export-centre/trainings-csv',      'ExportCentreController@exportTrainingsCsv')->name('export-centre.trainings-csv');
     $router->get('export-centre/training-gaps-csv',  'ExportCentreController@exportTrainingGapsCsv')->name('export-centre.training-gaps-csv');
-    $router->get('export-centre',                    'ExportCentreController@index')->name('export-centre');
+    $router->get('xexport-centre',                    'ExportCentreController@index')->name('export-centre');
 });

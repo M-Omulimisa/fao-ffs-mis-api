@@ -56,7 +56,6 @@ class VslaFacilitatorController extends Controller
             }
 
             $groups = FfsGroup::where('facilitator_id', $officer->id)
-                ->where('type', 'VSLA')
                 ->get();
 
             $groupIds = $groups->pluck('id');
@@ -108,8 +107,7 @@ class VslaFacilitatorController extends Controller
                 return $this->error('Unauthorized', 401);
             }
 
-            $query = FfsGroup::where('facilitator_id', $officer->id)
-                ->where('type', 'VSLA');
+            $query = FfsGroup::where('facilitator_id', $officer->id);
 
             // Search filter
             if ($request->filled('search')) {
@@ -730,7 +728,6 @@ class VslaFacilitatorController extends Controller
             }
 
             $groupIds = FfsGroup::where('facilitator_id', $officer->id)
-                ->where('type', 'VSLA')
                 ->pluck('id');
 
             $query = User::whereIn('group_id', $groupIds);
@@ -795,7 +792,6 @@ class VslaFacilitatorController extends Controller
             if (!$officer) return $this->error('Unauthorized', 401);
 
             $groups = FfsGroup::where('facilitator_id', $officer->id)
-                ->where('type', 'VSLA')
                 ->orderBy('name')
                 ->get();
 
@@ -914,7 +910,6 @@ class VslaFacilitatorController extends Controller
             if (!$officer) return $this->error('Unauthorized', 401);
 
             $groupIds = FfsGroup::where('facilitator_id', $officer->id)
-                ->where('type', 'VSLA')
                 ->pluck('id');
 
             if ($groupIds->isEmpty()) {
