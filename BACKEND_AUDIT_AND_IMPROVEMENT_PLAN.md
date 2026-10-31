@@ -158,13 +158,16 @@ Status key: ✅ done and verified · 🔧 in progress · ⏳ planned · 🟡 nee
 | 6.6 | Soft deletes for users (`deleted_at`), and stop hard-deleting financial history | Schema change with behaviour impact |
 | 6.7 | Rotate credentials: cPanel/SSH password (stored in plain text locally) and the Pesapal keys in `.env` | Operational |
 | 6.8 | Point the domain's document root at `/fao/public` in cPanel (defence in depth) | Hosting configuration |
+| 6.9 | Move the database to UTC session time and convert historical `TIMESTAMP` values (DST-aware). Production now pins `DB_TIMEZONE=America/New_York` to match how the data was written | Touches every timestamp; needs a maintenance window |
+| 6.10 | `disabilities` table is missing in production, so the PWD form's disability list (`api/Disability`) is empty | Master data: create and seed, or drop the field |
+| 6.11 | Set `APP_ENV=production` (currently `local`, with `APP_DEBUG=false`) | Check for code that branches on the environment first |
 
 ---
 
 ## 5. Deployment and rollback
 
 1. Every change is made locally and verified with the harness: 0 BREAKs required.
-2. Before deploying, back up the server (code state plus `mysqldump` of `schooics_fao`) to `~/fao_backups/<date>`.
+2. Before deploying, back up the server (code state plus `mysqldump` of `schooics_fao`) to `~/backups/` (`fao_db_before_<sha>_<ts>.sql.gz`, `fao_code_before_<ts>.txt`, `fao_env_<ts>`).
 3. Deploy with `git pull`, then `php artisan migrate --force`, then `php artisan optimize:clear`. Migrations are additive and guarded (`hasColumn`/`hasIndex`).
 4. After deploying, run a smoke test against the live server (key API endpoints plus admin login per role).
 5. **Rollback:** `git reset --hard <previous sha>`. The migrations only add columns or indexes and are safe to leave in place.
@@ -175,4 +178,9 @@ Status key: ✅ done and verified · 🔧 in progress · ⏳ planned · 🟡 nee
 
 - **31 Oct 2026, live domain:** `fao-ffs-mis.org` showed a certificate warning after the nameserver move to HostGator. DNS was already correct worldwide (NS `hgns1/2.hostgator.com`, A `162.241.194.81`). The server was presenting a `*.schooldynamics.ug` certificate because AutoSSL's 00:51 UTC run had still seen the old Namecheap IP. A fresh AutoSSL run issued a Let's Encrypt certificate for `fao-ffs-mis.org`, `www`, `mail` and `webmail` (valid to 29 Jan 2027, auto-renewing). HTTPS verified end to end: admin login, `/api/locations/districts`, `/api/manifest`.
 - **31 Oct 2026, harness verification:** after each batch, the full 237-route × 5-role run shows no unintended BREAKs. The only differences are the intended ones listed in the tasks above (secret fields removed, admin-only 403s for non-admins, removed dangerous routes).
+- **1 Nov 2026, deployed to production:** commits `fe99297` (phase 1 batch) and `c2abbf9` (follow-ups), with backups taken first. Both migrations ran and 352 logged passwords were redacted. Live smoke test over HTTPS: mobile endpoints `code:1` with no secret fields, non-admin 403s, removed routes 404, PHP in `public/storage` refused (403). Admin pages render for the Super Admin, the IP Manager is kept out of user and log management, and farmers are signed out.
+- **1 Nov 2026, live follow-ups:**
+  - The generic `api/{model}` route returned HTTP 500 because it called a non-existent `Utils::response()`, and `Utils::get_user()` had a broken type hint. It now returns JSON.
+  - **Timezone:** the data was written on a MySQL server running `America/New_York` (proved from `ffs_training_sessions.submitted_at`, a `DATETIME`, against `updated_at`, a `TIMESTAMP`: 240/300 min offsets for EDT/EST). On HostGator (US Central) every imported date read 1 hour early. Production now sets `DB_TIMEZONE=America/New_York`; the 3 rows written in the meantime were corrected, and a write/read round trip was verified.
+  - `admin.staff` now runs first in the admin group: Laravel-admin's `admin.permission` exits early, so non-staff saw "Permission denied" instead of being signed out.
 - Phase 1 items 1.9 and 1.10, and Phases 2.5 onward, are next.

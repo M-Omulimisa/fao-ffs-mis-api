@@ -35,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
         $router = $this->app['router'];
         $router->aliasMiddleware('admin.log', \App\Http\Middleware\AdminLogOperation::class);
         $router->aliasMiddleware('admin.staff', \App\Http\Middleware\AdminStaffOnly::class);
-        $router->pushMiddlewareToGroup('admin', 'admin.staff');
+        // First in the group: admin.permission exits with its own page before
+        // later middleware runs, so non-staff would never be signed out
+        $router->prependMiddlewareToGroup('admin', 'admin.staff');
     }
 }
