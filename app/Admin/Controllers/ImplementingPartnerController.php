@@ -188,7 +188,7 @@ class ImplementingPartnerController extends AdminController
         });
 
         // Only super admins can set IP KPI targets
-        $isSuperAdmin = Admin::user() && Admin::user()->isRole('super_admin');
+        $isSuperAdmin = Admin::user() && Admin::user()->inRoles(['administrator', 'super_admin']);
         if ($isSuperAdmin) {
             $form->tab('KPI Targets', function (Form $form) {
                 $form->number('kpi_target_facilitators', 'Target Facilitators')

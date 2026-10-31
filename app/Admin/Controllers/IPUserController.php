@@ -172,6 +172,7 @@ class IPUserController extends AdminController
     protected function form()
     {
         $form = new Form(new User());
+        $this->guardSuperAdminRoleAssignment($form);
 
         // ── Implementing Partner ──────────────────────────────────────────
         $this->addIpFieldToForm($form);
@@ -219,7 +220,7 @@ class IPUserController extends AdminController
             $roleModel  = config('admin.database.roles_model');
             $rolesQuery = $roleModel::query();
             if (!$this->isSuperAdmin()) {
-                $rolesQuery->where('slug', '!=', 'super_admin');
+                $rolesQuery->whereNotIn('slug', $this->superAdminRoleSlugs());
             }
             $row->width(8)->multipleSelect('roles', 'Assigned Roles')
                 ->options($rolesQuery->pluck('name', 'id'))

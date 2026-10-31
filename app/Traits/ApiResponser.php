@@ -48,6 +48,12 @@ trait ApiResponser
             $response['data'] = $data;
         }
 
+        // Some callers pass 1 (the body `code`) as the HTTP status, which made
+        // Laravel throw after the change was already saved. Only real statuses pass.
+        if (!is_int($code) || $code < 100 || $code > 599) {
+            $code = 200;
+        }
+
         return response()->json($response, $code);
     }
 
@@ -61,6 +67,10 @@ trait ApiResponser
      */
     protected function error($message = "", $code = 400, $data = null)
     {
+        if (!is_int($code) || $code < 100 || $code > 599) {
+            $code = 400;
+        }
+
         // Log server errors with stack trace for debugging
         if ($code >= 500) {
             \Log::error("API Error [{$code}]: {$message}", [

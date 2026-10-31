@@ -892,6 +892,25 @@ class Utils extends Model
         return $r;
     }
 
+    /**
+     * Extensions that may be written into the public upload folders.
+     * Anything else (php, phtml, phar, cgi, html, svg, ...) could be executed
+     * or rendered by the web server, so it is rejected.
+     */
+    const SAFE_UPLOAD_EXTENSIONS = [
+        'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif',
+        'mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'opus', 'amr', 'flac', 'webm', '3gp',
+        'mp4', 'mpeg', 'mpg', 'mov', 'avi', 'mkv', 'm4v',
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'txt',
+    ];
+
+    public static function isSafeUploadExtension($ext)
+    {
+        $ext = strtolower(trim((string) $ext));
+        // Files without an extension are stored as-is; they cannot be executed.
+        return $ext === '' || in_array($ext, self::SAFE_UPLOAD_EXTENSIONS, true);
+    }
+
     public static function upload_images_2($files, $is_single_file = false)
     {
 
@@ -909,7 +928,11 @@ class Utils extends Model
                 isset($file['error']) &&
                 isset($file['size'])
             ) {
-                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                if (!self::isSafeUploadExtension($ext)) {
+                    \Log::warning('upload_images_2: rejected file with extension .' . $ext);
+                    continue;
+                }
                 $file_name = time() . "-" . rand(100000, 1000000) . "." . $ext;
                 $destination = Utils::docs_root() . '/storage/images/' . $file_name;
 
@@ -959,6 +982,9 @@ class Utils extends Model
             // Validate extension if specified
             $ext = strtolower($file->getClientOriginalExtension());
             if ($allowedExtensions !== null && !in_array($ext, $allowedExtensions)) {
+                throw new \Exception("File type .{$ext} not allowed");
+            }
+            if (!self::isSafeUploadExtension($ext)) {
                 throw new \Exception("File type .{$ext} not allowed");
             }
 

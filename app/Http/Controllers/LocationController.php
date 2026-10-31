@@ -42,13 +42,12 @@ class LocationController extends Controller
     public function getSubcounties($districtId)
     {
         try {
+            // locations has no parent_id column; keep the key in the response as an alias of `parent`
             $subcounties = Location::where('parent', $districtId)
-                ->orWhere(function($query) use ($districtId) {
-                    $query->where('type', 'Subcounty')
-                          ->where('parent_id', $districtId);
-                })
                 ->orderBy('name', 'asc')
-                ->get(['id', 'name', 'code', 'parent', 'parent_id']);
+                ->select(['id', 'name', 'code', 'parent'])
+                ->selectRaw('parent as parent_id')
+                ->get();
 
             return response()->json([
                 'code' => 1,
@@ -72,13 +71,12 @@ class LocationController extends Controller
     public function getParishes($subcountyId)
     {
         try {
+            // locations has no parent_id column; keep the key in the response as an alias of `parent`
             $parishes = Location::where('parent', $subcountyId)
-                ->orWhere(function($query) use ($subcountyId) {
-                    $query->where('type', 'Parish')
-                          ->where('parent_id', $subcountyId);
-                })
                 ->orderBy('name', 'asc')
-                ->get(['id', 'name', 'code', 'parent', 'parent_id']);
+                ->select(['id', 'name', 'code', 'parent'])
+                ->selectRaw('parent as parent_id')
+                ->get();
 
             return response()->json([
                 'code' => 1,

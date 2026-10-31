@@ -19,12 +19,14 @@ class User extends Administrator implements JWTSubject
     use HasFactory;
     use Notifiable;
     use \App\Traits\TitleCase;
+    use \App\Traits\HidesSecretsInApi;
 
     /**
      * Override parent Administrator's restrictive $fillable.
      * Allow all fields to be mass-assignable (validation is in boot events).
      */
     protected $fillable = [
+        'phone_number_verified_at',
         'username',
         'password',
         'name',

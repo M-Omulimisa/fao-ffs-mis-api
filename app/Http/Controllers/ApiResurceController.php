@@ -39,6 +39,9 @@ use Throwable;
 
 class ApiResurceController extends Controller
 {
+    /** Models that GET api/{model} may list (non-sensitive reference data). */
+    const GENERIC_READABLE_MODELS = ['Disability', 'Location', 'ProductCategory', 'Enterprise'];
+
 
     use ApiResponser;
 
@@ -2897,8 +2900,9 @@ class ApiResurceController extends Controller
         $modelClassName = str_replace(' ', '', ucwords(str_replace('-', ' ', rtrim($model, 's'))));
         $className = "App\Models\\" . $modelClassName;
 
-        // Check if class exists
-        if (!class_exists($className)) {
+        // Generic reads are limited to harmless reference data. Previously any
+        // model (users with password hashes, the ledger, ...) could be listed.
+        if (!class_exists($className) || !in_array($modelClassName, self::GENERIC_READABLE_MODELS, true)) {
             return Utils::response([
                 'status' => 0,
                 'message' => "Model not found: " . $modelClassName,
@@ -3016,107 +3020,12 @@ class ApiResurceController extends Controller
 
     public function update(Request $r, $model, $id = null)
     {
-        $administrator_id = Utils::get_user_id($r);
-        $u = Administrator::find($administrator_id);
-
-
-        if ($u == null) {
-            return Utils::response([
-                'code' => 0,
-                'message' => "User not found.",
-            ]);
-        }
-
-        // Convert hyphenated model name to proper class name
-        // e.g., "insurance-subscriptions" -> "InsuranceSubscription"
-        $modelClassName = str_replace(' ', '', ucwords(str_replace('-', ' ', rtrim($model, 's'))));
-        $className = "App\Models\\" . $modelClassName;
-
-        // Check if class exists
-        if (!class_exists($className)) {
-            return Utils::response([
-                'code' => 0,
-                'message' => "Model not found: " . $modelClassName,
-            ]);
-        }
-
-        // Get ID from URL parameter or from request body
-        $isUpdate = false;
-        if ($id !== null) {
-            $id = (int)$id;
-            $isUpdate = true;
-        } else if (isset($r->online_id) && $r->online_id > 0) {
-            $id = ((int)($r->online_id));
-            $isUpdate = true;
-        } else if (isset($r->id) && $r->id > 0) {
-            $id = ((int)($r->id));
-            $isUpdate = true;
-        }
-
-        if ($isUpdate) {
-            $obj = $className::find($id);
-            if ($obj == null) {
-                return Utils::response([
-                    'code' => 0,
-                    'message' => "Item not found.",
-                ]);
-            }
-        } else {
-            // Create new object
-            $obj = new $className();
-        }
-
-        unset($_POST['_method']);
-        if (isset($_POST['online_id'])) {
-            unset($_POST['online_id']);
-        }
-
-        // Remove fields that are added by client but don't exist in database
-        $fieldsToExclude = ['user', 'User-Id', 'user_id', 'id'];
-        foreach ($fieldsToExclude as $field) {
-            if (isset($_POST[$field])) {
-                unset($_POST[$field]);
-            }
-        }
-
-        // Handle datetime fields - convert empty strings to NULL
-        $dateTimeFields = ['dob', 'created_at', 'updated_at', 'reg_date', 'last_seen'];
-        foreach ($dateTimeFields as $field) {
-            if (isset($_POST[$field]) && trim($_POST[$field]) === '') {
-                $_POST[$field] = null;
-            }
-        }
-
-        foreach ($_POST as $key => $value) {
-            $obj->$key = $value;
-        }
-
-
-        $success = false;
-        $msg = "";
-        try {
-            $obj->save();
-            $msg = $isUpdate ? "Updated successfully." : "Created successfully.";
-            $success = true;
-        } catch (Exception $e) {
-            $success = false;
-            $msg = $e->getMessage();
-        }
-
-
-        if ($success) {
-            return Utils::response([
-                'code' => 1,
-                'data' => $obj,
-                'message' => $msg
-            ]);
-        } else {
-            return Utils::response([
-                'code' => 0,
-                'data' => null,
-                'message' => $msg
-            ]);
-        }
+        // Generic create/update of any model by any caller was a mass-assignment
+        // hole (users, ledger rows, ...). No live app screen writes through it.
+        return Utils::response([
+            'code' => 0,
+            'message' => "This endpoint is no longer available.",
+        ]);
     }
 
     //delivery_addresses
@@ -4573,5 +4482,34 @@ class ApiResurceController extends Controller
             \Log::error($e->getTraceAsString());
             return $this->error('Failed to get price trend: ' . $e->getMessage(), 500);
         }
+    }
+
+    /*
+     * Legacy e-commerce chat. The routes were kept but the methods were removed,
+     * so every call threw a 500. Answer explicitly instead.
+     */
+    public function chat_heads(Request $r)
+    {
+        return $this->success([], 'Chat is not available.');
+    }
+
+    public function chat_messages(Request $r)
+    {
+        return $this->success([], 'Chat is not available.');
+    }
+
+    public function chat_start(Request $r)
+    {
+        return $this->error('Chat is not available.', 410);
+    }
+
+    public function chat_send(Request $r)
+    {
+        return $this->error('Chat is not available.', 410);
+    }
+
+    public function chat_mark_as_read(Request $r)
+    {
+        return $this->error('Chat is not available.', 410);
     }
 }

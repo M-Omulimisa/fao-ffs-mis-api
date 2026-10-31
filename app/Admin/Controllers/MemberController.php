@@ -346,7 +346,7 @@ class MemberController extends AdminController
     {
         Log::info('=== UPDATE METHOD CALLED ===', [
             'id' => $id,
-            'input' => request()->all(),
+            'input' => \App\Http\Middleware\AdminLogOperation::redact(request()->all()),
         ]);
 
         return $this->form()->update($id);
@@ -478,6 +478,7 @@ class MemberController extends AdminController
     protected function form()
     {
         $form = new Form(new User());
+        $this->guardSuperAdminRoleAssignment($form);
         $this->addIpFieldToForm($form);
 
         $form->hidden('user_type')->default('Customer');
@@ -621,7 +622,7 @@ class MemberController extends AdminController
             }
             $rolesQuery = $roleModel::query();
             if (!$this->isSuperAdmin()) {
-                $rolesQuery->where('slug', '!=', 'super_admin');
+                $rolesQuery->whereNotIn('slug', $this->superAdminRoleSlugs());
             }
             $row->width(6)->multipleSelect('roles', 'System Roles')
                 ->options($rolesQuery->pluck('name', 'id'))

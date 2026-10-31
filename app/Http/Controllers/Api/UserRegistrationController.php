@@ -21,6 +21,10 @@ class UserRegistrationController extends Controller
     {
         try {
             $role = $request->input('role', 'Farmer');
+            // Public sign-up must never create administrators (user_type gates admin endpoints)
+            if (strtolower(trim((string) $role)) === 'admin') {
+                $role = 'Farmer';
+            }
 
             // Base validation rules (common fields)
             $rules = [

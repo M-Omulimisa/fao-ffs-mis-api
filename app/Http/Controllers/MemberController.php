@@ -140,9 +140,12 @@ class MemberController extends Controller
             // Handle avatar upload
             if ($request->hasFile('avatar')) {
                 $avatar = $request->file('avatar');
-                $avatarName = time() . '_' . ($member->phone_number ?? $member->member_code) . '.' . $avatar->getClientOriginalExtension();
-                $avatarPath = $avatar->move(public_path('storage/images'), $avatarName);
-                $member->avatar = 'storage/images/' . $avatarName;
+                $avatarExt = strtolower($avatar->getClientOriginalExtension());
+                if (in_array($avatarExt, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'], true)) {
+                    $avatarName = time() . '_' . rand(100000, 999999) . '.' . $avatarExt;
+                    $avatar->move(public_path('storage/images'), $avatarName);
+                    $member->avatar = 'storage/images/' . $avatarName;
+                }
             }
 
             $member->save();
@@ -642,9 +645,12 @@ class MemberController extends Controller
             // Handle avatar upload
             if ($request->hasFile('avatar')) {
                 $avatar = $request->file('avatar');
-                $avatarName = time() . '_' . $avatar->getClientOriginalName();
-                $avatar->move(public_path('storage/images'), $avatarName);
-                $member->avatar = 'storage/images/' . $avatarName;
+                $avatarExt = strtolower($avatar->getClientOriginalExtension());
+                if (in_array($avatarExt, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'], true)) {
+                    $avatarName = time() . '_' . rand(100000, 999999) . '.' . $avatarExt;
+                    $avatar->move(public_path('storage/images'), $avatarName);
+                    $member->avatar = 'storage/images/' . $avatarName;
+                }
             }
             if ($request->has('status')) {
                 $member->status = $request->status;

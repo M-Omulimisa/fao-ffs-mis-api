@@ -77,6 +77,13 @@ class AuthController extends Controller
                 ->withInput($request->only('username', 'remember'));
         }
 
+        // The portal shares the users table with the mobile app: only staff may sign in
+        if (!$user->inRoles(\App\Http\Middleware\AdminStaffOnly::STAFF_ROLES)) {
+            return back()
+                ->withErrors(['username' => \App\Http\Middleware\AdminStaffOnly::DENIED_MESSAGE])
+                ->withInput($request->only('username', 'remember'));
+        }
+
         // Attempt to log the user in
         Auth::guard('admin')->login($user, $remember);
 

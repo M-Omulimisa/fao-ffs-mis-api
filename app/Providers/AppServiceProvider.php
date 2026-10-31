@@ -30,5 +30,11 @@ class AppServiceProvider extends ServiceProvider
         // Register observers
         Review::observe(ReviewObserver::class);
         User::observe(UserObserver::class);
+
+        // Admin portal hardening (laravel-admin registers its middleware in register())
+        $router = $this->app['router'];
+        $router->aliasMiddleware('admin.log', \App\Http\Middleware\AdminLogOperation::class);
+        $router->aliasMiddleware('admin.staff', \App\Http\Middleware\AdminStaffOnly::class);
+        $router->pushMiddlewareToGroup('admin', 'admin.staff');
     }
 }

@@ -5,5 +5,7 @@
 .env
 .env_1
 
-/public/storage/
+/public/storage/*
+!/public/storage/.htaccess
 storage/logs/laravel.log
+ssh-credentials.txt

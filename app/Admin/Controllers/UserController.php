@@ -216,6 +216,7 @@ class UserController extends AdminController
     protected function form()
     {
         $form = new Form(new User());
+        $this->guardSuperAdminRoleAssignment($form);
         $this->addIpFieldToForm($form);
 
         $form->hidden('user_type')->default('Customer');
@@ -279,7 +280,7 @@ class UserController extends AdminController
             $rolesQuery = $roleModel && class_exists($roleModel) ? $roleModel::query() : null;
             if ($rolesQuery) {
                 if (!$this->isSuperAdmin()) {
-                    $rolesQuery->where('slug', '!=', 'super_admin');
+                    $rolesQuery->whereNotIn('slug', $this->superAdminRoleSlugs());
                 }
                 $row->width(6)->multipleSelect('roles', 'Roles')
                     ->options($rolesQuery->pluck('name', 'id'))

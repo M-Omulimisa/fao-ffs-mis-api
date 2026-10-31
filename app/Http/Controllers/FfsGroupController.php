@@ -238,8 +238,8 @@ class FfsGroupController extends Controller
     public function getSubcounties($districtId)
     {
         try {
-            $subcounties = Location::where('type', 'Subcounty')
-                ->where('parent_id', $districtId)
+            // locations has no parent_id column: children reference their parent via `parent`
+            $subcounties = Location::where('parent', $districtId)
                 ->orderBy('name')
                 ->get(['id', 'name']);
 
@@ -262,8 +262,7 @@ class FfsGroupController extends Controller
     public function getParishes($subcountyId)
     {
         try {
-            $parishes = Location::where('type', 'Parish')
-                ->where('parent_id', $subcountyId)
+            $parishes = Location::where('parent', $subcountyId)
                 ->orderBy('name')
                 ->get(['id', 'name']);
 

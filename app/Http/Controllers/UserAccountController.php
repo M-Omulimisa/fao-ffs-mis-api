@@ -93,13 +93,20 @@ class UserAccountController extends Controller
     public function getAllUsersWithBalances(Request $request)
     {
         try {
-            // Get all users with their account balances
+            // One aggregate query instead of two queries per user
+            $totals = AccountTransaction::selectRaw('user_id, SUM(amount) as balance_sum, COUNT(*) as tx_count')
+                ->groupBy('user_id')
+                ->get()
+                ->keyBy('user_id');
+
             $users = User::select('id', 'name', 'email', 'phone_number', 'created_at')
                 ->get()
-                ->map(function ($user) {
-                    $balance = AccountTransaction::where('user_id', $user->id)->sum('amount');
-                    $transactionCount = AccountTransaction::where('user_id', $user->id)->count();
-                    
+                ->map(function ($user) use ($totals) {
+                    $row = $totals->get($user->id);
+                    // Same values as ->sum() / ->count(): 0 when the user has no transactions
+                    $balance = $row ? ($row->balance_sum ?: 0) : 0;
+                    $transactionCount = $row ? (int) $row->tx_count : 0;
+
                     return [
                         'id' => $user->id,
                         'name' => $user->name,

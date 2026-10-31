@@ -45,6 +45,7 @@ class AdminUserController extends AdminController
 
     private const ROLE_COLOURS = [
         'super_admin'      => 'danger',
+        'administrator'    => 'danger',
         'ip_manager'       => 'primary',
         'me_officer'       => 'info',
         'content_manager'  => 'warning',
@@ -465,6 +466,7 @@ class AdminUserController extends AdminController
     protected function form()
     {
         $form         = new Form(new User());
+        $this->guardSuperAdminRoleAssignment($form);
         $isSuperAdmin = $this->isSuperAdmin();
         $adminUser    = Admin::user();
         $adminIpId    = $isSuperAdmin ? null : ($adminUser ? (int) $adminUser->ip_id : null);
@@ -549,7 +551,7 @@ class AdminUserController extends AdminController
             if ($roleModel && class_exists($roleModel)) {
                 $rolesQuery = $roleModel::query()->whereNotIn('slug', ['farmer_member']);
                 if (!$isSuperAdmin) {
-                    $rolesQuery->where('slug', '!=', 'super_admin');
+                    $rolesQuery->whereNotIn('slug', $this->superAdminRoleSlugs());
                 }
             }
 
@@ -707,7 +709,7 @@ class AdminUserController extends AdminController
                 admin_toastr('Access denied.', 'error');
                 return redirect(admin_url('admin-users'));
             }
-            if ($this->userHasRoleSlug($user, 'super_admin')) {
+            if (($this->userHasRoleSlug($user, 'super_admin') || $this->userHasRoleSlug($user, 'administrator'))) {
                 admin_toastr('Access denied: you cannot change a Super Admin password.', 'error');
                 return redirect(admin_url('admin-users'));
             }
@@ -796,7 +798,7 @@ HTML;
                 admin_toastr('Access denied.', 'error');
                 return redirect(admin_url('admin-users'));
             }
-            if ($this->userHasRoleSlug($user, 'super_admin')) {
+            if (($this->userHasRoleSlug($user, 'super_admin') || $this->userHasRoleSlug($user, 'administrator'))) {
                 admin_toastr('Access denied: cannot change a Super Admin password.', 'error');
                 return redirect(admin_url('admin-users'));
             }
@@ -862,7 +864,7 @@ HTML;
                 return redirect(admin_url('admin-users'));
             }
             // IP Managers cannot deactivate super admins
-            if ($this->userHasRoleSlug($user, 'super_admin')) {
+            if (($this->userHasRoleSlug($user, 'super_admin') || $this->userHasRoleSlug($user, 'administrator'))) {
                 admin_toastr('Access denied: you cannot modify a Super Admin account.', 'error');
                 return redirect(admin_url('admin-users'));
             }
@@ -893,7 +895,7 @@ HTML;
                 admin_toastr('Access denied.', 'error');
                 return redirect(admin_url('admin-users'));
             }
-            if ($this->userHasRoleSlug($user, 'super_admin')) {
+            if (($this->userHasRoleSlug($user, 'super_admin') || $this->userHasRoleSlug($user, 'administrator'))) {
                 admin_toastr('Access denied: you cannot reset a Super Admin password.', 'error');
                 return redirect(admin_url('admin-users'));
             }

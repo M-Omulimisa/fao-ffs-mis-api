@@ -14,6 +14,7 @@ use Encore\Admin\Auth\Database\Administrator as BaseAdministrator;
 class Administrator extends BaseAdministrator
 {
     use \App\Traits\TitleCase;
+    use \App\Traits\HidesSecretsInApi;
 
     // ── Critical field protection mutators ────────────────────────────────────
     // These prevent username, email, name, phone_number from being wiped to null

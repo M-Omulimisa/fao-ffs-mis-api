@@ -13,6 +13,7 @@ use App\Http\Controllers\DisbursementController;
 use App\Http\Controllers\AccountTransactionController;
 use App\Http\Controllers\UserAccountController;
 use App\Http\Middleware\EnsureTokenIsValid;
+use App\Http\Middleware\EnsureApiAdmin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -52,14 +53,14 @@ Route::post("users/update-profile", [ApiResurceController::class, 'users_update_
 // ========================================
 Route::get('weather/forecast', [WeatherController::class, 'getForecast']);
 
-Route::post("account-verification", [ApiResurceController::class, 'account_verification']);
-Route::post("password-change", [ApiResurceController::class, 'password_change']);
+Route::post("account-verification", [ApiResurceController::class, 'account_verification'])->middleware(EnsureTokenIsValid::class);
+Route::post("password-change", [ApiResurceController::class, 'password_change'])->middleware(EnsureTokenIsValid::class);
 Route::post("update-profile", [ApiResurceController::class, 'update_profile'])->middleware(EnsureTokenIsValid::class);
 Route::post("profile-update-comprehensive", [ApiResurceController::class, 'profile_update_comprehensive'])->middleware(EnsureTokenIsValid::class);
-Route::post("delete-account", [ApiResurceController::class, 'delete_profile']);
-Route::post("become-vendor", [ApiResurceController::class, 'become_vendor']);
+Route::post("delete-account", [ApiResurceController::class, 'delete_profile'])->middleware(EnsureTokenIsValid::class);
+Route::post("become-vendor", [ApiResurceController::class, 'become_vendor'])->middleware(EnsureTokenIsValid::class);
 Route::post("post-media-upload", [ApiResurceController::class, 'upload_media']);
-Route::post("cancel-order", [ApiResurceController::class, "orders_cancel"]);
+Route::post("cancel-order", [ApiResurceController::class, "orders_cancel"])->middleware(EnsureTokenIsValid::class);
 Route::post("orders", [ApiResurceController::class, "orders_submit"]);
 Route::post("orders-create", [ApiResurceController::class, "orders_create"]);
 Route::post("orders-with-payment", [ApiResurceController::class, "orders_with_payment"]);
@@ -81,9 +82,9 @@ Route::get("locations/{id}", [ApiResurceController::class, "location_details"]);
 Route::get("categories", [ApiResurceController::class, "categories"]);
 Route::get('products', [ApiResurceController::class, 'products']);
 Route::get('products-1', [ApiResurceController::class, 'products_1']);
-Route::post('products-update', [ApiResurceController::class, 'products_update']);
-Route::post('products-delete', [ApiResurceController::class, 'products_delete']);
-Route::post('images-delete', [ApiResurceController::class, 'images_delete']);
+Route::post('products-update', [ApiResurceController::class, 'products_update'])->middleware(EnsureTokenIsValid::class);
+Route::post('products-delete', [ApiResurceController::class, 'products_delete'])->middleware(EnsureTokenIsValid::class);
+Route::post('images-delete', [ApiResurceController::class, 'images_delete'])->middleware(EnsureTokenIsValid::class);
 Route::post('chat-start', [ApiResurceController::class, 'chat_start']);
 Route::post('chat-send', [ApiResurceController::class, 'chat_send']);
 Route::post('chat-mark-as-read', [ApiResurceController::class, 'chat_mark_as_read']);
@@ -511,7 +512,7 @@ use App\Http\Controllers\InvestmentTransactionController;
 
 Route::prefix('universal-payments')->group(function () {
     // Initialize payment with gateway (creates payment + initializes Pesapal/Stripe etc)
-    Route::post('/initialize', [UniversalPaymentController::class, 'initialize']);
+    Route::post('/initialize', [UniversalPaymentController::class, 'initialize'])->middleware(EnsureTokenIsValid::class);
 
     // Payment callbacks (from Pesapal, Stripe, etc)
     Route::get('/callback', [UniversalPaymentController::class, 'handleCallback']);
@@ -521,22 +522,22 @@ Route::prefix('universal-payments')->group(function () {
     Route::post('/ipn', [UniversalPaymentController::class, 'handleIPN']);
 
     // Check payment status
-    Route::get('/status/{id}', [UniversalPaymentController::class, 'checkStatus']);
+    Route::get('/status/{id}', [UniversalPaymentController::class, 'checkStatus'])->middleware(EnsureTokenIsValid::class);
 
     // Get all payments (with filters)
-    Route::get('/', [UniversalPaymentController::class, 'index']);
+    Route::get('/', [UniversalPaymentController::class, 'index'])->middleware(EnsureTokenIsValid::class);
 
     // Get single payment
-    Route::get('/{id}', [UniversalPaymentController::class, 'show']);
+    Route::get('/{id}', [UniversalPaymentController::class, 'show'])->middleware(EnsureTokenIsValid::class);
 
     // Manually process payment items (for admin/testing)
-    Route::post('/{id}/process', [UniversalPaymentController::class, 'processItems']);
+    Route::post('/{id}/process', [UniversalPaymentController::class, 'processItems'])->middleware(EnsureTokenIsValid::class);
 });
 
 // ========================================
 // Investment Management Routes
 // ========================================
-Route::prefix('investments')->group(function () {
+Route::prefix('investments')->middleware(EnsureTokenIsValid::class)->group(function () {
     // Dashboard with summary, portfolio breakdown, and performance metrics
     Route::get('/dashboard', [InvestmentController::class, 'getDashboard']);
 
@@ -553,7 +554,7 @@ Route::prefix('investments')->group(function () {
 // ========================================
 // Investment Transaction CRUD Routes (Admin)
 // ========================================
-Route::prefix('investment-transactions')->group(function () {
+Route::prefix('investment-transactions')->middleware(EnsureTokenIsValid::class)->group(function () {
     // Get list with filtering, sorting, pagination
     Route::get('/', [InvestmentTransactionController::class, 'index']);
 
@@ -564,19 +565,19 @@ Route::prefix('investment-transactions')->group(function () {
     Route::get('/{id}', [InvestmentTransactionController::class, 'show']);
 
     // Create new transaction (Profit or Expense)
-    Route::post('/', [InvestmentTransactionController::class, 'store']);
+    Route::post('/', [InvestmentTransactionController::class, 'store'])->middleware(EnsureApiAdmin::class);
 
     // Update transaction
-    Route::put('/{id}', [InvestmentTransactionController::class, 'update']);
+    Route::put('/{id}', [InvestmentTransactionController::class, 'update'])->middleware(EnsureApiAdmin::class);
 
     // Delete transaction
-    Route::delete('/{id}', [InvestmentTransactionController::class, 'destroy']);
+    Route::delete('/{id}', [InvestmentTransactionController::class, 'destroy'])->middleware(EnsureApiAdmin::class);
 });
 
 // ========================================
 // Disbursement CRUD Routes (Admin)
 // ========================================
-Route::prefix('disbursements')->group(function () {
+Route::prefix('disbursements')->middleware(EnsureTokenIsValid::class)->group(function () {
     // Get list with filtering, sorting, pagination
     Route::get('/', [DisbursementController::class, 'index']);
 
@@ -587,19 +588,19 @@ Route::prefix('disbursements')->group(function () {
     Route::get('/{id}', [DisbursementController::class, 'show']);
 
     // Create new disbursement (auto-distributes to investors)
-    Route::post('/', [DisbursementController::class, 'store']);
+    Route::post('/', [DisbursementController::class, 'store'])->middleware(EnsureApiAdmin::class);
 
     // Update disbursement (limited fields)
-    Route::put('/{id}', [DisbursementController::class, 'update']);
+    Route::put('/{id}', [DisbursementController::class, 'update'])->middleware(EnsureApiAdmin::class);
 
     // Delete disbursement
-    Route::delete('/{id}', [DisbursementController::class, 'destroy']);
+    Route::delete('/{id}', [DisbursementController::class, 'destroy'])->middleware(EnsureApiAdmin::class);
 });
 
 // ========================================
 // Account Transaction CRUD Routes
 // ========================================
-Route::prefix('account-transactions')->group(function () {
+Route::prefix('account-transactions')->middleware(EnsureTokenIsValid::class)->group(function () {
     // Get list with filtering, sorting, pagination
     Route::get('/', [AccountTransactionController::class, 'index']);
 
@@ -607,10 +608,10 @@ Route::prefix('account-transactions')->group(function () {
     Route::get('/{id}', [AccountTransactionController::class, 'show']);
 
     // Create new account transaction (withdrawal/deposit)
-    Route::post('/', [AccountTransactionController::class, 'store']);
+    Route::post('/', [AccountTransactionController::class, 'store'])->middleware(EnsureApiAdmin::class);
 
     // Delete account transaction (manual only)
-    Route::delete('/{id}', [AccountTransactionController::class, 'destroy']);
+    Route::delete('/{id}', [AccountTransactionController::class, 'destroy'])->middleware(EnsureApiAdmin::class);
 });
 
 // ========================================
@@ -618,7 +619,7 @@ Route::prefix('account-transactions')->group(function () {
 // ========================================
 use App\Http\Controllers\WithdrawRequestController;
 
-Route::prefix('withdraw-requests')->group(function () {
+Route::prefix('withdraw-requests')->middleware(EnsureTokenIsValid::class)->group(function () {
     // Get user's balance and withdrawal summary
     Route::get('/balance', [WithdrawRequestController::class, 'getBalance']);
 
@@ -638,15 +639,15 @@ Route::prefix('withdraw-requests')->group(function () {
 // ========================================
 // User Account Dashboard Routes
 // ========================================
-Route::prefix('user-accounts')->group(function () {
+Route::prefix('user-accounts')->middleware(EnsureTokenIsValid::class)->group(function () {
     // Get logged-in user's account dashboard
     Route::get('/dashboard', [UserAccountController::class, 'getUserAccountDashboard']);
 
     // Get all users with balances (admin only)
-    Route::get('/users-list', [UserAccountController::class, 'getAllUsersWithBalances']);
+    Route::get('/users-list', [UserAccountController::class, 'getAllUsersWithBalances'])->middleware(EnsureApiAdmin::class);
 
     // Get specific user's dashboard (admin viewing)
-    Route::get('/user-dashboard/{userId}', [UserAccountController::class, 'getUserDashboard']);
+    Route::get('/user-dashboard/{userId}', [UserAccountController::class, 'getUserDashboard'])->middleware(EnsureApiAdmin::class);
 });
 
 // ========================================
@@ -656,7 +657,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\ManifestController;
 use Illuminate\Support\Facades\DB;
 
-Route::prefix('dashboard')->group(function () {
+Route::prefix('dashboard')->middleware(EnsureTokenIsValid::class)->group(function () {
     // Get main dashboard data (home tab)
     Route::get('/main', [DashboardController::class, 'getMainDashboard']);
 
@@ -672,14 +673,6 @@ Route::prefix('dashboard')->group(function () {
     // Get my account overview (my account tab)
     Route::get('/my-account-overview', [DashboardController::class, 'getMyAccountOverview']);
     
-    // Debug endpoint for projects
-    Route::get('/debug-projects', function() {
-        $projects = App\Models\Project::all(['id', 'title', 'status', 'total_shares', 'shares_sold']);
-        return response()->json([
-            'total' => $projects->count(),
-            'projects' => $projects
-        ]);
-    });
 });
 
 // ========================================
@@ -752,23 +745,23 @@ Route::post('/fix-project-shares', function() {
 
 // Insurance Users (System Users with user_type = 'Customer')
 // Using ApiResurceController since InsuranceUserController was eliminated
-Route::get('insurance-users', [ApiResurceController::class, 'insurance_users']); // List all insurance users (customers)
-Route::get('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_show']); // Get single insurance user by ID
-Route::put('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_update']); // Update insurance user
-Route::patch('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_update']); // Update insurance user (alternative)
-Route::post('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_update']); // Update via POST with _method
-Route::delete('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_delete']); // Delete insurance user
+Route::get('insurance-users', [ApiResurceController::class, 'insurance_users'])->middleware([EnsureTokenIsValid::class, EnsureApiAdmin::class]); // List all insurance users (customers)
+Route::get('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_show'])->middleware([EnsureTokenIsValid::class, EnsureApiAdmin::class]); // Get single insurance user by ID
+Route::put('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_update'])->middleware([EnsureTokenIsValid::class, EnsureApiAdmin::class]); // Update insurance user
+Route::patch('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_update'])->middleware([EnsureTokenIsValid::class, EnsureApiAdmin::class]); // Update insurance user (alternative)
+Route::post('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_update'])->middleware([EnsureTokenIsValid::class, EnsureApiAdmin::class]); // Update via POST with _method
+Route::delete('insurance-users/{id}', [ApiResurceController::class, 'insurance_user_delete'])->middleware([EnsureTokenIsValid::class, EnsureApiAdmin::class]); // Delete insurance user
 
 // Membership Payment Routes
-Route::post('membership-payment', [ApiResurceController::class, 'membership_payment_create']); // Initiate membership payment
+Route::post('membership-payment', [ApiResurceController::class, 'membership_payment_create'])->middleware(EnsureTokenIsValid::class); // Initiate membership payment
 Route::get('membership-status', [ApiResurceController::class, 'membership_status']); // Check user's membership status
 Route::get('membership-check', [ApiResurceController::class, 'membership_check']); // Safe check without billing (read-only)
-Route::post('membership-payment/confirm', [ApiResurceController::class, 'membership_payment_confirm']); // Confirm payment
+Route::post('membership-payment/confirm', [ApiResurceController::class, 'membership_payment_confirm'])->middleware([EnsureTokenIsValid::class, EnsureApiAdmin::class]); // Confirm payment
 Route::get('membership-benefits', [ApiResurceController::class, 'membership_benefits']); // Get membership benefits
-Route::get('membership-payments', [ApiResurceController::class, 'membership_payments_list']); // List user's membership payments
+Route::get('membership-payments', [ApiResurceController::class, 'membership_payments_list'])->middleware(EnsureTokenIsValid::class); // List user's membership payments
 
 // Transactions (Savings/Withdrawals) CRUD Routes
-Route::prefix('transactions')->group(function () {
+Route::prefix('transactions')->middleware([EnsureTokenIsValid::class, EnsureApiAdmin::class])->group(function () {
     Route::get('/', [TransactionController::class, 'index']); // List all transactions
     Route::get('/stats', [TransactionController::class, 'stats']); // Get statistics
     Route::get('/user/{userId}/balance', [TransactionController::class, 'getUserBalance']); // Get user balance
@@ -781,43 +774,43 @@ Route::prefix('transactions')->group(function () {
 });
 
 // Insurance Programs CRUD Routes
-Route::prefix('insurance-programs')->group(function () {
+Route::prefix('insurance-programs')->middleware(EnsureTokenIsValid::class)->group(function () {
     Route::get('/', [App\Http\Controllers\InsuranceProgramController::class, 'index']); // List all insurance programs
     Route::get('/stats', [App\Http\Controllers\InsuranceProgramController::class, 'stats']); // Get statistics
     Route::get('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'show']); // Get single insurance program
-    Route::post('/', [App\Http\Controllers\InsuranceProgramController::class, 'store']); // Create new insurance program
-    Route::put('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'update']); // Update insurance program
-    Route::patch('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'update']); // Update insurance program (alternative)
-    Route::delete('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'destroy']); // Delete insurance program
-    Route::post('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'update']); // Update via POST with _method
+    Route::post('/', [App\Http\Controllers\InsuranceProgramController::class, 'store'])->middleware(EnsureApiAdmin::class); // Create new insurance program
+    Route::put('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'update'])->middleware(EnsureApiAdmin::class); // Update insurance program
+    Route::patch('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'update'])->middleware(EnsureApiAdmin::class); // Update insurance program (alternative)
+    Route::delete('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'destroy'])->middleware(EnsureApiAdmin::class); // Delete insurance program
+    Route::post('/{id}', [App\Http\Controllers\InsuranceProgramController::class, 'update'])->middleware(EnsureApiAdmin::class); // Update via POST with _method
 });
 
 // Insurance Subscriptions CRUD Routes
-Route::prefix('insurance-subscriptions')->group(function () {
+Route::prefix('insurance-subscriptions')->middleware(EnsureTokenIsValid::class)->group(function () {
     Route::get('/', [App\Http\Controllers\InsuranceSubscriptionController::class, 'index']); // List all insurance subscriptions
     Route::get('/user/{userId}', [App\Http\Controllers\InsuranceSubscriptionController::class, 'getUserSubscription']); // Get user's active subscription
     Route::get('/{id}', [App\Http\Controllers\InsuranceSubscriptionController::class, 'show']); // Get single insurance subscription
     Route::post('/', [App\Http\Controllers\InsuranceSubscriptionController::class, 'store']); // Create new insurance subscription
     Route::put('/{id}', [App\Http\Controllers\InsuranceSubscriptionController::class, 'update']); // Update insurance subscription
     Route::patch('/{id}', [App\Http\Controllers\InsuranceSubscriptionController::class, 'update']); // Update insurance subscription (alternative)
-    Route::post('/{id}/suspend', [App\Http\Controllers\InsuranceSubscriptionController::class, 'suspend']); // Suspend subscription
-    Route::post('/{id}/activate', [App\Http\Controllers\InsuranceSubscriptionController::class, 'activate']); // Activate suspended subscription
+    Route::post('/{id}/suspend', [App\Http\Controllers\InsuranceSubscriptionController::class, 'suspend'])->middleware(EnsureApiAdmin::class); // Suspend subscription
+    Route::post('/{id}/activate', [App\Http\Controllers\InsuranceSubscriptionController::class, 'activate'])->middleware(EnsureApiAdmin::class); // Activate suspended subscription
     Route::post('/{id}/cancel', [App\Http\Controllers\InsuranceSubscriptionController::class, 'cancel']); // Cancel subscription
-    Route::delete('/{id}', [App\Http\Controllers\InsuranceSubscriptionController::class, 'destroy']); // Delete insurance subscription
+    Route::delete('/{id}', [App\Http\Controllers\InsuranceSubscriptionController::class, 'destroy'])->middleware(EnsureApiAdmin::class); // Delete insurance subscription
     Route::post('/{id}', [App\Http\Controllers\InsuranceSubscriptionController::class, 'update']); // Update via POST with _method
 });
 
 // Insurance Subscription Payments CRUD Routes
-Route::prefix('insurance-subscription-payments')->group(function () {
+Route::prefix('insurance-subscription-payments')->middleware(EnsureTokenIsValid::class)->group(function () {
     Route::get('/', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'index']); // List all insurance subscription payments
     Route::get('/stats', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'stats']); // Get statistics
     Route::get('/overdue', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'getOverdue']); // Get overdue payments
     Route::get('/user/{userId}', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'getUserPayments']); // Get user payments
     Route::get('/{id}', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'show']); // Get single insurance subscription payment
-    Route::put('/{id}', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'update']); // Update insurance subscription payment
-    Route::patch('/{id}', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'update']); // Update insurance subscription payment (alternative)
-    Route::post('/{id}/pay', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'markAsPaid']); // Mark payment as paid
-    Route::post('/{id}', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'update']); // Update via POST with _method
+    Route::put('/{id}', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'update'])->middleware(EnsureApiAdmin::class); // Update insurance subscription payment
+    Route::patch('/{id}', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'update'])->middleware(EnsureApiAdmin::class); // Update insurance subscription payment (alternative)
+    Route::post('/{id}/pay', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'markAsPaid'])->middleware(EnsureApiAdmin::class); // Mark payment as paid
+    Route::post('/{id}', [App\Http\Controllers\InsuranceSubscriptionPaymentController::class, 'update'])->middleware(EnsureApiAdmin::class); // Update via POST with _method
 });
 
 // ========================================
@@ -825,7 +818,7 @@ Route::prefix('insurance-subscription-payments')->group(function () {
 // ========================================
 use App\Http\Controllers\MedicalServiceRequestController;
 
-Route::prefix('medical-service-requests')->group(function () {
+Route::prefix('medical-service-requests')->middleware(EnsureTokenIsValid::class)->group(function () {
     // List all requests (with filters)
     Route::get('/', [MedicalServiceRequestController::class, 'index']);
 
@@ -849,13 +842,13 @@ Route::prefix('medical-service-requests')->group(function () {
     Route::patch('/{id}', [MedicalServiceRequestController::class, 'update']);
 
     // Review/Approve/Reject request (admin)
-    Route::post('/{id}/review', [MedicalServiceRequestController::class, 'review']);
+    Route::post('/{id}/review', [MedicalServiceRequestController::class, 'review'])->middleware(EnsureApiAdmin::class);
 
     // Cancel request (user)
     Route::post('/{id}/cancel', [MedicalServiceRequestController::class, 'cancel']);
 
     // Delete request
-    Route::delete('/{id}', [MedicalServiceRequestController::class, 'destroy']);
+    Route::delete('/{id}', [MedicalServiceRequestController::class, 'destroy'])->middleware(EnsureApiAdmin::class);
 });
 
 
@@ -866,75 +859,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('ajax', function (Request $r) {
-
-    $_model = trim($r->get('model'));
-    $conditions = [];
-    foreach ($_GET as $key => $v) {
-        if (substr($key, 0, 6) != 'query_') {
-            continue;
-        }
-        $_key = str_replace('query_', "", $key);
-        $conditions[$_key] = $v;
-    }
-
-    if (strlen($_model) < 2) {
-        return [
-            'data' => []
-        ];
-    }
-
-    $model = "App\Models\\" . $_model;
-    $search_by_1 = trim($r->get('search_by_1'));
-    $search_by_2 = trim($r->get('search_by_2'));
-
-    $q = trim($r->get('q'));
-
-    $res_1 = $model::where(
-        $search_by_1,
-        'like',
-        "%$q%"
-    )
-        ->where($conditions)
-        ->limit(20)->get();
-    $res_2 = [];
-
-    if ((count($res_1) < 20) && (strlen($search_by_2) > 1)) {
-        $res_2 = $model::where(
-            $search_by_2,
-            'like',
-            "%$q%"
-        )
-            ->where($conditions)
-            ->limit(20)->get();
-    }
-
-    $data = [];
-    foreach ($res_1 as $key => $v) {
-        $name = "";
-        if (isset($v->name)) {
-            $name = " - " . $v->name;
-        }
-        $data[] = [
-            'id' => $v->id,
-            'text' => "#$v->id" . $name
-        ];
-    }
-    foreach ($res_2 as $key => $v) {
-        $name = "";
-        if (isset($v->name)) {
-            $name = " - " . $v->name;
-        }
-        $data[] = [
-            'id' => $v->id,
-            'text' => "#$v->id" . $name
-        ];
-    }
-
-    return [
-        'data' => $data
-    ];
-});
+// GET api/ajax (generic model search over any table/column) was removed: it was
+// anonymous and allowed probing password hashes. Only unrouted legacy screens used it.
 
 // Projects Management API Routes
 Route::prefix('projects')->middleware(EnsureTokenIsValid::class)->group(function () {

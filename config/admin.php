@@ -214,7 +214,8 @@ return [
         /*
          * Only logging allowed methods in the list
          */
-        'allowed_methods' => ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'],
+        // Only changes are worth auditing; page views made this table grow without bound
+        'allowed_methods' => ['POST', 'PUT', 'DELETE', 'PATCH'],
 
         /*
          * Routes that will not log to database.

@@ -39,6 +39,36 @@ trait IpScopeable
      * Is this admin a Super Admin (no IP restriction)?
      * Checks actual role slug rather than ip_id value.
      */
+    /**
+     * Role slugs that grant unscoped (super admin) access.
+     * The real slug is 'administrator'; 'super_admin' is kept for legacy checks.
+     */
+    protected function superAdminRoleSlugs(): array
+    {
+        return ['administrator', 'super_admin'];
+    }
+
+    /**
+     * Server-side guard: strip super admin roles from submitted role ids when
+     * the editor is not a super admin (hiding the option is not enough).
+     */
+    protected function guardSuperAdminRoleAssignment($form): void
+    {
+        $form->saving(function ($form) {
+            if ($this->isSuperAdmin() || $form->input('roles') === null) {
+                return;
+            }
+            $roleModel = config('admin.database.roles_model', \Encore\Admin\Auth\Database\Role::class);
+            $blocked = $roleModel::whereIn('slug', $this->superAdminRoleSlugs())->pluck('id')->map(function ($id) {
+                return (string) $id;
+            })->all();
+            $roles = array_values(array_filter((array) $form->input('roles'), function ($id) use ($blocked) {
+                return $id !== null && $id !== '' && !in_array((string) $id, $blocked, true);
+            }));
+            $form->input('roles', $roles);
+        });
+    }
+
     protected function isSuperAdmin(): bool
     {
         $user = Admin::user();
