@@ -2903,7 +2903,8 @@ class ApiResurceController extends Controller
         // Generic reads are limited to harmless reference data. Previously any
         // model (users with password hashes, the ledger, ...) could be listed.
         if (!class_exists($className) || !in_array($modelClassName, self::GENERIC_READABLE_MODELS, true)) {
-            return Utils::response([
+            return response()->json([
+                'code' => 0,
                 'status' => 0,
                 'message' => "Model not found: " . $modelClassName,
             ]);
@@ -2972,7 +2973,7 @@ class ApiResurceController extends Controller
         $u = Administrator::find($administrator_id);
 
         if ($u == null) {
-            return Utils::response([
+            return response()->json([
                 'code' => 0,
                 'message' => "User not found.",
             ]);
@@ -2985,7 +2986,7 @@ class ApiResurceController extends Controller
 
 
         if ($obj == null) {
-            return Utils::response([
+            return response()->json([
                 'code' => 0,
                 'message' => "Item already deleted.",
             ]);
@@ -3003,13 +3004,13 @@ class ApiResurceController extends Controller
 
 
         if ($success) {
-            return Utils::response([
+            return response()->json([
                 'code' => 1,
                 'data' => $obj,
                 'message' => $msg
             ]);
         } else {
-            return Utils::response([
+            return response()->json([
                 'code' => 0,
                 'data' => null,
                 'message' => $msg
@@ -3022,7 +3023,7 @@ class ApiResurceController extends Controller
     {
         // Generic create/update of any model by any caller was a mass-assignment
         // hole (users, ledger rows, ...). No live app screen writes through it.
-        return Utils::response([
+        return response()->json([
             'code' => 0,
             'message' => "This endpoint is no longer available.",
         ]);

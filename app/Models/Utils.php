@@ -370,7 +370,7 @@ class Utils extends Model
     }
 
 
-    public static function get_user(Request $r)
+    public static function get_user(\Illuminate\Http\Request $r)
     {
 
 
@@ -1168,7 +1168,7 @@ class Utils extends Model
         if ($num < 2) {
             $resp .= " " . $unit;
         } else {
-            $resp .= " " . Str::plural($unit);
+            $resp .= " " . \Illuminate\Support\Str::plural($unit);
         }
         return $resp;
     }
